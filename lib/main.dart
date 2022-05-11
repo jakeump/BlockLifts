@@ -7,6 +7,7 @@ void main() {
 }
 
 List<Workout> allWorkouts = []; // global list of workouts
+List<IndivWorkout> allIndivWorkouts = []; // global list of each indiv workout
 
 // should probably be an ordered set
 List<Exercise> allExercises = []; // global list of exercises
@@ -49,20 +50,24 @@ class Exercise {
 
   List<String> exercisesCompleted = [];
   List<int> repsCompleted = [];
-  // could probably also have a list of repscompleted per workout
-  // and a string of workout orders
-  // then the edit page will just use that string and list of repscompleted (sets is length of repscompleted)
-  // this would preven tneeding a new individual exercise class
-  // and also a list of weights lifted, one element for each workout
-  late List<List<int>> allRepsCompleted;
-  // so after each workout, allRepsCompleted.add(repsCompleted)
-  late List<List<String>> allExercisesCompleted;
-  // and when building the edit workout page screen, just loop through each workout to find an index that works
-  // and it will take you to the appropriate edit exercise page
 
   int failed =
       0; // EACH TIME FAILED, ADD ONE TO EXERCISE. IF EXERCISE HAS X NUMBER OF FAILURES IN A ROW, DECREASE WEIGHT
   Exercise(this.name);
+}
+
+// used for the edit page, stores all relevant single-workout data
+class IndivWorkout {
+  String name;
+  String date;
+  List<String> exercisesCompleted;
+  List<double> weights;
+  List<int> repsPlanned;
+  List<int> setsPlanned;
+  List<List<int>> repsCompleted;
+
+  IndivWorkout(this.name, this.date, this.exercisesCompleted, this.weights,
+      this.repsPlanned, this.setsPlanned, this.repsCompleted);
 }
 
 class MyApp extends StatelessWidget {
@@ -256,7 +261,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// ADD COUNTER NOT 0 FOR THE INDEX TO WORKOUT PAGE
 class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
@@ -294,7 +298,7 @@ class _HomeState extends State<Home> {
         body: Container(
           padding: const EdgeInsets.all(10),
           constraints: const BoxConstraints(
-            maxHeight: 680,
+            maxHeight: 740,
           ),
           child: Column(children: <Widget>[
             Flexible(
@@ -305,107 +309,219 @@ class _HomeState extends State<Home> {
                     for (int i = counter; i < allWorkouts.length; i++)
                       Column(children: <Widget>[
                         GestureDetector(
-                          onTap: () {
-                            for (int k = 0; k < allWorkouts[i].exercises.length; ++k) {
-                              for (int j = 0; j < allWorkouts[i].exercises[k].sets; j++) {
-                                // repsCompleted initialized with initial reps value
-                                allWorkouts[i]
-                                    .exercises[k]
-                                    .repsCompleted
-                                    .add(allWorkouts[i].exercises[k].reps + 1);
+                            onTap: () {
+                              for (int k = 0;
+                                  k < allWorkouts[i].exercises.length;
+                                  ++k) {
+                                for (int j = 0;
+                                    j < allWorkouts[i].exercises[k].sets;
+                                    j++) {
+                                  // repsCompleted initialized with initial reps value
+                                  allWorkouts[i].exercises[k].repsCompleted.add(
+                                      allWorkouts[i].exercises[k].reps + 1);
+                                }
                               }
-                            }
-                            Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) =>
-                                WorkoutPage(i))).then((value) {
-                                            setState(() {});
-                                });},
-                        child: Container(
-                            height: 220,
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              border: i == counter ? Border.all(color: Colors.red) 
-                                : Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(6),
-                              color: widgetNavColor,
-                            ),
-                            alignment: Alignment.topLeft,
-                            child: Column(
-                              children: [
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    allWorkouts[i].name,
-                                    style: const TextStyle(
-                                      fontSize: 17,
-                                    )
-                                  ),
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(
+                                      builder: (context) => WorkoutPage(i)))
+                                  .then((value) {
+                                setState(() {});
+                              });
+                            },
+                            child: Container(
+                                height: 235,
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  border: i == counter
+                                      ? Border.all(color: Colors.red)
+                                      : Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(6),
+                                  color: widgetNavColor,
                                 ),
-                                const Divider(height: 25, color: Colors.transparent),
-                                SizedBox(
-                                  height: 147,
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.vertical,
-                                    child: Column(
-                                        children: [                                               
-                                        for (int j = 0; j < allWorkouts[i].exercises.length; j++)
-                                          Column( children: <Widget>[                                 
-                                            Row(children: <Widget>[
-                                              Expanded(
-                                                child: Align(
-                                                  alignment: Alignment.centerLeft,
-                                                  child: Text(
-                                                    allWorkouts[i].exercises[j].name,
-                                                    style: const TextStyle(
-                                                      fontSize: 17,
-                                                    )
-                                                  ),
-                                                ),
-                                              ),
-                                              if (allWorkouts[i].exercises[j].weight % 1 == 0)
-                                                Flexible(
-                                                  child: Align(alignment: Alignment.centerRight,
+                                alignment: Alignment.topLeft,
+                                child: Column(
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(allWorkouts[i].name,
+                                          style: const TextStyle(
+                                            fontSize: 17,
+                                          )),
+                                    ),
+                                    const Divider(
+                                        height: 20, color: Colors.transparent),
+                                    SizedBox(
+                                      height: 167,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.vertical,
+                                        child: Column(children: [
+                                          for (int j = 0;
+                                              j <
+                                                  allWorkouts[i]
+                                                      .exercises
+                                                      .length;
+                                              j++)
+                                            Column(children: <Widget>[
+                                              Row(children: <Widget>[
+                                                Expanded(
+                                                  child: Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
                                                     child: Text(
-                                                        "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight ~/ 1}lb",
+                                                        allWorkouts[i]
+                                                            .exercises[j]
+                                                            .name,
                                                         style: const TextStyle(
                                                           fontSize: 17,
-                                                        ))))
-                                              else
-                                                Expanded(
-                                                  child: Align(alignment: Alignment.centerRight,
-                                                    child: Text(
-                                                        "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight.toString()}lb",
-                                                        style: const TextStyle(
-                                                            fontSize: 17)))),
-                                            ]),                                               
-                                          const Divider(height: 25, color: Colors.transparent),
-                                          ]
-                                    )]),
+                                                        )),
+                                                  ),
+                                                ),
+                                                if (allWorkouts[i]
+                                                            .exercises[j]
+                                                            .weight %
+                                                        1 ==
+                                                    0)
+                                                  Flexible(
+                                                      child: Align(
+                                                          alignment: Alignment
+                                                              .centerRight,
+                                                          child: Text(
+                                                              "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight ~/ 1}lb",
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontSize: 17,
+                                                              ))))
+                                                else
+                                                  Expanded(
+                                                      child: Align(
+                                                          alignment: Alignment
+                                                              .centerRight,
+                                                          child: Text(
+                                                              "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight.toString()}lb",
+                                                              style:
+                                                                  const TextStyle(
+                                                                      fontSize:
+                                                                          17)))),
+                                              ]),
+                                              const Divider(
+                                                  height: 25,
+                                                  color: Colors.transparent),
+                                            ])
+                                        ]),
+                                      ),
                                     ),
-                                  ),
-                              ],
-                            ))),
+                                  ],
+                                ))),
                         const Divider(height: 5, color: Colors.transparent),
                       ]),
                     for (int i = 0; i < counter; i++)
                       Column(children: <Widget>[
-                        Container(
-                            height: 220,
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.red),
-                              borderRadius: BorderRadius.circular(6),
-                              color: widgetNavColor,
-                            ),
-                            alignment: Alignment.topLeft,
-                            child: Column(
-                              children: [
-                                Text(allWorkouts[i].name),
-                              ],
-                            )),
-                        const Divider(height: 5),
-                      ]
-                      ),
+                        GestureDetector(
+                            onTap: () {
+                              for (int k = 0;
+                                  k < allWorkouts[i].exercises.length;
+                                  ++k) {
+                                for (int j = 0;
+                                    j < allWorkouts[i].exercises[k].sets;
+                                    j++) {
+                                  // repsCompleted initialized with initial reps value
+                                  allWorkouts[i].exercises[k].repsCompleted.add(
+                                      allWorkouts[i].exercises[k].reps + 1);
+                                }
+                              }
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(
+                                      builder: (context) => WorkoutPage(i)))
+                                  .then((value) {
+                                setState(() {});
+                              });
+                            },
+                            child: Container(
+                                height: 235,
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  border: i == counter
+                                      ? Border.all(color: Colors.red)
+                                      : Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(6),
+                                  color: widgetNavColor,
+                                ),
+                                alignment: Alignment.topLeft,
+                                child: Column(
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(allWorkouts[i].name,
+                                          style: const TextStyle(
+                                            fontSize: 17,
+                                          )),
+                                    ),
+                                    const Divider(
+                                        height: 20, color: Colors.transparent),
+                                    SizedBox(
+                                      height: 167,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.vertical,
+                                        child: Column(children: [
+                                          for (int j = 0;
+                                              j <
+                                                  allWorkouts[i]
+                                                      .exercises
+                                                      .length;
+                                              j++)
+                                            Column(children: <Widget>[
+                                              Row(children: <Widget>[
+                                                Expanded(
+                                                  child: Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                        allWorkouts[i]
+                                                            .exercises[j]
+                                                            .name,
+                                                        style: const TextStyle(
+                                                          fontSize: 17,
+                                                        )),
+                                                  ),
+                                                ),
+                                                if (allWorkouts[i]
+                                                            .exercises[j]
+                                                            .weight %
+                                                        1 ==
+                                                    0)
+                                                  Flexible(
+                                                      child: Align(
+                                                          alignment: Alignment
+                                                              .centerRight,
+                                                          child: Text(
+                                                              "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight ~/ 1}lb",
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontSize: 17,
+                                                              ))))
+                                                else
+                                                  Expanded(
+                                                      child: Align(
+                                                          alignment: Alignment
+                                                              .centerRight,
+                                                          child: Text(
+                                                              "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight.toString()}lb",
+                                                              style:
+                                                                  const TextStyle(
+                                                                      fontSize:
+                                                                          17)))),
+                                              ]),
+                                              const Divider(
+                                                  height: 25,
+                                                  color: Colors.transparent),
+                                            ])
+                                        ]),
+                                      ),
+                                    ),
+                                  ],
+                                ))),
+                        const Divider(height: 5, color: Colors.transparent),
+                      ]),
                   ]),
             ),
           ]),
@@ -424,7 +540,9 @@ class _HomeState extends State<Home> {
             onPressed: () {
               // change from 0 to counter (index of first workout that's up)
               for (int i = 0; i < allWorkouts[counter].exercises.length; ++i) {
-                for (int j = 0; j < allWorkouts[counter].exercises[i].sets; j++) {
+                for (int j = 0;
+                    j < allWorkouts[counter].exercises[i].sets;
+                    j++) {
                   // repsCompleted initialized with initial reps value
                   allWorkouts[counter]
                       .exercises[i]
@@ -432,11 +550,12 @@ class _HomeState extends State<Home> {
                       .add(allWorkouts[counter].exercises[i].reps + 1);
                 }
               }
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) =>
-                      WorkoutPage(counter))).then((value) {
-                                  setState(() {});
-                                });
+              Navigator.of(context)
+                  .push(MaterialPageRoute(
+                      builder: (context) => WorkoutPage(counter)))
+                  .then((value) {
+                setState(() {});
+              });
             },
           ),
         ),
@@ -533,11 +652,92 @@ class _ListState extends State<ListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        alignment: Alignment.center,
-        child: const Text('Here is the list page'),
-      ),
-    );
+        body: ListView(
+      padding: const EdgeInsets.all(10),
+      scrollDirection: Axis.vertical,
+      shrinkWrap: true,
+      children: <Widget>[
+        for (int i = allIndivWorkouts.length - 1; i >= 0; i--)
+          Column(children: <Widget>[
+            GestureDetector(
+                onTap: () {
+                  // go to custom edit page
+                },
+                child: Container(
+                    height: 235,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(6),
+                      color: widgetNavColor,
+                    ),
+                    alignment: Alignment.topLeft,
+                    child: Column(
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(allIndivWorkouts[i].name,
+                              style: const TextStyle(
+                                fontSize: 17,
+                              )),
+                        ),
+                        const Divider(height: 20, color: Colors.transparent),
+                        SizedBox(
+                            height: 167,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Column(children: [
+                                for (int j = 0;
+                                    j <
+                                        allIndivWorkouts[i]
+                                            .exercisesCompleted
+                                            .length;
+                                    j++)
+                                  Column(children: <Widget>[
+                                    Row(children: <Widget>[
+                                      Expanded(
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                              allIndivWorkouts[i]
+                                                  .exercisesCompleted[j],
+                                              style: const TextStyle(
+                                                fontSize: 17,
+                                              )),
+                                        ),
+                                      ),
+                                      if (allIndivWorkouts[i].weights[j] % 1 ==
+                                          0)
+                                        Flexible(
+                                            child: Align(
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child: Text(
+                                                    "${allIndivWorkouts[i].setsPlanned[j]}x${allIndivWorkouts[i].repsPlanned[j]} ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
+                                                    style: const TextStyle(
+                                                      fontSize: 17,
+                                                    ))))
+                                      else
+                                        Expanded(
+                                            child: Align(
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child: Text(
+                                                    "${allIndivWorkouts[i].setsPlanned[j]}x${allIndivWorkouts[i].repsPlanned[j]} ${allIndivWorkouts[i].weights[j].toString()}lb",
+                                                    style: const TextStyle(
+                                                        fontSize: 17)))),
+                                    ]),
+                                    const Divider(
+                                        height: 25, color: Colors.transparent),
+                                  ])
+                              ]),
+                            ))
+                      ],
+                    ))),
+            const Divider(height: 5, color: Colors.transparent),
+          ])
+      ],
+    ));
   }
 }
 
@@ -857,6 +1057,56 @@ class _WorkoutPageState extends State<WorkoutPage> {
           backgroundColor: headerColor,
           title: const Text("Workout"),
           titleTextStyle: const TextStyle(fontSize: 22),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                primary: redColor,
+                textStyle:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                alignment: Alignment.center,
+              ),
+              child: const Text("Finish"),
+              onPressed: () {
+                counter == allWorkouts.length - 1
+                    ? counter = 0
+                    : counter++; // loops counter
+
+                String name = allWorkouts[widget.index].name;
+                String date = "date";
+                List<String> exercisesCompleted = [];
+                List<double> weights = [];
+                List<int> repsPlanned = [];
+                List<int> setsPlanned = [];
+                List<List<int>> repsCompleted = [];
+                for (int i = 0;
+                    i < allWorkouts[widget.index].exercises.length;
+                    i++) {
+                  exercisesCompleted
+                      .add(allWorkouts[widget.index].exercises[i].name);
+                  weights.add(allWorkouts[widget.index].exercises[i].weight);
+                  repsPlanned.add(allWorkouts[widget.index].exercises[i].reps);
+                  setsPlanned.add(allWorkouts[widget.index].exercises[i].sets);
+                  repsCompleted.add(
+                      allWorkouts[widget.index].exercises[i].repsCompleted);
+                }
+                allIndivWorkouts.add(IndivWorkout(
+                    name,
+                    date,
+                    exercisesCompleted,
+                    weights,
+                    repsPlanned,
+                    setsPlanned,
+                    repsCompleted));
+
+                Navigator.of(context)
+                    .push(MaterialPageRoute(
+                        builder: (context) => const HomePage()))
+                    .then((value) {
+                  setState(() {});
+                });
+              },
+            ),
+          ],
         ),
         body: Container(
             padding: const EdgeInsets.all(0),
@@ -878,67 +1128,74 @@ class _WorkoutPageState extends State<WorkoutPage> {
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                "  ${allWorkouts[widget.index].exercises[i].name}",
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                )
-                              ),
+                                  "  ${allWorkouts[widget.index].exercises[i].name}",
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                  )),
                             ),
                           ),
                           Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.of(context)
-                                        .push(MaterialPageRoute(
-                                            builder: (context) =>
-                                                EditExercisePage(
-                                                    widget.index, i)))
-                                        .then((value) {
-                                      setState(() {});
-                                    });
-                                  },
-                                  child: Row(children: <Widget>[
-                                    if (allWorkouts[widget.index].exercises[i].weight % 1 == 0)
-                                      Flexible(
-                                        child: Align(alignment: Alignment.centerRight,
-                                          child: Text(
-                                              "${allWorkouts[widget.index].exercises[i].sets}x${allWorkouts[widget.index].exercises[i].reps} ${allWorkouts[widget.index].exercises[i].weight ~/ 1}lb",
-                                              style: const TextStyle(
-                                                fontSize: 17,
-                                              ))))
-                                    else
-                                      Expanded(
-                                        child: Align(alignment: Alignment.centerRight,
-                                          child: Text(
-                                              "${allWorkouts[widget.index].exercises[i].sets}x${allWorkouts[widget.index].exercises[i].reps} ${allWorkouts[widget.index].exercises[i].weight.toString()}lb",
-                                              style: const TextStyle(
-                                                  fontSize: 17)))),
-                                    SizedBox(
-                                      width: 17,
-                                      child: IconButton(
-                                        onPressed: () {
-                                          Navigator.of(context)
-                                              .push(MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      EditExercisePage(
-                                                          widget.index, i)))
-                                              .then((value) {
-                                            setState(() {});
-                                          });
-                                        },
-                                        alignment: Alignment.centerLeft,
-                                        padding: const EdgeInsets.all(0),
-                                        splashColor: Colors.transparent,
-                                        highlightColor: Colors.transparent,
-                                        icon:
-                                            const Icon(Icons.arrow_right_sharp),
-                                        color: redColor,
-                                        iconSize: 20,
-                                      ),
-                                    ),
-                                  ])))),
+                              child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context)
+                                            .push(MaterialPageRoute(
+                                                builder: (context) =>
+                                                    EditExercisePage(
+                                                        widget.index, i)))
+                                            .then((value) {
+                                          setState(() {});
+                                        });
+                                      },
+                                      child: Row(children: <Widget>[
+                                        if (allWorkouts[widget.index]
+                                                    .exercises[i]
+                                                    .weight %
+                                                1 ==
+                                            0)
+                                          Flexible(
+                                              child: Align(
+                                                  alignment:
+                                                      Alignment.centerRight,
+                                                  child: Text(
+                                                      "${allWorkouts[widget.index].exercises[i].sets}x${allWorkouts[widget.index].exercises[i].reps} ${allWorkouts[widget.index].exercises[i].weight ~/ 1}lb",
+                                                      style: const TextStyle(
+                                                        fontSize: 17,
+                                                      ))))
+                                        else
+                                          Expanded(
+                                              child: Align(
+                                                  alignment:
+                                                      Alignment.centerRight,
+                                                  child: Text(
+                                                      "${allWorkouts[widget.index].exercises[i].sets}x${allWorkouts[widget.index].exercises[i].reps} ${allWorkouts[widget.index].exercises[i].weight.toString()}lb",
+                                                      style: const TextStyle(
+                                                          fontSize: 17)))),
+                                        SizedBox(
+                                          width: 17,
+                                          child: IconButton(
+                                            onPressed: () {
+                                              Navigator.of(context)
+                                                  .push(MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          EditExercisePage(
+                                                              widget.index, i)))
+                                                  .then((value) {
+                                                setState(() {});
+                                              });
+                                            },
+                                            alignment: Alignment.centerLeft,
+                                            padding: const EdgeInsets.all(0),
+                                            splashColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
+                                            icon: const Icon(
+                                                Icons.arrow_right_sharp),
+                                            color: redColor,
+                                            iconSize: 20,
+                                          ),
+                                        ),
+                                      ])))),
                         ]),
                         Container(
                           height: 50,
@@ -2319,23 +2576,86 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             ),
                             const SizedBox(width: 20),
                             TextButton(
-                              style: TextButton.styleFrom(
-                                primary: redColor,
-                                textStyle: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                                alignment: Alignment.center,
-                              ),
-                              child: const Text("OK"),
-                              onPressed: () {
-                                allWorkouts[widget.index]
-                                    .exercises[widget.exIndex]
-                                    .sets = int.parse(_myController.text);
-                                setState(() => allWorkouts[widget.index]
-                                    .exercises[widget.exIndex]
-                                    .reps = int.parse(_myController2.text));
-                                Navigator.of(context).pop();
-                              },
-                            ),
+                                style: TextButton.styleFrom(
+                                  primary: redColor,
+                                  textStyle: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                  alignment: Alignment.center,
+                                ),
+                                child: const Text("OK"),
+                                onPressed: () {
+                                  int oldReps = allWorkouts[widget.index]
+                                      .exercises[widget.exIndex]
+                                      .reps;
+                                  int oldSets = allWorkouts[widget.index]
+                                      .exercises[widget.exIndex]
+                                      .reps;
+                                  setState(() => {
+                                        allWorkouts[widget.index]
+                                                .exercises[widget.exIndex]
+                                                .sets =
+                                            int.parse(_myController.text),
+                                        allWorkouts[widget.index]
+                                                .exercises[widget.exIndex]
+                                                .reps =
+                                            int.parse(_myController2.text),
+                                        if (oldSets !=
+                                            allWorkouts[widget.index]
+                                                .exercises[widget.exIndex]
+                                                .sets)
+                                          {
+                                            for (int i = 0;
+                                                i <
+                                                    allWorkouts[widget.index]
+                                                            .exercises[
+                                                                widget.exIndex]
+                                                            .sets -
+                                                        oldSets;
+                                                i++)
+                                              {
+                                                allWorkouts[widget.index]
+                                                    .exercises[widget.exIndex]
+                                                    .repsCompleted
+                                                    .add(allWorkouts[
+                                                                widget.index]
+                                                            .exercises[
+                                                                widget.exIndex]
+                                                            .reps +
+                                                        1)
+                                              },
+                                          },
+                                        if (oldReps !=
+                                            allWorkouts[widget.index]
+                                                .exercises[widget.exIndex]
+                                                .reps)
+                                          {
+                                            allWorkouts[widget.index]
+                                                .exercises[widget.exIndex]
+                                                .repsCompleted
+                                                .clear(),
+                                            for (int j = 0;
+                                                j <
+                                                    allWorkouts[widget.index]
+                                                        .exercises[
+                                                            widget.exIndex]
+                                                        .sets;
+                                                ++j)
+                                              {
+                                                allWorkouts[widget.index]
+                                                    .exercises[widget.exIndex]
+                                                    .repsCompleted
+                                                    .add(allWorkouts[
+                                                                widget.index]
+                                                            .exercises[
+                                                                widget.exIndex]
+                                                            .reps +
+                                                        1),
+                                              },
+                                          }
+                                      });
+                                  Navigator.of(context).pop();
+                                }),
                           ]),
                         ]),
                   ),
