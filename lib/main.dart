@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
@@ -16,6 +17,8 @@ var headerColor = Colors.black;
 var widgetNavColor = const Color.fromARGB(137, 25, 24, 24);
 var redColor = const Color.fromARGB(255, 172, 10, 10);
 int counter = 0;
+
+ValueNotifier<int> _counter = ValueNotifier<int>(0); // to update list page
 
 Exercise customxyz = Exercise("Custom Exercise");
 Workout defaultA = Workout("Stronglifts Default A");
@@ -298,7 +301,7 @@ class _HomeState extends State<Home> {
         body: Container(
           padding: const EdgeInsets.all(10),
           constraints: const BoxConstraints(
-            maxHeight: 740,
+            maxHeight: 690,
           ),
           child: Column(children: <Widget>[
             Flexible(
@@ -329,7 +332,7 @@ class _HomeState extends State<Home> {
                               });
                             },
                             child: Container(
-                                height: 235,
+                                height: 220,
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
                                   border: i == counter
@@ -344,6 +347,8 @@ class _HomeState extends State<Home> {
                                     Align(
                                       alignment: Alignment.centerLeft,
                                       child: Text(allWorkouts[i].name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
                                             fontSize: 17,
                                           )),
@@ -351,7 +356,7 @@ class _HomeState extends State<Home> {
                                     const Divider(
                                         height: 20, color: Colors.transparent),
                                     SizedBox(
-                                      height: 167,
+                                      height: 152,
                                       child: SingleChildScrollView(
                                         scrollDirection: Axis.vertical,
                                         child: Column(children: [
@@ -437,7 +442,7 @@ class _HomeState extends State<Home> {
                               });
                             },
                             child: Container(
-                                height: 235,
+                                height: 220,
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
                                   border: i == counter
@@ -452,6 +457,8 @@ class _HomeState extends State<Home> {
                                     Align(
                                       alignment: Alignment.centerLeft,
                                       child: Text(allWorkouts[i].name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
                                             fontSize: 17,
                                           )),
@@ -459,7 +466,7 @@ class _HomeState extends State<Home> {
                                     const Divider(
                                         height: 20, color: Colors.transparent),
                                     SizedBox(
-                                      height: 167,
+                                      height: 152,
                                       child: SingleChildScrollView(
                                         scrollDirection: Axis.vertical,
                                         child: Column(children: [
@@ -652,92 +659,104 @@ class _ListState extends State<ListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: ListView(
-      padding: const EdgeInsets.all(10),
-      scrollDirection: Axis.vertical,
-      shrinkWrap: true,
-      children: <Widget>[
-        for (int i = allIndivWorkouts.length - 1; i >= 0; i--)
-          Column(children: <Widget>[
-            GestureDetector(
-                onTap: () {
-                  // go to custom edit page
-                },
-                child: Container(
-                    height: 235,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(6),
-                      color: widgetNavColor,
-                    ),
-                    alignment: Alignment.topLeft,
-                    child: Column(
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(allIndivWorkouts[i].name,
-                              style: const TextStyle(
-                                fontSize: 17,
-                              )),
-                        ),
-                        const Divider(height: 20, color: Colors.transparent),
-                        SizedBox(
-                            height: 167,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Column(children: [
-                                for (int j = 0;
-                                    j <
-                                        allIndivWorkouts[i]
-                                            .exercisesCompleted
-                                            .length;
-                                    j++)
-                                  Column(children: <Widget>[
-                                    Row(children: <Widget>[
-                                      Expanded(
-                                        child: Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(
-                                              allIndivWorkouts[i]
-                                                  .exercisesCompleted[j],
-                                              style: const TextStyle(
-                                                fontSize: 17,
-                                              )),
-                                        ),
-                                      ),
-                                      if (allIndivWorkouts[i].weights[j] % 1 ==
-                                          0)
-                                        Flexible(
-                                            child: Align(
-                                                alignment:
-                                                    Alignment.centerRight,
-                                                child: Text(
-                                                    "${allIndivWorkouts[i].setsPlanned[j]}x${allIndivWorkouts[i].repsPlanned[j]} ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
-                                                    style: const TextStyle(
-                                                      fontSize: 17,
-                                                    ))))
-                                      else
-                                        Expanded(
-                                            child: Align(
-                                                alignment:
-                                                    Alignment.centerRight,
-                                                child: Text(
-                                                    "${allIndivWorkouts[i].setsPlanned[j]}x${allIndivWorkouts[i].repsPlanned[j]} ${allIndivWorkouts[i].weights[j].toString()}lb",
-                                                    style: const TextStyle(
-                                                        fontSize: 17)))),
-                                    ]),
+        body: ValueListenableBuilder(
+            valueListenable: _counter,
+            builder: (context, value, child) {
+              return ListView(
+                  padding: const EdgeInsets.all(10),
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  children: <Widget>[
+                    for (int i = allIndivWorkouts.length - 1; i >= 0; i--)
+                      Column(children: <Widget>[
+                        GestureDetector(
+                            onTap: () {
+                              // go to custom edit page
+                            },
+                            child: Container(
+                                height: 220,
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(6),
+                                  color: widgetNavColor,
+                                ),
+                                alignment: Alignment.topLeft,
+                                child: Column(
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(allIndivWorkouts[i].name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 17,
+                                          )),
+                                    ),
                                     const Divider(
-                                        height: 25, color: Colors.transparent),
-                                  ])
-                              ]),
-                            ))
-                      ],
-                    ))),
-            const Divider(height: 5, color: Colors.transparent),
-          ])
-      ],
-    ));
+                                        height: 20, color: Colors.transparent),
+                                    SizedBox(
+                                        height: 152,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.vertical,
+                                          child: Column(children: [
+                                            for (int j = 0;
+                                                j <
+                                                    allIndivWorkouts[i]
+                                                        .exercisesCompleted
+                                                        .length;
+                                                j++)
+                                              Column(children: <Widget>[
+                                                Row(children: <Widget>[
+                                                  Expanded(
+                                                    child: Align(
+                                                      alignment:
+                                                          Alignment.centerLeft,
+                                                      child: Text(
+                                                          allIndivWorkouts[i]
+                                                              .exercisesCompleted[j],
+                                                          style: const TextStyle(
+                                                            fontSize: 17,
+                                                          )),
+                                                    ),
+                                                  ),
+                                                  if (allIndivWorkouts[i]
+                                                              .weights[j] %
+                                                          1 ==
+                                                      0)
+                                                    Flexible(
+                                                        child: Align(
+                                                            alignment: Alignment
+                                                                .centerRight,
+                                                            child: Text(
+                                                                "${allIndivWorkouts[i].setsPlanned[j]}x${allIndivWorkouts[i].repsPlanned[j]} ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
+                                                                style:
+                                                                    const TextStyle(
+                                                                  fontSize: 17,
+                                                                ))))
+                                                  else
+                                                    Expanded(
+                                                        child: Align(
+                                                            alignment: Alignment
+                                                                .centerRight,
+                                                            child: Text(
+                                                                "${allIndivWorkouts[i].setsPlanned[j]}x${allIndivWorkouts[i].repsPlanned[j]} ${allIndivWorkouts[i].weights[j].toString()}lb",
+                                                                style: const TextStyle(
+                                                                    fontSize:
+                                                                        17)))),
+                                                ]),
+                                                const Divider(
+                                                    height: 25,
+                                                    color: Colors.transparent),
+                                              ])
+                                          ]),
+                                        ))
+                                  ],
+                                ))),
+                        const Divider(height: 5, color: Colors.transparent),
+                      ])
+                  ]);
+            }));
   }
 }
 
@@ -1042,9 +1061,6 @@ class _EditState extends State<Edit> {
 }
 
 class _WorkoutPageState extends State<WorkoutPage> {
-  // when finish button is clicked, then we check for failures and increment appropriately
-  // also increment counter += 1, telling us the next workout in the list is up next
-  // do [widget.index] += 1, as this will be the correct counter
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1067,9 +1083,10 @@ class _WorkoutPageState extends State<WorkoutPage> {
               ),
               child: const Text("Finish"),
               onPressed: () {
-                counter == allWorkouts.length - 1
+                widget.index == allWorkouts.length - 1
                     ? counter = 0
-                    : counter++; // loops counter
+                    : counter = widget.index +
+                        1; // loops counter according to selected workout
 
                 String name = allWorkouts[widget.index].name;
                 String date = "date";
@@ -1098,12 +1115,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                     setsPlanned,
                     repsCompleted));
 
-                Navigator.of(context)
-                    .push(MaterialPageRoute(
-                        builder: (context) => const HomePage()))
-                    .then((value) {
-                  setState(() {});
-                });
+                _counter.value++;
+                Navigator.of(context).pop();
               },
             ),
           ],
