@@ -12,6 +12,7 @@ List<IndivWorkout> allIndivWorkouts = []; // global list of each indiv workout
 List<Exercise> allExercises = []; // global list of exercises
 
 var headerColor = Colors.black;
+var backColor = Colors.black;
 var widgetNavColor = const Color.fromARGB(137, 25, 24, 24);
 var redColor = const Color.fromARGB(255, 172, 10, 10);
 int counter = 0;
@@ -1061,7 +1062,9 @@ class _EditState extends State<Edit> {
 class _WorkoutPageState extends State<WorkoutPage> {
   @override
   Widget build(BuildContext context) {
+    Workout? selectVal = allWorkouts[0];
     return Scaffold(
+        backgroundColor: backColor,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios),
@@ -1069,8 +1072,61 @@ class _WorkoutPageState extends State<WorkoutPage> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           backgroundColor: headerColor,
-          title: const Text("Workout"),
-          titleTextStyle: const TextStyle(fontSize: 22),
+          title: Center(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 41, 41, 41),
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: Padding(padding: EdgeInsets.only(left: 15, right: 10),
+              child: DropdownButton(
+                  underline: const SizedBox(),
+                  isExpanded: false,
+                  items: allWorkouts.map((Workout workout) {
+                    return DropdownMenuItem<Workout>(
+                        value: workout, child: Text(workout.name));
+                  }).toList(),
+                  value: selectVal,
+                  selectedItemBuilder: (context) {
+                    return [
+                      SizedBox(width: 200,
+                      child: Align(
+                          alignment: Alignment.center,
+                          child: Text(allWorkouts[widget.index].name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                          ))
+                    ];
+                  },
+                  onChanged: (Workout? w) {
+                    setState(() {
+                      // index of selection
+                      selectVal = w;
+                      int idx = allWorkouts.indexOf(selectVal!);
+                      // do nothing if same selection
+                      if (idx == widget.index) {
+                      } else {
+                        for (int j = 0;
+                            j < allWorkouts[idx].exercises.length;
+                            ++j) {
+                          allWorkouts[idx].exercises[j].repsCompleted.clear();
+                          for (int k = 0;
+                              k < allWorkouts[idx].exercises[j].sets;
+                              k++) {
+                            // repsCompleted initialized with initial reps value
+                            allWorkouts[idx]
+                                .exercises[j]
+                                .repsCompleted
+                                .add(allWorkouts[idx].exercises[j].reps + 1);
+                          }
+                        }
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => WorkoutPage(idx)));
+                      }
+                    });
+                  },      
+            )))),
           actions: <Widget>[
             TextButton(
               style: TextButton.styleFrom(
