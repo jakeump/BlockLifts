@@ -9,6 +9,7 @@ void main() {
 List<Workout> allWorkouts = []; // global list of workouts
 List<IndivWorkout> allIndivWorkouts = []; // global list of each indiv workout
 List<double> bodyWeights = []; // global list of body weight
+double tempBodyWeight = 100.5;
 
 // should probably be an ordered set
 List<Exercise> allExercises = []; // global list of exercises
@@ -98,7 +99,6 @@ class MyApp extends StatelessWidget {
       allExercises.add(barbellRow);
       allExercises.add(overheadPress);
       allExercises.add(deadlift);
-      bodyWeights.add(100.5);
     }
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -1063,9 +1063,6 @@ class _EditState extends State<Edit> {
 }
 
 class _WorkoutPageState extends State<WorkoutPage> {
-  // to store weight until Finish pressed
-  double tempBodyWeight = bodyWeights[bodyWeights.length - 1];
-
   List<Widget> nums = [
     for (int i = 50; i < 700; i++) ListTile(title: Text(i.toString())),
   ];
@@ -1179,6 +1176,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                   repsCompleted.add(
                       allWorkouts[widget.index].exercises[i].repsCompleted);
                 }
+
                 allIndivWorkouts.add(IndivWorkout(
                     name,
                     date,
@@ -1389,7 +1387,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                       final _decController =
                                           FixedExtentScrollController(
                                               initialItem: (tempBodyWeight -
-                                                      (tempBodyWeight ~/ 1) + 0.05) *
+                                                      (tempBodyWeight ~/ 1) +
+                                                      0.05) *
                                                   10 ~/
                                                   1);
                                       int scrollBodyWeightInt =
@@ -1600,9 +1599,12 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                     },
                                     child: Align(
                                         alignment: Alignment.centerRight,
-                                        child: Text(tempBodyWeight.toString(),
-                                            style: const TextStyle(
+                                        child: Text(
+                                            "${tempBodyWeight.toString()}lb",
+                                            style: TextStyle(
                                               fontSize: 17,
+                                              color: redColor,
+                                              fontWeight: FontWeight.bold,
                                             )))))),
                       ])),
             ])));
