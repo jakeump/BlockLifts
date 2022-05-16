@@ -9,6 +9,9 @@ void main() {
 List<Workout> allWorkouts = []; // global list of workouts
 List<IndivWorkout> allIndivWorkouts = []; // global list of each indiv workout
 List<double> bodyWeights = []; // global list of body weight
+List<String> notes = [];
+
+String tempNote = "";
 double tempBodyWeight = 100.5;
 
 // should probably be an ordered set
@@ -791,21 +794,48 @@ class _CalendarState extends State<CalendarPage> {
 }
 
 class _NotesState extends State<NotesPage> {
+  final _myController = TextEditingController();
+
+  @override
+  void initState() {
+    _myController.text = tempNote; //default text
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          iconSize: 18,
-          onPressed: () => Navigator.of(context).pop(),
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios),
+            iconSize: 18,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          backgroundColor: headerColor,
+          title: const Text("Note"),
+          titleTextStyle: const TextStyle(fontSize: 22),
         ),
-        backgroundColor: headerColor,
-        title: const Text("Note"),
-        titleTextStyle: const TextStyle(fontSize: 22),
-      ),
-    );
+        body: Container(
+            padding: const EdgeInsets.all(10),
+            child: TextField(
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+              ),
+              autofocus: true,
+              maxLines: null,
+              cursorColor: Colors.white,
+              showCursor: true,
+              enableInteractiveSelection: true,
+              style: const TextStyle(
+                fontSize: 18,
+              ),
+              focusNode: FocusNode(),
+              controller: _myController,
+              onChanged: (val) {
+                tempNote = _myController.text;
+              },
+            )));
   }
 }
 
@@ -1106,64 +1136,69 @@ class _WorkoutPageState extends State<WorkoutPage> {
         ),
         backgroundColor: headerColor,
         title: Center(
-          child: SizedBox(height: 40,
-            child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 41, 41, 41),
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Padding(
-                    padding: const EdgeInsets.only(left: 15, right: 10),
-                    child: DropdownButton(
-                      underline: const SizedBox(),
-                      isExpanded: false,
-                      items: allWorkouts.map((Workout workout) {
-                        return DropdownMenuItem<Workout>(
-                            value: workout, child: Text(workout.name));
-                      }).toList(),
-                      value: selectVal,
-                      selectedItemBuilder: (context) {
-                        return [
-                          SizedBox(
-                              width: 200,
-                              child: Align(
-                                alignment: Alignment.center,
-                                child: Text(allWorkouts[widget.index].name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis),
-                              ))
-                        ];
-                      },
-                      onChanged: (Workout? w) {
-                        setState(() {
-                          // index of selection
-                          selectVal = w;
-                          int idx = allWorkouts.indexOf(selectVal!);
-                          // do nothing if same selection
-                          if (idx == widget.index) {
-                          } else {
-                            for (int j = 0;
-                                j < allWorkouts[idx].exercises.length;
-                                ++j) {
-                              allWorkouts[idx]
-                                  .exercises[j]
-                                  .repsCompleted
-                                  .clear();
-                              for (int k = 0;
-                                  k < allWorkouts[idx].exercises[j].sets;
-                                  k++) {
-                                // repsCompleted initialized with initial reps value
-                                allWorkouts[idx].exercises[j].repsCompleted.add(
-                                    allWorkouts[idx].exercises[j].reps + 1);
+            child: SizedBox(
+                height: 40,
+                child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 41, 41, 41),
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 15, right: 10),
+                        child: DropdownButton(
+                          underline: const SizedBox(),
+                          isExpanded: false,
+                          items: allWorkouts.map((Workout workout) {
+                            return DropdownMenuItem<Workout>(
+                                value: workout, child: Text(workout.name));
+                          }).toList(),
+                          value: selectVal,
+                          selectedItemBuilder: (context) {
+                            return [
+                              SizedBox(
+                                  width: 200,
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: Text(allWorkouts[widget.index].name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis),
+                                  ))
+                            ];
+                          },
+                          onChanged: (Workout? w) {
+                            setState(() {
+                              // index of selection
+                              selectVal = w;
+                              int idx = allWorkouts.indexOf(selectVal!);
+                              // do nothing if same selection
+                              if (idx == widget.index) {
+                              } else {
+                                for (int j = 0;
+                                    j < allWorkouts[idx].exercises.length;
+                                    ++j) {
+                                  allWorkouts[idx]
+                                      .exercises[j]
+                                      .repsCompleted
+                                      .clear();
+                                  for (int k = 0;
+                                      k < allWorkouts[idx].exercises[j].sets;
+                                      k++) {
+                                    // repsCompleted initialized with initial reps value
+                                    allWorkouts[idx]
+                                        .exercises[j]
+                                        .repsCompleted
+                                        .add(
+                                            allWorkouts[idx].exercises[j].reps +
+                                                1);
+                                  }
+                                }
+                                Navigator.of(context).pop();
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) => WorkoutPage(idx)));
                               }
-                            }
-                            Navigator.of(context).pop();
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => WorkoutPage(idx)));
-                          }
-                        });
-                      },
-                    ))))),
+                            });
+                          },
+                        ))))),
         actions: <Widget>[
           TextButton(
             style: TextButton.styleFrom(
@@ -1200,6 +1235,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
               allIndivWorkouts.add(IndivWorkout(name, date, exercisesCompleted,
                   weights, repsPlanned, setsPlanned, repsCompleted));
+
+              notes.add(tempNote);
+              tempNote = ""; // clears note for next workout
 
               bodyWeights.add(tempBodyWeight);
 
@@ -1596,45 +1634,46 @@ class _WorkoutPageState extends State<WorkoutPage> {
           ])),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       floatingActionButton: Container(
-        padding: const EdgeInsets.only(left: 25),
-        child: Row(children: <Widget>[
-          Expanded(
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: TextButton(
-                onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const NotesPage()));
-                },
-                child: const Text("Note"),
-                style: TextButton.styleFrom(
-                  primary: redColor,
-                  textStyle:
-                      const TextStyle(fontWeight: FontWeight.bold),
-                  alignment: Alignment.bottomCenter,
-                )),
-                ),
-          ),
-          Expanded(
-            child: Align(
-              alignment: Alignment.bottomRight,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => EditWorkoutPage(widget.index)))
-                      .then((value) { setState(() {});
+          padding: const EdgeInsets.only(left: 25),
+          child: Row(children: <Widget>[
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => const NotesPage()));
+                    },
+                    child: const Text("Note"),
+                    style: TextButton.styleFrom(
+                      primary: redColor,
+                      textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                      alignment: Alignment.bottomCenter,
+                    )),
+              ),
+            ),
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomRight,
+                child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(
+                              builder: (context) =>
+                                  EditWorkoutPage(widget.index)))
+                          .then((value) {
+                        setState(() {});
                       });
-                },
-                child: const Text("Edit"),
-                style: TextButton.styleFrom(
-                  primary: redColor,
-                  textStyle:
-                      const TextStyle(fontWeight: FontWeight.bold),
-                  alignment: Alignment.bottomCenter,
-                )),
-                ),
-          ),     
-      ])),
+                    },
+                    child: const Text("Edit"),
+                    style: TextButton.styleFrom(
+                      primary: redColor,
+                      textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                      alignment: Alignment.bottomCenter,
+                    )),
+              ),
+            ),
+          ])),
     );
   }
 }
