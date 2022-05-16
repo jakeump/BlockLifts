@@ -1096,6 +1096,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
         ),
         backgroundColor: headerColor,
         title: Center(
+          child: SizedBox(height: 40,
             child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(255, 41, 41, 41),
@@ -1152,7 +1153,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                           }
                         });
                       },
-                    )))),
+                    ))))),
         actions: <Widget>[
           TextButton(
             style: TextButton.styleFrom(
@@ -1605,7 +1606,12 @@ class _WorkoutPageState extends State<WorkoutPage> {
             child: Align(
               alignment: Alignment.bottomRight,
               child: TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => EditWorkoutPage(widget.index)))
+                      .then((value) { setState(() {});
+                      });
+                },
                 child: const Text("Edit"),
                 style: TextButton.styleFrom(
                   primary: redColor,
