@@ -16,7 +16,7 @@ List<Exercise> allExercises = []; // global list of exercises
 
 var headerColor = Colors.black;
 var backColor = Colors.black;
-var widgetNavColor = const Color.fromARGB(137, 25, 24, 24);
+var widgetNavColor = const Color.fromARGB(134, 39, 39, 39);
 var redColor = const Color.fromARGB(255, 172, 10, 10);
 int counter = 0;
 
@@ -276,6 +276,7 @@ class _HomeState extends State<Home> {
         brightness: Brightness.dark,
       ),
       child: Scaffold(
+        backgroundColor: Colors.black,
         appBar: AppBar(
           centerTitle: true,
           backgroundColor: headerColor,
@@ -598,6 +599,7 @@ class _HistoryState extends State<History> {
       child: DefaultTabController(
         length: 3,
         child: Scaffold(
+          backgroundColor: Colors.black,
           appBar: AppBar(
             centerTitle: true,
             backgroundColor: headerColor,
@@ -674,6 +676,7 @@ class _ListState extends State<ListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: Colors.black,
         body: ValueListenableBuilder(
             valueListenable: _counter,
             builder: (context, value, child) {
@@ -791,9 +794,16 @@ class _NotesState extends State<NotesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        alignment: Alignment.center,
-        child: const Text('Here is the notes page'),
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          iconSize: 18,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        backgroundColor: headerColor,
+        title: const Text("Note"),
+        titleTextStyle: const TextStyle(fontSize: 22),
       ),
     );
   }
@@ -1592,7 +1602,10 @@ class _WorkoutPageState extends State<WorkoutPage> {
             child: Align(
               alignment: Alignment.bottomLeft,
               child: TextButton(
-                onPressed: () {},
+                onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const NotesPage()));
+                },
                 child: const Text("Note"),
                 style: TextButton.styleFrom(
                   primary: redColor,
