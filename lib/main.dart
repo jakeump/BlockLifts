@@ -19,7 +19,7 @@ List<Exercise> allExercises = []; // global list of exercises
 
 var headerColor = Colors.black;
 var backColor = Colors.black;
-var widgetNavColor = const Color.fromARGB(134, 39, 39, 39);
+var widgetNavColor = const Color.fromARGB(133, 65, 64, 64);
 var redColor = const Color.fromARGB(255, 172, 10, 10);
 int counter = 0;
 
@@ -172,6 +172,13 @@ class NotesPage extends StatefulWidget {
   const NotesPage({Key? key}) : super(key: key);
   @override
   _NotesState createState() => _NotesState();
+  // creating State Object of MyWidget
+}
+
+class WorkoutNotesPage extends StatefulWidget {
+  const WorkoutNotesPage({Key? key}) : super(key: key);
+  @override
+  _WorkoutNotesState createState() => _WorkoutNotesState();
   // creating State Object of MyWidget
 }
 
@@ -642,6 +649,7 @@ class _ProgressState extends State<Progress> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backColor,
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: headerColor,
@@ -660,6 +668,7 @@ class _SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backColor,
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: headerColor,
@@ -679,7 +688,7 @@ class _ListState extends State<ListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: backColor,
         body: ValueListenableBuilder(
             valueListenable: _counter,
             builder: (context, value, child) {
@@ -785,6 +794,7 @@ class _CalendarState extends State<CalendarPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backColor,
       body: Container(
         alignment: Alignment.center,
         child: const Text('Here is the calendar page'),
@@ -794,6 +804,63 @@ class _CalendarState extends State<CalendarPage> {
 }
 
 class _NotesState extends State<NotesPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        backgroundColor: backColor,
+        body: ValueListenableBuilder(
+            valueListenable: _counter,
+            builder: (context, value, child) {
+              return ListView(
+                  padding: const EdgeInsets.all(10),
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  children: <Widget>[
+                    for (int i = allIndivWorkouts.length - 1; i >= 0; i--)
+                      if (notes[i] != "") // doesn't show empty notes
+                        Column(children: <Widget>[
+                          GestureDetector(
+                              onTap: () {
+                                // go to custom edit page
+                              },
+                              child: Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey),
+                                    borderRadius: BorderRadius.circular(6),
+                                    color: widgetNavColor,
+                                  ),
+                                  alignment: Alignment.topLeft,
+                                  child: Column(
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(allIndivWorkouts[i].name,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                            )),
+                                      ),
+                                      const Divider(
+                                          height: 20, color: Colors.transparent),
+                                      Align(alignment: Alignment.centerLeft,
+                                        child: Text(notes[i], 
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                          ))),
+                                      const SizedBox(height: 5),
+                                    ],
+                                  )))),
+                          const Divider(height: 5, color: Colors.transparent),
+                        ])
+                  ]);
+            }));
+  }
+}
+
+class _WorkoutNotesState extends State<WorkoutNotesPage> {
   final _myController = TextEditingController();
 
   @override
@@ -805,7 +872,7 @@ class _NotesState extends State<NotesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: backColor,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios),
@@ -845,6 +912,7 @@ class _EditState extends State<Edit> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backColor,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
@@ -1642,7 +1710,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                 child: TextButton(
                     onPressed: () {
                       Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => const NotesPage()));
+                          builder: (context) => const WorkoutNotesPage()));
                     },
                     child: const Text("Note"),
                     style: TextButton.styleFrom(
@@ -1684,6 +1752,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backColor,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
@@ -2268,6 +2337,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backColor,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
