@@ -56,7 +56,6 @@ class Exercise {
   int sets = 5;
   int reps = 5;
 
-  List<String> exercisesCompleted = [];
   List<int> repsCompleted = [];
 
   int failed =
@@ -207,11 +206,19 @@ class EditWorkoutPage extends StatefulWidget {
 
 class EditExercisePage extends StatefulWidget {
   final int index;
-  final int exIndex;
-  const EditExercisePage(this.index, this.exIndex, {Key? key})
+
+  const EditExercisePage(this.index, {Key? key})
       : super(key: key);
   @override
   _EditExercisePageState createState() => _EditExercisePageState();
+  // creating State Object of MyWidget
+}
+
+class PostWorkoutEditPage extends StatefulWidget {
+  final int index;
+  const PostWorkoutEditPage(this.index, {Key? key}) : super(key: key);
+  @override
+  _PostWorkoutEditState createState() => _PostWorkoutEditState();
   // creating State Object of MyWidget
 }
 
@@ -701,7 +708,13 @@ class _ListState extends State<ListPage> {
                       Column(children: <Widget>[
                         GestureDetector(
                             onTap: () {
-                              // go to custom edit page
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(
+                                      builder: (context) =>
+                                          PostWorkoutEditPage(i)))
+                                  .then((value) {
+                                setState(() {});
+                              });
                             },
                             child: Container(
                                 height: 220,
@@ -821,38 +834,47 @@ class _NotesState extends State<NotesPage> {
                         Column(children: <Widget>[
                           GestureDetector(
                               onTap: () {
-                                // go to custom edit page
+                                Navigator.of(context)
+                                    .push(MaterialPageRoute(
+                                        builder: (context) =>
+                                            PostWorkoutEditPage(i)))
+                                    .then((value) {
+                                  setState(() {});
+                                });
                               },
                               child: Flexible(
-                                child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey),
-                                    borderRadius: BorderRadius.circular(6),
-                                    color: widgetNavColor,
-                                  ),
-                                  alignment: Alignment.topLeft,
-                                  child: Column(
-                                    children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(allIndivWorkouts[i].name,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                            )),
+                                  child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.grey),
+                                        borderRadius: BorderRadius.circular(6),
+                                        color: widgetNavColor,
                                       ),
-                                      const Divider(
-                                          height: 20, color: Colors.transparent),
-                                      Align(alignment: Alignment.centerLeft,
-                                        child: Text(notes[i], 
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                          ))),
-                                      const SizedBox(height: 5),
-                                    ],
-                                  )))),
+                                      alignment: Alignment.topLeft,
+                                      child: Column(
+                                        children: [
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(
+                                                allIndivWorkouts[i].name,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                )),
+                                          ),
+                                          const Divider(
+                                              height: 20,
+                                              color: Colors.transparent),
+                                          Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(notes[i],
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                  ))),
+                                          const SizedBox(height: 5),
+                                        ],
+                                      )))),
                           const Divider(height: 5, color: Colors.transparent),
                         ])
                   ]);
@@ -1346,14 +1368,18 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                 alignment: Alignment.centerRight,
                                 child: GestureDetector(
                                     onTap: () {
-                                      Navigator.of(context)
-                                          .push(MaterialPageRoute(
-                                              builder: (context) =>
-                                                  EditExercisePage(
-                                                      widget.index, i)))
-                                          .then((value) {
-                                        setState(() {});
-                                      });
+                                      for (int j = 0; j < allExercises.length; j++) {
+                                        if (allExercises[j].name == 
+                                            allWorkouts[widget.index].exercises[i].name) {
+                                              Navigator.of(context)
+                                                  .push(MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          EditExercisePage(j)))
+                                                  .then((value) {
+                                                setState(() {});
+                                              });
+                                            }
+                                      }
                                     },
                                     child: Row(children: <Widget>[
                                       if (allWorkouts[widget.index]
@@ -1383,14 +1409,18 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                         width: 17,
                                         child: IconButton(
                                           onPressed: () {
-                                            Navigator.of(context)
-                                                .push(MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        EditExercisePage(
-                                                            widget.index, i)))
-                                                .then((value) {
-                                              setState(() {});
-                                            });
+                                            for (int j = 0; j < allExercises.length; j++) {
+                                              if (allExercises[j].name == 
+                                                  allWorkouts[widget.index].exercises[i].name) {
+                                                    Navigator.of(context)
+                                                        .push(MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                EditExercisePage(j)))
+                                                        .then((value) {
+                                                      setState(() {});
+                                                    });
+                                                  }
+                                            }
                                           },
                                           alignment: Alignment.centerLeft,
                                           padding: const EdgeInsets.all(0),
@@ -1840,30 +1870,38 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                   ),
                                 ),
                               ),
-                              onTap: () {
-                                int awIndex = widget.index;
-                                Navigator.of(context)
-                                    .push(MaterialPageRoute(
-                                        builder: (context) =>
-                                            EditExercisePage(awIndex, i)))
-                                    .then((value) {
-                                  setState(() {});
-                                });
-                              },
+                                    onTap: () {
+                                      for (int j = 0; j < allExercises.length; j++) {
+                                        if (allExercises[j].name == 
+                                            allWorkouts[widget.index].exercises[i].name) {
+                                              Navigator.of(context)
+                                                  .push(MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          EditExercisePage(j)))
+                                                  .then((value) {
+                                                setState(() {});
+                                              });
+                                            }
+                                      }
+                                    },
                             ),
                             PopupMenuButton(
                               icon: const Icon(Icons.more_vert),
                               onSelected: (dynamic value) {
-                                int awIndex = widget.index;
                                 // edits
                                 if (value == 'edit') {
-                                  Navigator.of(context)
-                                      .push(MaterialPageRoute(
-                                          builder: (context) =>
-                                              EditExercisePage(awIndex, i)))
-                                      .then((value) {
-                                    setState(() {});
-                                  });
+                                  for (int j = 0; j < allExercises.length; j++) {
+                                    if (allExercises[j].name == 
+                                        allWorkouts[widget.index].exercises[i].name) {
+                                          Navigator.of(context)
+                                              .push(MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EditExercisePage(j)))
+                                              .then((value) {
+                                            setState(() {});
+                                          });
+                                        }
+                                    }
                                 }
                                 // deletes
                                 else if (value == 'delete') {
@@ -2265,9 +2303,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                         context)
                                                                     .push(MaterialPageRoute(
                                                                         builder: (context) => EditExercisePage(
-                                                                            widget
-                                                                                .index,
-                                                                            allWorkouts[widget.index].exercises.length -
+                                                                            allExercises.length -
                                                                                 1)))
                                                                     .then(
                                                                         (value) {
@@ -2350,85 +2386,78 @@ class _EditExercisePageState extends State<EditExercisePage> {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                allWorkouts[widget.index].exercises[widget.exIndex].name,
+                allExercises[widget.index].name,
                 style: const TextStyle(
                   fontSize: 18,
                 ),
               ),
             ),
             // displays no decimal points if it's not a decimal (casts to int)
-            if (allWorkouts[widget.index].exercises[widget.exIndex].weight %
+            if (allExercises[widget.index].weight %
                         1 ==
                     0 &&
-                ((allWorkouts[widget.index].exercises[widget.exIndex].weight -
-                                allWorkouts[widget.index]
-                                    .exercises[widget.exIndex]
-                                    .barWeight) /
+                ((allExercises[widget.index].weight -
+                                allExercises[widget.index].barWeight) /
                             2) %
                         1 ==
                     0)
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "${allWorkouts[widget.index].exercises[widget.exIndex].weight.toInt().toString()}lb (${((allWorkouts[widget.index].exercises[widget.exIndex].weight - allWorkouts[widget.index].exercises[widget.exIndex].barWeight) ~/ 2)}/side)",
+                  "${allExercises[widget.index].weight.toInt().toString()}lb (${((allExercises[widget.index].barWeight) ~/ 2)}/side)",
                   style: const TextStyle(
                     fontSize: 14,
                   ),
                 ),
               ),
-            if (allWorkouts[widget.index].exercises[widget.exIndex].weight %
+            if (allExercises[widget.index].weight %
                         1 ==
                     0 &&
-                ((allWorkouts[widget.index].exercises[widget.exIndex].weight -
-                                allWorkouts[widget.index]
-                                    .exercises[widget.exIndex]
-                                    .barWeight) /
+                ((allExercises[widget.index].weight -
+                                allExercises[widget.index].barWeight) /
                             2) %
                         1 !=
                     0)
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "${allWorkouts[widget.index].exercises[widget.exIndex].weight.toInt().toString()}lb (${((allWorkouts[widget.index].exercises[widget.exIndex].weight - allWorkouts[widget.index].exercises[widget.exIndex].barWeight) / 2).toString()}/side)",
+                  "${allExercises[widget.index].weight.toInt().toString()}lb (${((allExercises[widget.index].barWeight) / 2).toString()}/side)",
                   style: const TextStyle(
                     fontSize: 14,
                   ),
                 ),
               ),
             // if there are decimals
-            if (allWorkouts[widget.index].exercises[widget.exIndex].weight %
+            if (allExercises[widget.index].weight %
                         1 !=
                     0 &&
-                ((allWorkouts[widget.index].exercises[widget.exIndex].weight -
-                                allWorkouts[widget.index]
-                                    .exercises[widget.exIndex]
-                                    .barWeight) /
+                ((allExercises[widget.index].weight -
+                                allExercises[widget.index].barWeight) /
                             2) %
                         1 ==
                     0)
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "${allWorkouts[widget.index].exercises[widget.exIndex].weight.toString()}lb (${((allWorkouts[widget.index].exercises[widget.exIndex].weight - allWorkouts[widget.index].exercises[widget.exIndex].barWeight) ~/ 2)}/side)",
+                  "${allExercises[widget.index].weight.toString()}lb (${((allExercises[widget.index].barWeight) ~/ 2)}/side)",
                   style: const TextStyle(
                     fontSize: 14,
                   ),
                 ),
               ),
-            if (allWorkouts[widget.index].exercises[widget.exIndex].weight %
+            if (allExercises[widget.index].weight %
                         1 !=
                     0 &&
-                ((allWorkouts[widget.index].exercises[widget.exIndex].weight -
-                                allWorkouts[widget.index]
-                                    .exercises[widget.exIndex]
-                                    .barWeight) /
+                ((allExercises[widget.index].weight -
+                                allExercises[widget.index].barWeight) /
                             2) %
                         2 !=
                     0)
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "${allWorkouts[widget.index].exercises[widget.exIndex].weight.toString()}lb (${((allWorkouts[widget.index].exercises[widget.exIndex].weight - allWorkouts[widget.index].exercises[widget.exIndex].barWeight) / 2).toString()}/side)",
+                  "${allExercises[widget.index].weight.toString()}lb (${((allExercises[widget.index].weight 
+                    - allExercises[widget.index].barWeight) / 2).toString()}/side)",
                   style: const TextStyle(
                     fontSize: 14,
                   ),
@@ -2441,21 +2470,17 @@ class _EditExercisePageState extends State<EditExercisePage> {
       body: Column(children: <Widget>[
         GestureDetector(
             onTap: () {
-              if (allWorkouts[widget.index].exercises[widget.exIndex].weight %
+              if (allExercises[widget.index].weight %
                       1 ==
                   0) {
-                setState(() => _myController.text = allWorkouts[widget.index]
-                    .exercises[widget.exIndex]
-                    .weight
+                setState(() => _myController.text = allExercises[widget.index].weight
                     .toInt()
                     .toString());
               }
-              if (allWorkouts[widget.index].exercises[widget.exIndex].weight %
+              if (allExercises[widget.index].weight %
                       1 !=
                   0) {
-                setState(() => _myController.text = allWorkouts[widget.index]
-                    .exercises[widget.exIndex]
-                    .weight
+                setState(() => _myController.text = allExercises[widget.index].weight
                     .toString());
               }
               showDialog(
@@ -2514,9 +2539,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                   ),
                                   onPressed: () {
                                     // subtracts 5lb from text box
-                                    if (allWorkouts[widget.index]
-                                                .exercises[widget.exIndex]
-                                                .weight %
+                                    if (allExercises[widget.index].weight %
                                             1 ==
                                         0) {
                                       setState(() {
@@ -2534,9 +2557,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                 offset:
                                                     _myController.text.length);
                                       });
-                                    } else if (allWorkouts[widget.index]
-                                                .exercises[widget.exIndex]
-                                                .weight %
+                                    } else if (allExercises[widget.index].weight %
                                             1 !=
                                         0) {
                                       setState(() {
@@ -2573,9 +2594,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                       ),
                                       onPressed: () {
                                         // adds 5lb to text box
-                                        if (allWorkouts[widget.index]
-                                                    .exercises[widget.exIndex]
-                                                    .weight %
+                                        if (allExercises[widget.index].weight %
                                                 1 ==
                                             0) {
                                           setState(() {
@@ -2590,9 +2609,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                         .text.length);
                                           });
                                         }
-                                        if (allWorkouts[widget.index]
-                                                    .exercises[widget.exIndex]
-                                                    .weight %
+                                        if (allExercises[widget.index].weight %
                                                 1 !=
                                             0) {
                                           setState(() {
@@ -2635,9 +2652,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                               ),
                               child: const Text("OK"),
                               onPressed: () {
-                                setState(() => allWorkouts[widget.index]
-                                    .exercises[widget.exIndex]
-                                    .weight = double.parse(_myController.text));
+                                setState(() => allExercises[widget.index].weight = double.parse(_myController.text));
                                 Navigator.of(context).pop();
                               },
                             ),
@@ -2663,29 +2678,25 @@ class _EditExercisePageState extends State<EditExercisePage> {
                         ),
                       ),
                       // if no decimals needed
-                      if (allWorkouts[widget.index]
-                                  .exercises[widget.exIndex]
-                                  .weight %
+                      if (allExercises[widget.index].weight %
                               1 ==
                           0)
                         Align(
                           alignment: const Alignment(-.91, 0),
                           child: Text(
-                            "${allWorkouts[widget.index].exercises[widget.exIndex].weight.toInt().toString()}lb",
+                            "${allExercises[widget.index].weight.toInt().toString()}lb",
                             style: const TextStyle(
                               fontSize: 16,
                             ),
                           ),
                         ),
-                      if (allWorkouts[widget.index]
-                                  .exercises[widget.exIndex]
-                                  .weight %
+                      if (allExercises[widget.index].weight %
                               1 !=
                           0)
                         Align(
                           alignment: const Alignment(-.91, 0),
                           child: Text(
-                            "${allWorkouts[widget.index].exercises[widget.exIndex].weight.toString()}lb",
+                            "${allExercises[widget.index].weight.toString()}lb",
                             style: const TextStyle(
                               fontSize: 16,
                             ),
@@ -2695,25 +2706,17 @@ class _EditExercisePageState extends State<EditExercisePage> {
         // bar weight
         GestureDetector(
             onTap: () {
-              if (allWorkouts[widget.index]
-                          .exercises[widget.exIndex]
-                          .barWeight %
+              if (allExercises[widget.index].barWeight %
                       1 ==
                   0) {
-                setState(() => _myController.text = allWorkouts[widget.index]
-                    .exercises[widget.exIndex]
-                    .barWeight
+                setState(() => _myController.text = allExercises[widget.index].barWeight
                     .toInt()
                     .toString());
               }
-              if (allWorkouts[widget.index]
-                          .exercises[widget.exIndex]
-                          .barWeight %
+              if (allExercises[widget.index].barWeight %
                       1 !=
                   0) {
-                setState(() => _myController.text = allWorkouts[widget.index]
-                    .exercises[widget.exIndex]
-                    .barWeight
+                setState(() => _myController.text = allExercises[widget.index].barWeight
                     .toString());
               }
               showDialog(
@@ -2772,9 +2775,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                   ),
                                   onPressed: () {
                                     // subtracts 5lb from text box
-                                    if (allWorkouts[widget.index]
-                                                .exercises[widget.exIndex]
-                                                .barWeight %
+                                    if (allExercises[widget.index].barWeight %
                                             1 ==
                                         0) {
                                       setState(() {
@@ -2792,9 +2793,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                 offset:
                                                     _myController.text.length);
                                       });
-                                    } else if (allWorkouts[widget.index]
-                                                .exercises[widget.exIndex]
-                                                .barWeight %
+                                    } else if (allExercises[widget.index].barWeight %
                                             1 !=
                                         0) {
                                       setState(() {
@@ -2831,9 +2830,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                       ),
                                       onPressed: () {
                                         // adds 5lb to text box
-                                        if (allWorkouts[widget.index]
-                                                    .exercises[widget.exIndex]
-                                                    .barWeight %
+                                        if (allExercises[widget.index].barWeight %
                                                 1 ==
                                             0) {
                                           setState(() {
@@ -2848,9 +2845,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                         .text.length);
                                           });
                                         }
-                                        if (allWorkouts[widget.index]
-                                                    .exercises[widget.exIndex]
-                                                    .barWeight %
+                                        if (allExercises[widget.index].barWeight %
                                                 1 !=
                                             0) {
                                           setState(() {
@@ -2893,9 +2888,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                               ),
                               child: const Text("OK"),
                               onPressed: () {
-                                setState(() => allWorkouts[widget.index]
-                                        .exercises[widget.exIndex]
-                                        .barWeight =
+                                setState(() => allExercises[widget.index].barWeight =
                                     double.parse(_myController.text));
                                 Navigator.of(context).pop();
                               },
@@ -2922,29 +2915,25 @@ class _EditExercisePageState extends State<EditExercisePage> {
                         ),
                       ),
                       // if no decimals needed
-                      if (allWorkouts[widget.index]
-                                  .exercises[widget.exIndex]
-                                  .barWeight %
+                      if (allExercises[widget.index].barWeight %
                               1 ==
                           0)
                         Align(
                           alignment: const Alignment(-.91, 0),
                           child: Text(
-                            "${allWorkouts[widget.index].exercises[widget.exIndex].barWeight.toInt().toString()}lb",
+                            "${allExercises[widget.index].barWeight.toInt().toString()}lb",
                             style: const TextStyle(
                               fontSize: 16,
                             ),
                           ),
                         ),
-                      if (allWorkouts[widget.index]
-                                  .exercises[widget.exIndex]
-                                  .barWeight %
+                      if (allExercises[widget.index].barWeight %
                               1 !=
                           0)
                         Align(
                           alignment: const Alignment(-.91, 0),
                           child: Text(
-                            "${allWorkouts[widget.index].exercises[widget.exIndex].barWeight.toString()}lb",
+                            "${allExercises[widget.index].barWeight.toString()}lb",
                             style: const TextStyle(
                               fontSize: 16,
                             ),
@@ -2954,13 +2943,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
         // sets x reps
         GestureDetector(
             onTap: () {
-              setState(() => _myController.text = allWorkouts[widget.index]
-                  .exercises[widget.exIndex]
-                  .sets
+              setState(() => _myController.text = allExercises[widget.index].sets
                   .toString());
-              setState(() => _myController2.text = allWorkouts[widget.index]
-                  .exercises[widget.exIndex]
-                  .reps
+              setState(() => _myController2.text = allExercises[widget.index].reps
                   .toString());
 
               showDialog(
@@ -3056,71 +3041,39 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                 ),
                                 child: const Text("OK"),
                                 onPressed: () {
-                                  int oldReps = allWorkouts[widget.index]
-                                      .exercises[widget.exIndex]
-                                      .reps;
-                                  int oldSets = allWorkouts[widget.index]
-                                      .exercises[widget.exIndex]
-                                      .reps;
+                                  int oldReps = allExercises[widget.index].reps;
+                                  int oldSets = allExercises[widget.index].reps;
                                   setState(() => {
-                                        allWorkouts[widget.index]
-                                                .exercises[widget.exIndex]
-                                                .sets =
+                                        allExercises[widget.index].sets =
                                             int.parse(_myController.text),
-                                        allWorkouts[widget.index]
-                                                .exercises[widget.exIndex]
-                                                .reps =
+                                        allExercises[widget.index].reps =
                                             int.parse(_myController2.text),
                                         if (oldSets !=
-                                            allWorkouts[widget.index]
-                                                .exercises[widget.exIndex]
-                                                .sets)
+                                            allExercises[widget.index].sets)
                                           {
                                             for (int i = 0;
                                                 i <
-                                                    allWorkouts[widget.index]
-                                                            .exercises[
-                                                                widget.exIndex]
-                                                            .sets -
+                                                    allExercises[widget.index].sets -
                                                         oldSets;
                                                 i++)
                                               {
-                                                allWorkouts[widget.index]
-                                                    .exercises[widget.exIndex]
-                                                    .repsCompleted
-                                                    .add(allWorkouts[
-                                                                widget.index]
-                                                            .exercises[
-                                                                widget.exIndex]
-                                                            .reps +
+                                                allExercises[widget.index].repsCompleted
+                                                    .add(allExercises[widget.index].reps +
                                                         1)
                                               },
                                           },
                                         if (oldReps !=
-                                            allWorkouts[widget.index]
-                                                .exercises[widget.exIndex]
-                                                .reps)
+                                            allExercises[widget.index].reps)
                                           {
-                                            allWorkouts[widget.index]
-                                                .exercises[widget.exIndex]
-                                                .repsCompleted
+                                            allExercises[widget.index].repsCompleted
                                                 .clear(),
                                             for (int j = 0;
                                                 j <
-                                                    allWorkouts[widget.index]
-                                                        .exercises[
-                                                            widget.exIndex]
-                                                        .sets;
+                                                    allExercises[widget.index].sets;
                                                 ++j)
                                               {
-                                                allWorkouts[widget.index]
-                                                    .exercises[widget.exIndex]
-                                                    .repsCompleted
-                                                    .add(allWorkouts[
-                                                                widget.index]
-                                                            .exercises[
-                                                                widget.exIndex]
-                                                            .reps +
+                                                allExercises[widget.index].repsCompleted
+                                                    .add(allExercises[widget.index].reps +
                                                         1),
                                               },
                                           }
@@ -3151,7 +3104,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                       Align(
                         alignment: const Alignment(-.91, 0),
                         child: Text(
-                          "${allWorkouts[widget.index].exercises[widget.exIndex].sets.toString()}x${allWorkouts[widget.index].exercises[widget.exIndex].reps.toString()}",
+                          "${allExercises[widget.index].sets.toString()}x${allExercises[widget.index].reps.toString()}",
                           style: const TextStyle(
                             fontSize: 16,
                           ),
@@ -3170,7 +3123,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
             child: const Text("Change Exercise Name"),
             onPressed: () {
               setState(() => _myController.text =
-                  allWorkouts[widget.index].exercises[widget.exIndex].name);
+                  allExercises[widget.index].name);
               showDialog(
                   context: context,
                   builder: (context) => Dialog(
@@ -3229,9 +3182,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                     ),
                                     child: const Text("OK"),
                                     onPressed: () {
-                                      setState(() => allWorkouts[widget.index]
-                                          .exercises[widget.exIndex]
-                                          .name = _myController.text);
+                                      setState(() => allExercises[widget.index].name = _myController.text);
                                       Navigator.of(context).pop();
                                     },
                                   ),
@@ -3243,6 +3194,494 @@ class _EditExercisePageState extends State<EditExercisePage> {
           ),
         ),
       ]),
+    );
+  }
+}
+
+class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
+  List<Widget> nums = [
+    for (int i = 50; i < 700; i++) ListTile(title: Text(i.toString())),
+  ];
+  List<Widget> decs = [
+    for (int i = 0; i < 10; i++) ListTile(title: Text(i.toString())),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: backColor,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          iconSize: 18,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        backgroundColor: headerColor,
+        title: Text("calendar"),
+        actions: <Widget>[
+          TextButton(
+            style: TextButton.styleFrom(
+              primary: redColor,
+              textStyle:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              alignment: Alignment.center,
+            ),
+            child: const Text("Save"),
+            onPressed: () {
+              String name = allWorkouts[widget.index].name;
+              String date = "date";
+              List<String> exercisesCompleted = [];
+              List<double> weights = [];
+              List<int> repsPlanned = [];
+              List<int> setsPlanned = [];
+              List<List<int>> repsCompleted = [];
+              for (int i = 0;
+                  i < allWorkouts[widget.index].exercises.length;
+                  i++) {}
+
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+      body: Container(
+          padding: const EdgeInsets.all(0),
+          constraints: const BoxConstraints(
+            maxHeight: 750,
+          ),
+          child: Column(children: <Widget>[
+            Flexible(
+                child: ListView(
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    children: <Widget>[
+                  for (int i = 0;
+                      i < allIndivWorkouts[widget.index].exercisesCompleted.length;
+                      i++)
+                    Column(children: <Widget>[
+                      Row(children: <Widget>[
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                                "  ${allIndivWorkouts[widget.index].exercisesCompleted[i]}",
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                )),
+                          ),
+                        ),
+                        Expanded(
+                            child: Align(
+                                alignment: Alignment.centerRight,
+                                child: GestureDetector(
+                                    onTap: () {
+                                      // to account for post-workout exercise order change,
+                                      // search for where this exercise is currently in the workout
+                                      // to bring it to the correct edit exercise page
+                                      for (int j = 0; j < allExercises.length; j++) {
+                                        if (allExercises[j].name == 
+                                            allIndivWorkouts[widget.index].exercisesCompleted[i]) {
+                                              Navigator.of(context)
+                                                  .push(MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          EditExercisePage(j)))
+                                                  .then((value) {
+                                                setState(() {});
+                                              });
+                                            }
+                                      }
+                                    },
+                                    child: Row(children: <Widget>[
+                                      if (allWorkouts[widget.index]
+                                                  .exercises[i]
+                                                  .weight %
+                                              1 ==
+                                          0)
+                                        Flexible(
+                                            child: Align(
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child: Text(
+                                                    "${allIndivWorkouts[widget.index].setsPlanned[i]}x${allIndivWorkouts[widget.index].repsPlanned[i]} ${allIndivWorkouts[widget.index].weights[i] ~/ 1}lb",
+                                                    style: const TextStyle(
+                                                      fontSize: 17,
+                                                    ))))
+                                      else
+                                        Expanded(
+                                            child: Align(
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child: Text(
+                                                    "${allIndivWorkouts[widget.index].setsPlanned[i]}x${allIndivWorkouts[widget.index].repsPlanned[i]} ${allIndivWorkouts[widget.index].weights[i].toString()}lb",
+                                                    style: const TextStyle(
+                                                        fontSize: 17)))),
+                                      SizedBox(
+                                        width: 17,
+                                        child: IconButton(
+                                          onPressed: () {
+                                            for (int j = 0; j < allExercises.length; j++) {
+                                              if (allExercises[j].name == 
+                                                  allIndivWorkouts[widget.index].exercisesCompleted[i]) {
+                                                    Navigator.of(context)
+                                                        .push(MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                EditExercisePage(j)))
+                                                        .then((value) {
+                                                      setState(() {});
+                                                    });
+                                                  }
+                                            }
+                                          },
+                                          alignment: Alignment.centerLeft,
+                                          padding: const EdgeInsets.all(0),
+                                          splashColor: Colors.transparent,
+                                          highlightColor: Colors.transparent,
+                                          icon: const Icon(
+                                              Icons.arrow_right_sharp),
+                                          color: redColor,
+                                          iconSize: 20,
+                                        ),
+                                      ),
+                                    ])))),
+                      ]),
+                      Container(
+                        height: 50,
+                        alignment: Alignment.centerLeft,
+                        child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            shrinkWrap: true,
+                            children: <Widget>[
+                              Row(children: <Widget>[
+                                // one circle for each set, initialized with number of reps
+                                for (int j = 0;
+                                    j <
+                                        allWorkouts[widget.index]
+                                            .exercises[i]
+                                            .sets;
+                                    j++)
+                                  // circle, onTap decrement, loops back to rep number
+                                  SizedBox(
+                                    width: 82,
+                                    height: 50,
+                                    child: MaterialButton(
+                                      shape: const CircleBorder(
+                                          side: BorderSide(
+                                              width: 1,
+                                              style: BorderStyle.none)),
+                                      child: allWorkouts[widget.index]
+                                                  .exercises[i]
+                                                  .repsCompleted[j] >
+                                              allWorkouts[widget.index]
+                                                  .exercises[i]
+                                                  .reps
+                                          ? Text(allWorkouts[widget.index]
+                                              .exercises[i]
+                                              .reps
+                                              .toString())
+                                          : Text(allWorkouts[widget.index]
+                                              .exercises[i]
+                                              .repsCompleted[j]
+                                              .toString()),
+                                      color: allWorkouts[widget.index]
+                                                  .exercises[i]
+                                                  .repsCompleted[j] >
+                                              allWorkouts[widget.index]
+                                                  .exercises[i]
+                                                  .reps
+                                          ? const Color.fromARGB(
+                                              255, 41, 41, 41)
+                                          : Colors.red,
+                                      textColor: Colors.white,
+                                      onPressed: () {
+                                        // loops around
+                                        if (allWorkouts[widget.index]
+                                                .exercises[i]
+                                                .repsCompleted[j] ==
+                                            0) {
+                                          setState(() =>
+                                              allWorkouts[widget.index]
+                                                      .exercises[i]
+                                                      .repsCompleted[j] =
+                                                  allWorkouts[widget.index]
+                                                          .exercises[i]
+                                                          .reps +
+                                                      1);
+                                        } else {
+                                          setState(() =>
+                                              allWorkouts[widget.index]
+                                                  .exercises[i]
+                                                  .repsCompleted[j] -= 1);
+                                        }
+                                      },
+                                    ),
+                                  ),
+                              ]),
+                            ]),
+                      ),
+                      const SizedBox(height: 10),
+                    ]),
+                ])),
+            Container(
+                padding: const EdgeInsets.all(20),
+                child:
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: <
+                        Widget>[
+                  const Expanded(
+                      child: Center(
+                          child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text("Body Weight",
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                  ))))),
+                  Expanded(
+                      child: Center(
+                          child: GestureDetector(
+                              onTap: () {
+                                // sets initial scroll to weight
+                                final _intController =
+                                    FixedExtentScrollController(
+                                        initialItem: tempBodyWeight ~/ 1 - 50);
+                                // annoying floating point precision: 100.6 - 100 = 0.599
+                                // the +0.05 is a way around it
+                                final _decController =
+                                    FixedExtentScrollController(
+                                        initialItem: (tempBodyWeight -
+                                                (tempBodyWeight ~/ 1) +
+                                                0.05) *
+                                            10 ~/
+                                            1);
+                                int scrollBodyWeightInt = tempBodyWeight ~/ 1;
+                                int scrollBodyWeightDec =
+                                    (tempBodyWeight - (tempBodyWeight ~/ 1)) *
+                                        10 ~/
+                                        1;
+                                showDialog(
+                                    context: context,
+                                    builder: (context) => Dialog(
+                                        insetPadding: const EdgeInsets.all(10),
+                                        child: Container(
+                                            padding: const EdgeInsets.all(20),
+                                            child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: <Widget>[
+                                                  const Text("Weight",
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                      )),
+                                                  const SizedBox(height: 30),
+                                                  Flexible(
+                                                      child: Row(children: <
+                                                          Widget>[
+                                                    const SizedBox(width: 100),
+                                                    SizedBox(
+                                                        height: 120,
+                                                        width: 70,
+                                                        child: CupertinoPicker(
+                                                          scrollController:
+                                                              _intController,
+                                                          children: nums,
+                                                          looping: true,
+                                                          diameterRatio: 1.25,
+                                                          selectionOverlay:
+                                                              Column(children: <
+                                                                  Widget>[
+                                                            Container(
+                                                                decoration: const BoxDecoration(
+                                                                    border: Border(
+                                                                        top: BorderSide(
+                                                              color:
+                                                                  Colors.white,
+                                                              width: 2,
+                                                            )))),
+                                                            const SizedBox(
+                                                                height: 50),
+                                                            Container(
+                                                                decoration: const BoxDecoration(
+                                                                    border: Border(
+                                                                        top: BorderSide(
+                                                              color:
+                                                                  Colors.white,
+                                                              width: 2,
+                                                            ))))
+                                                          ]),
+                                                          itemExtent: 75,
+                                                          onSelectedItemChanged:
+                                                              (index) => {
+                                                            scrollBodyWeightInt =
+                                                                index + 50,
+                                                          },
+                                                        )),
+                                                    const SizedBox(
+                                                      width: 20,
+                                                      height: 45,
+                                                      child: Align(
+                                                        alignment:
+                                                            Alignment.topCenter,
+                                                        child: Text(".",
+                                                            style: TextStyle(
+                                                              fontSize: 17,
+                                                            )),
+                                                      ),
+                                                    ),
+                                                    SizedBox(
+                                                        height: 120,
+                                                        width: 70,
+                                                        child: CupertinoPicker(
+                                                          scrollController:
+                                                              _decController,
+                                                          children: decs,
+                                                          looping: true,
+                                                          diameterRatio: 1.25,
+                                                          selectionOverlay:
+                                                              Column(children: <
+                                                                  Widget>[
+                                                            Container(
+                                                                decoration: const BoxDecoration(
+                                                                    border: Border(
+                                                                        top: BorderSide(
+                                                              color:
+                                                                  Colors.white,
+                                                              width: 2,
+                                                            )))),
+                                                            const SizedBox(
+                                                                height: 50),
+                                                            Container(
+                                                                decoration: const BoxDecoration(
+                                                                    border: Border(
+                                                                        top: BorderSide(
+                                                              color:
+                                                                  Colors.white,
+                                                              width: 2,
+                                                            ))))
+                                                          ]),
+                                                          itemExtent: 75,
+                                                          onSelectedItemChanged:
+                                                              (index) => {
+                                                            scrollBodyWeightDec =
+                                                                index,
+                                                          },
+                                                        )),
+                                                    const SizedBox(
+                                                      width: 20,
+                                                      height: 40,
+                                                      child: Align(
+                                                        alignment:
+                                                            Alignment.topCenter,
+                                                        child: Text("lb",
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                            )),
+                                                      ),
+                                                    ),
+                                                  ])),
+                                                  const SizedBox(height: 30),
+                                                  Row(children: <Widget>[
+                                                    const SizedBox(
+                                                        width: 187.4),
+                                                    TextButton(
+                                                      style:
+                                                          TextButton.styleFrom(
+                                                        primary: redColor,
+                                                        textStyle:
+                                                            const TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                        alignment:
+                                                            Alignment.center,
+                                                      ),
+                                                      child:
+                                                          const Text("Cancel"),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                    const SizedBox(width: 20),
+                                                    TextButton(
+                                                      style:
+                                                          TextButton.styleFrom(
+                                                        primary: redColor,
+                                                        textStyle:
+                                                            const TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                        alignment:
+                                                            Alignment.center,
+                                                      ),
+                                                      child: const Text("OK"),
+                                                      onPressed: () {
+                                                        setState(
+                                                          () => tempBodyWeight =
+                                                              scrollBodyWeightInt +
+                                                                  0.1 *
+                                                                      scrollBodyWeightDec,
+                                                        );
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                  ]),
+                                                ]))));
+                              },
+                              child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Text("${tempBodyWeight.toString()}lb",
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        color: redColor,
+                                        fontWeight: FontWeight.bold,
+                                      )))))),
+                ])),
+          ])),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      floatingActionButton: Container(
+          padding: const EdgeInsets.only(left: 25),
+          child: Row(children: <Widget>[
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => const WorkoutNotesPage()));
+                    },
+                    child: const Text("Note"),
+                    style: TextButton.styleFrom(
+                      primary: redColor,
+                      textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                      alignment: Alignment.bottomCenter,
+                    )),
+              ),
+            ),
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomRight,
+                child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(
+                              builder: (context) =>
+                                  EditWorkoutPage(widget.index)))
+                          .then((value) {
+                        setState(() {});
+                      });
+                    },
+                    child: const Text("Edit"),
+                    style: TextButton.styleFrom(
+                      primary: redColor,
+                      textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                      alignment: Alignment.bottomCenter,
+                    )),
+              ),
+            ),
+          ])),
     );
   }
 }
