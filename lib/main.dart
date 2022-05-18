@@ -12,6 +12,7 @@ List<double> bodyWeights = []; // global list of body weight
 List<String> notes = [];
 
 String tempNote = "";
+String postWorkoutTempNote = "";
 double tempBodyWeight = 100.5;
 
 // should probably be an ordered set
@@ -38,6 +39,8 @@ class Workout {
   String name; // workout name (like "Workout A")
   List<Exercise> exercises = []; // List of workouts (bench, squat, curl, etc)
   Workout(this.name); // constructor for name
+
+  bool isInitialized = false; // used to fill the reps completed only once
 
   // addWorkout function to add to the end of the list
   // public implementation so no underscore
@@ -181,6 +184,14 @@ class WorkoutNotesPage extends StatefulWidget {
   // creating State Object of MyWidget
 }
 
+class PostWorkoutNotesPage extends StatefulWidget {
+  final int index;
+  const PostWorkoutNotesPage(this.index, {Key? key}) : super(key: key);
+  @override
+  _PostWorkoutNotesState createState() => _PostWorkoutNotesState();
+  // creating State Object of MyWidget
+}
+
 class Edit extends StatefulWidget {
   const Edit({Key? key}) : super(key: key);
   @override
@@ -207,8 +218,7 @@ class EditWorkoutPage extends StatefulWidget {
 class EditExercisePage extends StatefulWidget {
   final int index;
 
-  const EditExercisePage(this.index, {Key? key})
-      : super(key: key);
+  const EditExercisePage(this.index, {Key? key}) : super(key: key);
   @override
   _EditExercisePageState createState() => _EditExercisePageState();
   // creating State Object of MyWidget
@@ -216,7 +226,10 @@ class EditExercisePage extends StatefulWidget {
 
 class PostWorkoutEditPage extends StatefulWidget {
   final int index;
-  const PostWorkoutEditPage(this.index, {Key? key}) : super(key: key);
+  final List<List<int>> copyRepsCompleted;
+
+  const PostWorkoutEditPage(this.index, this.copyRepsCompleted, {Key? key})
+      : super(key: key);
   @override
   _PostWorkoutEditState createState() => _PostWorkoutEditState();
   // creating State Object of MyWidget
@@ -333,16 +346,22 @@ class _HomeState extends State<Home> {
                       Column(children: <Widget>[
                         GestureDetector(
                             onTap: () {
-                              for (int k = 0;
-                                  k < allWorkouts[i].exercises.length;
-                                  ++k) {
-                                for (int j = 0;
-                                    j < allWorkouts[i].exercises[k].sets;
-                                    j++) {
-                                  // repsCompleted initialized with initial reps value
-                                  allWorkouts[i].exercises[k].repsCompleted.add(
-                                      allWorkouts[i].exercises[k].reps + 1);
+                              if (allWorkouts[i].isInitialized == false) {
+                                for (int k = 0;
+                                    k < allWorkouts[i].exercises.length;
+                                    ++k) {
+                                  for (int j = 0;
+                                      j < allWorkouts[i].exercises[k].sets;
+                                      j++) {
+                                    // repsCompleted initialized with initial reps value
+                                    allWorkouts[i]
+                                        .exercises[k]
+                                        .repsCompleted
+                                        .add(allWorkouts[i].exercises[k].reps +
+                                            1);
+                                  }
                                 }
+                                allWorkouts[i].isInitialized = true;
                               }
                               Navigator.of(context)
                                   .push(MaterialPageRoute(
@@ -443,24 +462,23 @@ class _HomeState extends State<Home> {
                       Column(children: <Widget>[
                         GestureDetector(
                             onTap: () {
-                              if (allWorkouts[counter]
-                                  .exercises[0]
-                                  .repsCompleted
-                                  .isEmpty) {
-                                for (int k = 0;
-                                    k < allWorkouts[i].exercises.length;
-                                    ++k) {
-                                  for (int j = 0;
-                                      j < allWorkouts[i].exercises[k].sets;
-                                      j++) {
+                              // if statement prevents excessive adding to list
+                              if (allWorkouts[i].isInitialized == false) {
+                                for (int j = 0;
+                                    j < allWorkouts[i].exercises.length;
+                                    ++j) {
+                                  for (int k = 0;
+                                      k < allWorkouts[i].exercises[j].sets;
+                                      k++) {
                                     // repsCompleted initialized with initial reps value
                                     allWorkouts[i]
-                                        .exercises[k]
+                                        .exercises[j]
                                         .repsCompleted
-                                        .add(allWorkouts[i].exercises[k].reps +
+                                        .add(allWorkouts[i].exercises[j].reps +
                                             1);
                                   }
                                 }
+                                allWorkouts[i].isInitialized = true;
                               }
                               Navigator.of(context)
                                   .push(MaterialPageRoute(
@@ -574,7 +592,7 @@ class _HomeState extends State<Home> {
             ),
             onPressed: () {
               // if statement prevents excessive adding to list
-              if (allWorkouts[counter].exercises[0].repsCompleted.isEmpty) {
+              if (allWorkouts[counter].isInitialized == false) {
                 // change from 0 to counter (index of first workout that's up)
                 for (int i = 0;
                     i < allWorkouts[counter].exercises.length;
@@ -589,6 +607,7 @@ class _HomeState extends State<Home> {
                         .add(allWorkouts[counter].exercises[i].reps + 1);
                   }
                 }
+                allWorkouts[counter].isInitialized = true;
               }
               Navigator.of(context)
                   .push(MaterialPageRoute(
@@ -708,10 +727,31 @@ class _ListState extends State<ListPage> {
                       Column(children: <Widget>[
                         GestureDetector(
                             onTap: () {
+                              // workaround to fill (seems to be pass-by-reference, strangely again)
+                              List<List<int>> copyRepsCompleted = [];
+
+                              for (int j = 0;
+                                  j < allIndivWorkouts[i].repsCompleted.length;
+                                  j++) {
+                                copyRepsCompleted.add([0]);
+                                copyRepsCompleted[j].add(
+                                    allIndivWorkouts[i].repsCompleted[j][0]);
+                                copyRepsCompleted[j].removeAt(0);
+                                for (int k = 1;
+                                    k <
+                                        allIndivWorkouts[i]
+                                            .repsCompleted[j]
+                                            .length;
+                                    k++) {
+                                  copyRepsCompleted[j].add(
+                                      allIndivWorkouts[i].repsCompleted[j][k]);
+                                }
+                              }
+                              postWorkoutTempNote = notes[i];
                               Navigator.of(context)
                                   .push(MaterialPageRoute(
-                                      builder: (context) =>
-                                          PostWorkoutEditPage(i)))
+                                      builder: (context) => PostWorkoutEditPage(
+                                          i, copyRepsCompleted)))
                                   .then((value) {
                                 setState(() {});
                               });
@@ -834,10 +874,35 @@ class _NotesState extends State<NotesPage> {
                         Column(children: <Widget>[
                           GestureDetector(
                               onTap: () {
+                                // workaround to fill (seems to be pass-by-reference, strangely again)
+                                List<List<int>> copyRepsCompleted = [];
+
+                                for (int j = 0;
+                                    j <
+                                        allIndivWorkouts[i]
+                                            .repsCompleted
+                                            .length;
+                                    j++) {
+                                  copyRepsCompleted.add([0]);
+                                  copyRepsCompleted[j].add(
+                                      allIndivWorkouts[i].repsCompleted[j][0]);
+                                  copyRepsCompleted[j].removeAt(0);
+                                  for (int k = 1;
+                                      k <
+                                          allIndivWorkouts[i]
+                                              .repsCompleted[j]
+                                              .length;
+                                      k++) {
+                                    copyRepsCompleted[j].add(allIndivWorkouts[i]
+                                        .repsCompleted[j][k]);
+                                  }
+                                }
+                                postWorkoutTempNote = notes[i];
                                 Navigator.of(context)
                                     .push(MaterialPageRoute(
                                         builder: (context) =>
-                                            PostWorkoutEditPage(i)))
+                                            PostWorkoutEditPage(
+                                                i, copyRepsCompleted)))
                                     .then((value) {
                                   setState(() {});
                                 });
@@ -923,6 +988,52 @@ class _WorkoutNotesState extends State<WorkoutNotesPage> {
               controller: _myController,
               onChanged: (val) {
                 tempNote = _myController.text;
+              },
+            )));
+  }
+}
+
+class _PostWorkoutNotesState extends State<PostWorkoutNotesPage> {
+  final _myController = TextEditingController();
+
+  @override
+  void initState() {
+    _myController.text = postWorkoutTempNote; //default text
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        backgroundColor: backColor,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios),
+            iconSize: 18,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          backgroundColor: headerColor,
+          title: const Text("Note"),
+          titleTextStyle: const TextStyle(fontSize: 22),
+        ),
+        body: Container(
+            padding: const EdgeInsets.all(10),
+            child: TextField(
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+              ),
+              autofocus: true,
+              maxLines: null,
+              cursorColor: Colors.white,
+              showCursor: true,
+              enableInteractiveSelection: true,
+              style: const TextStyle(
+                fontSize: 18,
+              ),
+              focusNode: FocusNode(),
+              controller: _myController,
+              onChanged: (val) {
+                postWorkoutTempNote = _myController.text;
               },
             )));
   }
@@ -1319,8 +1430,26 @@ class _WorkoutPageState extends State<WorkoutPage> {
                 weights.add(allWorkouts[widget.index].exercises[i].weight);
                 repsPlanned.add(allWorkouts[widget.index].exercises[i].reps);
                 setsPlanned.add(allWorkouts[widget.index].exercises[i].sets);
-                repsCompleted
-                    .add(allWorkouts[widget.index].exercises[i].repsCompleted);
+
+                // extremely weird error (appeared to be pass-by-reference
+                // with the repsCompleted, despite that not being possible)
+                // this is the roundabout solution I found
+                repsCompleted.add([0]);
+                repsCompleted[i].add(
+                    allWorkouts[widget.index].exercises[i].repsCompleted[0]);
+                repsCompleted[i].removeAt(0);
+                for (int j = 1;
+                    j <
+                        allWorkouts[widget.index]
+                            .exercises[i]
+                            .repsCompleted
+                            .length;
+                    j++) {
+                  repsCompleted[i].add(
+                      allWorkouts[widget.index].exercises[i].repsCompleted[j]);
+                }
+
+                allWorkouts[widget.index].exercises[i].repsCompleted.clear();
               }
 
               allIndivWorkouts.add(IndivWorkout(name, date, exercisesCompleted,
@@ -1332,6 +1461,15 @@ class _WorkoutPageState extends State<WorkoutPage> {
               bodyWeights.add(tempBodyWeight);
 
               _counter.value++;
+
+              for (int i = 0; i < allWorkouts.length; i++) {
+                allWorkouts[i].isInitialized = false;
+
+                for (int j = 0; j < allWorkouts[i].exercises.length; j++) {
+                  allWorkouts[i].exercises[j].repsCompleted.clear();
+                }
+              }
+
               Navigator.of(context).pop();
             },
           ),
@@ -1368,17 +1506,21 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                 alignment: Alignment.centerRight,
                                 child: GestureDetector(
                                     onTap: () {
-                                      for (int j = 0; j < allExercises.length; j++) {
-                                        if (allExercises[j].name == 
-                                            allWorkouts[widget.index].exercises[i].name) {
-                                              Navigator.of(context)
-                                                  .push(MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          EditExercisePage(j)))
-                                                  .then((value) {
-                                                setState(() {});
-                                              });
-                                            }
+                                      for (int j = 0;
+                                          j < allExercises.length;
+                                          j++) {
+                                        if (allExercises[j].name ==
+                                            allWorkouts[widget.index]
+                                                .exercises[i]
+                                                .name) {
+                                          Navigator.of(context)
+                                              .push(MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EditExercisePage(j)))
+                                              .then((value) {
+                                            setState(() {});
+                                          });
+                                        }
                                       }
                                     },
                                     child: Row(children: <Widget>[
@@ -1409,17 +1551,22 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                         width: 17,
                                         child: IconButton(
                                           onPressed: () {
-                                            for (int j = 0; j < allExercises.length; j++) {
-                                              if (allExercises[j].name == 
-                                                  allWorkouts[widget.index].exercises[i].name) {
-                                                    Navigator.of(context)
-                                                        .push(MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                EditExercisePage(j)))
-                                                        .then((value) {
-                                                      setState(() {});
-                                                    });
-                                                  }
+                                            for (int j = 0;
+                                                j < allExercises.length;
+                                                j++) {
+                                              if (allExercises[j].name ==
+                                                  allWorkouts[widget.index]
+                                                      .exercises[i]
+                                                      .name) {
+                                                Navigator.of(context)
+                                                    .push(MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            EditExercisePage(
+                                                                j)))
+                                                    .then((value) {
+                                                  setState(() {});
+                                                });
+                                              }
                                             }
                                           },
                                           alignment: Alignment.centerLeft,
@@ -1870,38 +2017,44 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                   ),
                                 ),
                               ),
-                                    onTap: () {
-                                      for (int j = 0; j < allExercises.length; j++) {
-                                        if (allExercises[j].name == 
-                                            allWorkouts[widget.index].exercises[i].name) {
-                                              Navigator.of(context)
-                                                  .push(MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          EditExercisePage(j)))
-                                                  .then((value) {
-                                                setState(() {});
-                                              });
-                                            }
-                                      }
-                                    },
+                              onTap: () {
+                                for (int j = 0; j < allExercises.length; j++) {
+                                  if (allExercises[j].name ==
+                                      allWorkouts[widget.index]
+                                          .exercises[i]
+                                          .name) {
+                                    Navigator.of(context)
+                                        .push(MaterialPageRoute(
+                                            builder: (context) =>
+                                                EditExercisePage(j)))
+                                        .then((value) {
+                                      setState(() {});
+                                    });
+                                  }
+                                }
+                              },
                             ),
                             PopupMenuButton(
                               icon: const Icon(Icons.more_vert),
                               onSelected: (dynamic value) {
                                 // edits
                                 if (value == 'edit') {
-                                  for (int j = 0; j < allExercises.length; j++) {
-                                    if (allExercises[j].name == 
-                                        allWorkouts[widget.index].exercises[i].name) {
-                                          Navigator.of(context)
-                                              .push(MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      EditExercisePage(j)))
-                                              .then((value) {
-                                            setState(() {});
-                                          });
-                                        }
+                                  for (int j = 0;
+                                      j < allExercises.length;
+                                      j++) {
+                                    if (allExercises[j].name ==
+                                        allWorkouts[widget.index]
+                                            .exercises[i]
+                                            .name) {
+                                      Navigator.of(context)
+                                          .push(MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EditExercisePage(j)))
+                                          .then((value) {
+                                        setState(() {});
+                                      });
                                     }
+                                  }
                                 }
                                 // deletes
                                 else if (value == 'delete') {
@@ -2291,6 +2444,57 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                     .add(allExercises[
                                                                         allExercises.length -
                                                                             1]);
+                                                                if (allWorkouts[
+                                                                            widget.index]
+                                                                        .isInitialized ==
+                                                                    false) {
+                                                                  for (int j =
+                                                                          0;
+                                                                      j <
+                                                                          allWorkouts[widget.index]
+                                                                              .exercises
+                                                                              .length;
+                                                                      ++j) {
+                                                                    for (int k =
+                                                                            0;
+                                                                        k < allWorkouts[widget.index].exercises[j].sets;
+                                                                        k++) {
+                                                                      // repsCompleted initialized with initial reps value
+                                                                      allWorkouts[widget
+                                                                              .index]
+                                                                          .exercises[
+                                                                              j]
+                                                                          .repsCompleted
+                                                                          .add(allWorkouts[widget.index].exercises[j].reps +
+                                                                              1);
+                                                                    }
+                                                                  }
+                                                                  allWorkouts[widget
+                                                                          .index]
+                                                                      .isInitialized = true;
+                                                                } else {
+                                                                  // adds to repsCompleted, initializes it
+                                                                  for (int j =
+                                                                          0;
+                                                                      j <
+                                                                          allWorkouts[widget.index]
+                                                                              .exercises[allWorkouts[widget.index].exercises.length - 1]
+                                                                              .sets;
+                                                                      j++) {
+                                                                    allWorkouts[widget
+                                                                            .index]
+                                                                        .exercises[
+                                                                            allWorkouts[widget.index].exercises.length -
+                                                                                1]
+                                                                        .repsCompleted
+                                                                        .add(allWorkouts[widget.index].exercises[allWorkouts[widget.index].exercises.length - 1].reps +
+                                                                            1);
+                                                                  }
+                                                                  setState(() =>
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop());
+                                                                }
                                                                 _myController
                                                                     .text = "";
                                                                 Navigator.of(
@@ -2302,8 +2506,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                 Navigator.of(
                                                                         context)
                                                                     .push(MaterialPageRoute(
-                                                                        builder: (context) => EditExercisePage(
-                                                                            allExercises.length -
+                                                                        builder: (context) =>
+                                                                            EditExercisePage(allExercises.length -
                                                                                 1)))
                                                                     .then(
                                                                         (value) {
@@ -2342,7 +2546,64 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                     allWorkouts[widget.index]
                                         .exercises
                                         .add(selectVal!);
-                                    setState(() => Navigator.of(context).pop());
+
+                                    if (allWorkouts[widget.index]
+                                            .isInitialized ==
+                                        false) {
+                                      for (int j = 0;
+                                          j <
+                                              allWorkouts[widget.index]
+                                                  .exercises
+                                                  .length;
+                                          ++j) {
+                                        for (int k = 0;
+                                            k <
+                                                allWorkouts[widget.index]
+                                                    .exercises[j]
+                                                    .sets;
+                                            k++) {
+                                          // repsCompleted initialized with initial reps value
+                                          allWorkouts[widget.index]
+                                              .exercises[j]
+                                              .repsCompleted
+                                              .add(allWorkouts[widget.index]
+                                                      .exercises[j]
+                                                      .reps +
+                                                  1);
+                                        }
+                                      }
+                                      allWorkouts[widget.index].isInitialized =
+                                          true;
+                                    } else {
+                                      // adds to repsCompleted, initializes it
+                                      for (int j = 0;
+                                          j <
+                                              allWorkouts[widget.index]
+                                                  .exercises[
+                                                      allWorkouts[widget.index]
+                                                              .exercises
+                                                              .length -
+                                                          1]
+                                                  .sets;
+                                          j++) {
+                                        allWorkouts[widget.index]
+                                            .exercises[allWorkouts[widget.index]
+                                                    .exercises
+                                                    .length -
+                                                1]
+                                            .repsCompleted
+                                            .add(allWorkouts[widget.index]
+                                                    .exercises[allWorkouts[
+                                                                widget.index]
+                                                            .exercises
+                                                            .length -
+                                                        1]
+                                                    .reps +
+                                                1);
+                                      }
+                                      setState(
+                                          () => Navigator.of(context).pop());
+                                    }
                                   }
                                 });
                               },
@@ -2393,9 +2654,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
               ),
             ),
             // displays no decimal points if it's not a decimal (casts to int)
-            if (allExercises[widget.index].weight %
-                        1 ==
-                    0 &&
+            if (allExercises[widget.index].weight % 1 == 0 &&
                 ((allExercises[widget.index].weight -
                                 allExercises[widget.index].barWeight) /
                             2) %
@@ -2404,15 +2663,13 @@ class _EditExercisePageState extends State<EditExercisePage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "${allExercises[widget.index].weight.toInt().toString()}lb (${((allExercises[widget.index].barWeight) ~/ 2)}/side)",
+                  "${allExercises[widget.index].weight.toInt().toString()}lb (${(((allExercises[widget.index].weight) - allExercises[widget.index].barWeight) ~/ 2)}/side)",
                   style: const TextStyle(
                     fontSize: 14,
                   ),
                 ),
               ),
-            if (allExercises[widget.index].weight %
-                        1 ==
-                    0 &&
+            if (allExercises[widget.index].weight % 1 == 0 &&
                 ((allExercises[widget.index].weight -
                                 allExercises[widget.index].barWeight) /
                             2) %
@@ -2421,16 +2678,14 @@ class _EditExercisePageState extends State<EditExercisePage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "${allExercises[widget.index].weight.toInt().toString()}lb (${((allExercises[widget.index].barWeight) / 2).toString()}/side)",
+                  "${allExercises[widget.index].weight.toInt().toString()}lb (${(((allExercises[widget.index].weight) - allExercises[widget.index].barWeight) / 2).toString()}/side)",
                   style: const TextStyle(
                     fontSize: 14,
                   ),
                 ),
               ),
             // if there are decimals
-            if (allExercises[widget.index].weight %
-                        1 !=
-                    0 &&
+            if (allExercises[widget.index].weight % 1 != 0 &&
                 ((allExercises[widget.index].weight -
                                 allExercises[widget.index].barWeight) /
                             2) %
@@ -2439,15 +2694,13 @@ class _EditExercisePageState extends State<EditExercisePage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "${allExercises[widget.index].weight.toString()}lb (${((allExercises[widget.index].barWeight) ~/ 2)}/side)",
+                  "${allExercises[widget.index].weight.toString()}lb (${(((allExercises[widget.index].weight) - allExercises[widget.index].barWeight) ~/ 2)}/side)",
                   style: const TextStyle(
                     fontSize: 14,
                   ),
                 ),
               ),
-            if (allExercises[widget.index].weight %
-                        1 !=
-                    0 &&
+            if (allExercises[widget.index].weight % 1 != 0 &&
                 ((allExercises[widget.index].weight -
                                 allExercises[widget.index].barWeight) /
                             2) %
@@ -2456,8 +2709,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "${allExercises[widget.index].weight.toString()}lb (${((allExercises[widget.index].weight 
-                    - allExercises[widget.index].barWeight) / 2).toString()}/side)",
+                  "${allExercises[widget.index].weight.toString()}lb (${((allExercises[widget.index].weight - allExercises[widget.index].barWeight) / 2).toString()}/side)",
                   style: const TextStyle(
                     fontSize: 14,
                   ),
@@ -2470,18 +2722,13 @@ class _EditExercisePageState extends State<EditExercisePage> {
       body: Column(children: <Widget>[
         GestureDetector(
             onTap: () {
-              if (allExercises[widget.index].weight %
-                      1 ==
-                  0) {
-                setState(() => _myController.text = allExercises[widget.index].weight
-                    .toInt()
-                    .toString());
+              if (allExercises[widget.index].weight % 1 == 0) {
+                setState(() => _myController.text =
+                    allExercises[widget.index].weight.toInt().toString());
               }
-              if (allExercises[widget.index].weight %
-                      1 !=
-                  0) {
-                setState(() => _myController.text = allExercises[widget.index].weight
-                    .toString());
+              if (allExercises[widget.index].weight % 1 != 0) {
+                setState(() => _myController.text =
+                    allExercises[widget.index].weight.toString());
               }
               showDialog(
                 context: context,
@@ -2539,8 +2786,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                   ),
                                   onPressed: () {
                                     // subtracts 5lb from text box
-                                    if (allExercises[widget.index].weight %
-                                            1 ==
+                                    if (allExercises[widget.index].weight % 1 ==
                                         0) {
                                       setState(() {
                                         double tempText =
@@ -2557,7 +2803,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                 offset:
                                                     _myController.text.length);
                                       });
-                                    } else if (allExercises[widget.index].weight %
+                                    } else if (allExercises[widget.index]
+                                                .weight %
                                             1 !=
                                         0) {
                                       setState(() {
@@ -2652,7 +2899,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
                               ),
                               child: const Text("OK"),
                               onPressed: () {
-                                setState(() => allExercises[widget.index].weight = double.parse(_myController.text));
+                                setState(() => allExercises[widget.index]
+                                    .weight = double.parse(_myController.text));
                                 Navigator.of(context).pop();
                               },
                             ),
@@ -2678,9 +2926,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                         ),
                       ),
                       // if no decimals needed
-                      if (allExercises[widget.index].weight %
-                              1 ==
-                          0)
+                      if (allExercises[widget.index].weight % 1 == 0)
                         Align(
                           alignment: const Alignment(-.91, 0),
                           child: Text(
@@ -2690,9 +2936,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             ),
                           ),
                         ),
-                      if (allExercises[widget.index].weight %
-                              1 !=
-                          0)
+                      if (allExercises[widget.index].weight % 1 != 0)
                         Align(
                           alignment: const Alignment(-.91, 0),
                           child: Text(
@@ -2706,18 +2950,13 @@ class _EditExercisePageState extends State<EditExercisePage> {
         // bar weight
         GestureDetector(
             onTap: () {
-              if (allExercises[widget.index].barWeight %
-                      1 ==
-                  0) {
-                setState(() => _myController.text = allExercises[widget.index].barWeight
-                    .toInt()
-                    .toString());
+              if (allExercises[widget.index].barWeight % 1 == 0) {
+                setState(() => _myController.text =
+                    allExercises[widget.index].barWeight.toInt().toString());
               }
-              if (allExercises[widget.index].barWeight %
-                      1 !=
-                  0) {
-                setState(() => _myController.text = allExercises[widget.index].barWeight
-                    .toString());
+              if (allExercises[widget.index].barWeight % 1 != 0) {
+                setState(() => _myController.text =
+                    allExercises[widget.index].barWeight.toString());
               }
               showDialog(
                 context: context,
@@ -2793,7 +3032,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                 offset:
                                                     _myController.text.length);
                                       });
-                                    } else if (allExercises[widget.index].barWeight %
+                                    } else if (allExercises[widget.index]
+                                                .barWeight %
                                             1 !=
                                         0) {
                                       setState(() {
@@ -2830,7 +3070,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                       ),
                                       onPressed: () {
                                         // adds 5lb to text box
-                                        if (allExercises[widget.index].barWeight %
+                                        if (allExercises[widget.index]
+                                                    .barWeight %
                                                 1 ==
                                             0) {
                                           setState(() {
@@ -2845,7 +3086,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                         .text.length);
                                           });
                                         }
-                                        if (allExercises[widget.index].barWeight %
+                                        if (allExercises[widget.index]
+                                                    .barWeight %
                                                 1 !=
                                             0) {
                                           setState(() {
@@ -2888,8 +3130,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                               ),
                               child: const Text("OK"),
                               onPressed: () {
-                                setState(() => allExercises[widget.index].barWeight =
-                                    double.parse(_myController.text));
+                                setState(() =>
+                                    allExercises[widget.index].barWeight =
+                                        double.parse(_myController.text));
                                 Navigator.of(context).pop();
                               },
                             ),
@@ -2915,9 +3158,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                         ),
                       ),
                       // if no decimals needed
-                      if (allExercises[widget.index].barWeight %
-                              1 ==
-                          0)
+                      if (allExercises[widget.index].barWeight % 1 == 0)
                         Align(
                           alignment: const Alignment(-.91, 0),
                           child: Text(
@@ -2927,9 +3168,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             ),
                           ),
                         ),
-                      if (allExercises[widget.index].barWeight %
-                              1 !=
-                          0)
+                      if (allExercises[widget.index].barWeight % 1 != 0)
                         Align(
                           alignment: const Alignment(-.91, 0),
                           child: Text(
@@ -2943,10 +3182,10 @@ class _EditExercisePageState extends State<EditExercisePage> {
         // sets x reps
         GestureDetector(
             onTap: () {
-              setState(() => _myController.text = allExercises[widget.index].sets
-                  .toString());
-              setState(() => _myController2.text = allExercises[widget.index].reps
-                  .toString());
+              setState(() => _myController.text =
+                  allExercises[widget.index].sets.toString());
+              setState(() => _myController2.text =
+                  allExercises[widget.index].reps.toString());
 
               showDialog(
                 context: context,
@@ -3042,7 +3281,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                 child: const Text("OK"),
                                 onPressed: () {
                                   int oldReps = allExercises[widget.index].reps;
-                                  int oldSets = allExercises[widget.index].reps;
+                                  int oldSets = allExercises[widget.index].sets;
                                   setState(() => {
                                         allExercises[widget.index].sets =
                                             int.parse(_myController.text),
@@ -3053,27 +3292,36 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                           {
                                             for (int i = 0;
                                                 i <
-                                                    allExercises[widget.index].sets -
+                                                    allExercises[widget.index]
+                                                            .sets -
                                                         oldSets;
                                                 i++)
                                               {
-                                                allExercises[widget.index].repsCompleted
-                                                    .add(allExercises[widget.index].reps +
+                                                allExercises[widget.index]
+                                                    .repsCompleted
+                                                    .add(allExercises[
+                                                                widget.index]
+                                                            .reps +
                                                         1)
                                               },
                                           },
                                         if (oldReps !=
                                             allExercises[widget.index].reps)
                                           {
-                                            allExercises[widget.index].repsCompleted
+                                            allExercises[widget.index]
+                                                .repsCompleted
                                                 .clear(),
                                             for (int j = 0;
                                                 j <
-                                                    allExercises[widget.index].sets;
+                                                    allExercises[widget.index]
+                                                        .sets;
                                                 ++j)
                                               {
-                                                allExercises[widget.index].repsCompleted
-                                                    .add(allExercises[widget.index].reps +
+                                                allExercises[widget.index]
+                                                    .repsCompleted
+                                                    .add(allExercises[
+                                                                widget.index]
+                                                            .reps +
                                                         1),
                                               },
                                           }
@@ -3122,8 +3370,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
                 alignment: const Alignment(-.9, 0)),
             child: const Text("Change Exercise Name"),
             onPressed: () {
-              setState(() => _myController.text =
-                  allExercises[widget.index].name);
+              setState(
+                  () => _myController.text = allExercises[widget.index].name);
               showDialog(
                   context: context,
                   builder: (context) => Dialog(
@@ -3182,7 +3430,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                     ),
                                     child: const Text("OK"),
                                     onPressed: () {
-                                      setState(() => allExercises[widget.index].name = _myController.text);
+                                      setState(() => allExercises[widget.index]
+                                          .name = _myController.text);
                                       Navigator.of(context).pop();
                                     },
                                   ),
@@ -3212,10 +3461,15 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
       backgroundColor: backColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          iconSize: 18,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+            icon: const Icon(Icons.arrow_back_ios),
+            iconSize: 18,
+            onPressed: () {
+              //print(widget.copyRepsCompleted);
+              // discards reps changes
+              allIndivWorkouts[widget.index].repsCompleted =
+                  widget.copyRepsCompleted;
+              Navigator.of(context).pop();
+            }),
         backgroundColor: headerColor,
         title: Text("calendar"),
         actions: <Widget>[
@@ -3239,6 +3493,11 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   i < allWorkouts[widget.index].exercises.length;
                   i++) {}
 
+              // save any weight, rep, set, name changes
+
+              notes[widget.index] = postWorkoutTempNote;
+              postWorkoutTempNote = "";
+
               Navigator.of(context).pop();
             },
           ),
@@ -3256,7 +3515,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                     shrinkWrap: true,
                     children: <Widget>[
                   for (int i = 0;
-                      i < allIndivWorkouts[widget.index].exercisesCompleted.length;
+                      i < allIndivWorkouts[widget.index].repsCompleted.length;
                       i++)
                     Column(children: <Widget>[
                       Row(children: <Widget>[
@@ -3278,23 +3537,25 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                       // to account for post-workout exercise order change,
                                       // search for where this exercise is currently in the workout
                                       // to bring it to the correct edit exercise page
-                                      for (int j = 0; j < allExercises.length; j++) {
-                                        if (allExercises[j].name == 
-                                            allIndivWorkouts[widget.index].exercisesCompleted[i]) {
-                                              Navigator.of(context)
-                                                  .push(MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          EditExercisePage(j)))
-                                                  .then((value) {
-                                                setState(() {});
-                                              });
-                                            }
+                                      for (int j = 0;
+                                          j < allExercises.length;
+                                          j++) {
+                                        if (allExercises[j].name ==
+                                            allIndivWorkouts[widget.index]
+                                                .exercisesCompleted[i]) {
+                                          Navigator.of(context)
+                                              .push(MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EditExercisePage(j)))
+                                              .then((value) {
+                                            setState(() {});
+                                          });
+                                        }
                                       }
                                     },
                                     child: Row(children: <Widget>[
-                                      if (allWorkouts[widget.index]
-                                                  .exercises[i]
-                                                  .weight %
+                                      if (allIndivWorkouts[widget.index]
+                                                  .weights[i] %
                                               1 ==
                                           0)
                                         Flexible(
@@ -3319,17 +3580,21 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                         width: 17,
                                         child: IconButton(
                                           onPressed: () {
-                                            for (int j = 0; j < allExercises.length; j++) {
-                                              if (allExercises[j].name == 
-                                                  allIndivWorkouts[widget.index].exercisesCompleted[i]) {
-                                                    Navigator.of(context)
-                                                        .push(MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                EditExercisePage(j)))
-                                                        .then((value) {
-                                                      setState(() {});
-                                                    });
-                                                  }
+                                            for (int j = 0;
+                                                j < allExercises.length;
+                                                j++) {
+                                              if (allExercises[j].name ==
+                                                  allIndivWorkouts[widget.index]
+                                                      .exercisesCompleted[i]) {
+                                                Navigator.of(context)
+                                                    .push(MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            EditExercisePage(
+                                                                j)))
+                                                    .then((value) {
+                                                  setState(() {});
+                                                });
+                                              }
                                             }
                                           },
                                           alignment: Alignment.centerLeft,
@@ -3355,9 +3620,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                 // one circle for each set, initialized with number of reps
                                 for (int j = 0;
                                     j <
-                                        allWorkouts[widget.index]
-                                            .exercises[i]
-                                            .sets;
+                                        allIndivWorkouts[widget.index]
+                                            .setsPlanned[i];
                                     j++)
                                   // circle, onTap decrement, loops back to rep number
                                   SizedBox(
@@ -3368,49 +3632,39 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                           side: BorderSide(
                                               width: 1,
                                               style: BorderStyle.none)),
-                                      child: allWorkouts[widget.index]
-                                                  .exercises[i]
-                                                  .repsCompleted[j] >
-                                              allWorkouts[widget.index]
-                                                  .exercises[i]
-                                                  .reps
-                                          ? Text(allWorkouts[widget.index]
-                                              .exercises[i]
-                                              .reps
+                                      child: allIndivWorkouts[widget.index]
+                                                  .repsCompleted[i][j] >
+                                              allIndivWorkouts[widget.index]
+                                                  .repsPlanned[i]
+                                          ? Text(allIndivWorkouts[widget.index]
+                                              .repsPlanned[i]
                                               .toString())
-                                          : Text(allWorkouts[widget.index]
-                                              .exercises[i]
-                                              .repsCompleted[j]
+                                          : Text(allIndivWorkouts[widget.index]
+                                              .repsCompleted[i][j]
                                               .toString()),
-                                      color: allWorkouts[widget.index]
-                                                  .exercises[i]
-                                                  .repsCompleted[j] >
-                                              allWorkouts[widget.index]
-                                                  .exercises[i]
-                                                  .reps
+                                      color: allIndivWorkouts[widget.index]
+                                                  .repsCompleted[i][j] >
+                                              allIndivWorkouts[widget.index]
+                                                  .repsPlanned[i]
                                           ? const Color.fromARGB(
                                               255, 41, 41, 41)
                                           : Colors.red,
                                       textColor: Colors.white,
                                       onPressed: () {
                                         // loops around
-                                        if (allWorkouts[widget.index]
-                                                .exercises[i]
-                                                .repsCompleted[j] ==
+                                        if (allIndivWorkouts[widget.index]
+                                                .repsCompleted[i][j] ==
                                             0) {
                                           setState(() =>
-                                              allWorkouts[widget.index]
-                                                      .exercises[i]
-                                                      .repsCompleted[j] =
-                                                  allWorkouts[widget.index]
-                                                          .exercises[i]
-                                                          .reps +
+                                              allIndivWorkouts[widget.index]
+                                                      .repsCompleted[i][j] =
+                                                  allIndivWorkouts[widget.index]
+                                                          .repsPlanned[i] +
                                                       1);
                                         } else {
                                           setState(() =>
-                                              allWorkouts[widget.index]
-                                                  .exercises[i]
-                                                  .repsCompleted[j] -= 1);
+                                              allIndivWorkouts[widget.index]
+                                                  .repsCompleted[i][j] -= 1);
                                         }
                                       },
                                     ),
@@ -3441,19 +3695,25 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                 // sets initial scroll to weight
                                 final _intController =
                                     FixedExtentScrollController(
-                                        initialItem: tempBodyWeight ~/ 1 - 50);
+                                        initialItem:
+                                            bodyWeights[widget.index] ~/ 1 -
+                                                50);
                                 // annoying floating point precision: 100.6 - 100 = 0.599
                                 // the +0.05 is a way around it
                                 final _decController =
                                     FixedExtentScrollController(
-                                        initialItem: (tempBodyWeight -
-                                                (tempBodyWeight ~/ 1) +
+                                        initialItem: (bodyWeights[
+                                                    widget.index] -
+                                                (bodyWeights[widget.index] ~/
+                                                    1) +
                                                 0.05) *
                                             10 ~/
                                             1);
-                                int scrollBodyWeightInt = tempBodyWeight ~/ 1;
+                                int scrollBodyWeightInt =
+                                    bodyWeights[widget.index] ~/ 1;
                                 int scrollBodyWeightDec =
-                                    (tempBodyWeight - (tempBodyWeight ~/ 1)) *
+                                    (bodyWeights[widget.index] -
+                                            (bodyWeights[widget.index] ~/ 1)) *
                                         10 ~/
                                         1;
                                 showDialog(
@@ -3618,7 +3878,9 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                       child: const Text("OK"),
                                                       onPressed: () {
                                                         setState(
-                                                          () => tempBodyWeight =
+                                                          () => bodyWeights[
+                                                                  widget
+                                                                      .index] =
                                                               scrollBodyWeightInt +
                                                                   0.1 *
                                                                       scrollBodyWeightDec,
@@ -3632,7 +3894,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                               },
                               child: Align(
                                   alignment: Alignment.centerRight,
-                                  child: Text("${tempBodyWeight.toString()}lb",
+                                  child: Text(
+                                      "${bodyWeights[widget.index].toString()}lb",
                                       style: TextStyle(
                                         fontSize: 17,
                                         color: redColor,
@@ -3650,7 +3913,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                 child: TextButton(
                     onPressed: () {
                       Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => const WorkoutNotesPage()));
+                          builder: (context) =>
+                              PostWorkoutNotesPage(widget.index)));
                     },
                     child: const Text("Note"),
                     style: TextButton.styleFrom(
@@ -3665,15 +3929,12 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                 alignment: Alignment.bottomRight,
                 child: TextButton(
                     onPressed: () {
-                      Navigator.of(context)
-                          .push(MaterialPageRoute(
-                              builder: (context) =>
-                                  EditWorkoutPage(widget.index)))
-                          .then((value) {
-                        setState(() {});
-                      });
+                      notes.removeAt(widget.index);
+                      allIndivWorkouts.removeAt(widget.index);
+                      bodyWeights.removeAt(widget.index);
+                      Navigator.of(context).pop();
                     },
-                    child: const Text("Edit"),
+                    child: const Text("Delete"),
                     style: TextButton.styleFrom(
                       primary: redColor,
                       textStyle: const TextStyle(fontWeight: FontWeight.bold),
