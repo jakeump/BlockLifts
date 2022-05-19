@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(const MyApp());
@@ -27,8 +28,8 @@ int counter = 0;
 ValueNotifier<int> _counter = ValueNotifier<int>(0); // to update list page
 
 Exercise customxyz = Exercise("Custom Exercise");
-Workout defaultA = Workout("BlockLifts Default A");
-Workout defaultB = Workout("BlockLifts Default B");
+Workout defaultA = Workout("BlockLifts A");
+Workout defaultB = Workout("BlockLifts B");
 Exercise squat = Exercise("Squat");
 Exercise benchPress = Exercise("Bench Press");
 Exercise barbellRow = Exercise("Barbell Row");
@@ -762,7 +763,7 @@ class _ListState extends State<ListPage> {
                             },
                             child: Flexible(
                                 child: Container(
-                                    padding: const EdgeInsets.all(10),
+                                    padding: const EdgeInsets.all(20),
                                     decoration: BoxDecoration(
                                       border: Border.all(color: Colors.grey),
                                       borderRadius: BorderRadius.circular(6),
@@ -770,17 +771,28 @@ class _ListState extends State<ListPage> {
                                     ),
                                     alignment: Alignment.topLeft,
                                     child: Column(children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(allIndivWorkouts[i].name,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontSize: 17,
-                                            )),
-                                      ),
+                                      Row(children: <Widget>[
+                                        Expanded(child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(allIndivWorkouts[i].name,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.grey,
+                                              )),
+                                        ),
+                                        ),
+                                        Expanded(child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: Text(allIndivWorkouts[i].date,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.grey,
+                                              )),
+                                        ),
+                                        ),                                        
+                                      ]),
                                       const Divider(
-                                          height: 20,
+                                          height: 15,
                                           color: Colors.transparent),
                                       Column(children: [
                                         for (int j = 0;
@@ -792,6 +804,7 @@ class _ListState extends State<ListPage> {
                                           Column(children: <Widget>[
                                             Row(children: <Widget>[
                                               Expanded(
+                                                flex: 3,
                                                 child: Align(
                                                   alignment:
                                                       Alignment.centerLeft,
@@ -799,35 +812,100 @@ class _ListState extends State<ListPage> {
                                                       allIndivWorkouts[i]
                                                           .exercisesCompleted[j],
                                                       style: const TextStyle(
-                                                        fontSize: 17,
+                                                        fontSize: 16,
                                                       )),
                                                 ),
                                               ),
-                                              if (allIndivWorkouts[i]
-                                                          .weights[j] %
-                                                      1 ==
-                                                  0)
-                                                Flexible(
-                                                    child: Align(
-                                                        alignment: Alignment
-                                                            .centerRight,
-                                                        child: Text(
-                                                            "${allIndivWorkouts[i].setsPlanned[j]}x${allIndivWorkouts[i].repsPlanned[j]} ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
-                                                            style:
-                                                                const TextStyle(
-                                                              fontSize: 17,
-                                                            ))))
-                                              else
-                                                Expanded(
-                                                    child: Align(
-                                                        alignment: Alignment
-                                                            .centerRight,
-                                                        child: Text(
-                                                            "${allIndivWorkouts[i].setsPlanned[j]}x${allIndivWorkouts[i].repsPlanned[j]} ${allIndivWorkouts[i].weights[j].toString()}lb",
-                                                            style:
-                                                                const TextStyle(
-                                                                    fontSize:
-                                                                        17)))),
+                                              Expanded(
+                                                  flex: 4,
+                                                  child: Align(
+                                                      alignment:
+                                                          Alignment.centerRight,
+                                                      child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .end,
+                                                          children: <Widget>[
+                                                            for (int k = 0;
+                                                                k <
+                                                                    allIndivWorkouts[i].setsPlanned[
+                                                                        j];
+                                                                k++)
+                                                              if (k == 5 &&
+                                                                  allIndivWorkouts[i].weights[j] % 1 ==
+                                                                      0)
+                                                                Text(
+                                                                    "... ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
+                                                                    style:
+                                                                        const TextStyle(
+                                                                      fontSize:
+                                                                          16,
+                                                                    ))
+                                                              else if (k == 5 &&
+                                                                  allIndivWorkouts[i].weights[j] %
+                                                                          1 !=
+                                                                      0)
+                                                                Text(
+                                                                    "... ${allIndivWorkouts[i].weights[j]}lb",
+                                                                    style:
+                                                                        const TextStyle(
+                                                                      fontSize:
+                                                                          16,
+                                                                    ))
+                                                              else if (k > 5)
+                                                                const SizedBox(
+                                                                    width: 0)
+                                                              else if (k == allIndivWorkouts[i].setsPlanned[j] - 1 &&
+                                                                  allIndivWorkouts[i].weights[j] %
+                                                                          1 ==
+                                                                      0)
+                                                                allIndivWorkouts[i].repsCompleted[j][k] ==
+                                                                        allIndivWorkouts[i].repsPlanned[j] +
+                                                                            1
+                                                                    ? Text(
+                                                                        "0 ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
+                                                                        style:
+                                                                            const TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                        ))
+                                                                    : Text(
+                                                                        "${allIndivWorkouts[i].repsCompleted[j][k]} ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
+                                                                        style:
+                                                                            const TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                        ))
+                                                              else if (k == allIndivWorkouts[i].setsPlanned[j] - 1 &&
+                                                                  allIndivWorkouts[i].weights[j] %
+                                                                          1 !=
+                                                                      0)
+                                                                allIndivWorkouts[i].repsCompleted[j]
+                                                                            [k] ==
+                                                                        allIndivWorkouts[i].repsPlanned[j] + 1
+                                                                    ? Text("0 ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
+                                                                        style: const TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                        ))
+                                                                    : Text("${allIndivWorkouts[i].repsCompleted[j][k]} ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
+                                                                        style: const TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                        ))
+                                                              else
+                                                                allIndivWorkouts[i].repsCompleted[j][k] == allIndivWorkouts[i].repsPlanned[j] + 1
+                                                                    ? const Text("0/",
+                                                                        style: TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                        ))
+                                                                    : Text("${allIndivWorkouts[i].repsCompleted[j][k]}/",
+                                                                        style: const TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                        ))
+                                                          ])))
                                             ]),
                                             Divider(
                                                 // larger divider if not at end of list
@@ -836,8 +914,8 @@ class _ListState extends State<ListPage> {
                                                                 .exercisesCompleted
                                                                 .length -
                                                             1
-                                                    ? 25
-                                                    : 10,
+                                                    ? 15
+                                                    : 0,
                                                 color: Colors.transparent),
                                           ])
                                       ]),
@@ -915,7 +993,7 @@ class _NotesState extends State<NotesPage> {
                               },
                               child: Flexible(
                                   child: Container(
-                                      padding: const EdgeInsets.all(10),
+                                      padding: const EdgeInsets.all(20),
                                       decoration: BoxDecoration(
                                         border: Border.all(color: Colors.grey),
                                         borderRadius: BorderRadius.circular(6),
@@ -924,18 +1002,28 @@ class _NotesState extends State<NotesPage> {
                                       alignment: Alignment.topLeft,
                                       child: Column(
                                         children: [
-                                          Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Text(
-                                                allIndivWorkouts[i].name,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                )),
-                                          ),
+                                          Row(children: <Widget>[
+                                            Expanded(child: Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(allIndivWorkouts[i].name,
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.grey,
+                                                  )),
+                                            ),
+                                            ),
+                                            Expanded(child: Align(
+                                              alignment: Alignment.centerRight,
+                                              child: Text(allIndivWorkouts[i].date,
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.grey,
+                                                  )),
+                                            ),
+                                            ),                                        
+                                          ]),
                                           const Divider(
-                                              height: 20,
+                                              height: 15,
                                               color: Colors.transparent),
                                           Align(
                                               alignment: Alignment.centerLeft,
@@ -943,7 +1031,6 @@ class _NotesState extends State<NotesPage> {
                                                   style: const TextStyle(
                                                     fontSize: 16,
                                                   ))),
-                                          const SizedBox(height: 5),
                                         ],
                                       )))),
                           const Divider(height: 5, color: Colors.transparent),
@@ -1422,7 +1509,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                       1; // loops counter according to selected workout
 
               String name = allWorkouts[widget.index].name;
-              String date = "date";
+              var now = DateTime.now();
+              String date = DateFormat('E, d MMM yyyy').format(now);
               List<String> exercisesCompleted = [];
               List<double> weights = [];
               List<int> repsPlanned = [];
@@ -3465,10 +3553,14 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
   List<double> copyWeights = [];
 
   double postTempBodyWeight = 0;
+  TextEditingController dateinput = TextEditingController();
+  String dateChange = "";
 
   @override
   void initState() {
     super.initState();
+    dateinput.text = allIndivWorkouts[widget.index].date.substring(5);
+    dateChange = allIndivWorkouts[widget.index].date;
     postTempBodyWeight = bodyWeights[widget.index];
     // yet again roundabout way of making a copy
     for (int i = 0;
@@ -3499,7 +3591,38 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
               iconSize: 18,
               onPressed: () => _onBackPressed()),
           backgroundColor: headerColor,
-          title: Text("calendar"),
+          title: Center(
+              child: SizedBox(
+                  height: 40,
+                  child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 41, 41, 41),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: Padding(
+                          padding: const EdgeInsets.only(left: 10, right: 10),
+                          child: TextButton(
+                              child: Text(dateinput.text, // workout date
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  )),
+                              onPressed: () async {
+                                DateTime? pickedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime
+                                        .now(), // change to date of workout
+                                    firstDate: DateTime(
+                                        2000), // change to date of first workout
+                                    lastDate: DateTime.now());
+
+                                setState(() {
+                                  dateinput.text = DateFormat('d MMM yyyy')
+                                      .format(pickedDate!);
+                                  dateChange = DateFormat('E, d MMM yyyy')
+                                      .format(pickedDate);
+                                });
+                              }))))),
           actions: <Widget>[
             TextButton(
               style: TextButton.styleFrom(
@@ -3529,6 +3652,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
 
                 notes[widget.index] = postWorkoutTempNote;
                 postWorkoutTempNote = "";
+                allIndivWorkouts[widget.index].date = dateChange;
 
                 Navigator.of(context).pop();
               },
