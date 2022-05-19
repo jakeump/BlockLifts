@@ -3460,12 +3460,30 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
     for (int i = 0; i < 10; i++) ListTile(title: Text(i.toString())),
   ];
 
+  List<int> copySetsPlanned = [];
+  List<int> copyRepsPlanned = [];
+  List<double> copyWeights = [];
+
   double postTempBodyWeight = 0;
 
   @override
   void initState() {
     super.initState();
     postTempBodyWeight = bodyWeights[widget.index];
+    // yet again roundabout way of making a copy
+    for (int i = 0;
+        i < allIndivWorkouts[widget.index].setsPlanned.length;
+        i++) {
+      copySetsPlanned.add(allIndivWorkouts[widget.index].setsPlanned[i]);
+    }
+    for (int i = 0;
+        i < allIndivWorkouts[widget.index].repsPlanned.length;
+        i++) {
+      copyRepsPlanned.add(allIndivWorkouts[widget.index].repsPlanned[i]);
+    }
+    for (int i = 0; i < allIndivWorkouts[widget.index].weights.length; i++) {
+      copyWeights.add(allIndivWorkouts[widget.index].weights[i]);
+    }
   }
 
   @override
@@ -3547,26 +3565,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                               child: Align(
                                   alignment: Alignment.centerRight,
                                   child: GestureDetector(
-                                      onTap: () {
-                                        // to account for post-workout exercise order change,
-                                        // search for where this exercise is currently in the workout
-                                        // to bring it to the correct edit exercise page
-                                        for (int j = 0;
-                                            j < allExercises.length;
-                                            j++) {
-                                          if (allExercises[j].name ==
-                                              allIndivWorkouts[widget.index]
-                                                  .exercisesCompleted[i]) {
-                                            Navigator.of(context)
-                                                .push(MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        EditExercisePage(j)))
-                                                .then((value) {
-                                              setState(() {});
-                                            });
-                                          }
-                                        }
-                                      },
+                                      onTap: () =>
+                                          _weightsSetsReps(widget.index, i),
                                       child: Row(children: <Widget>[
                                         if (allIndivWorkouts[widget.index]
                                                     .weights[i] %
@@ -3593,26 +3593,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                         SizedBox(
                                           width: 17,
                                           child: IconButton(
-                                            onPressed: () {
-                                              for (int j = 0;
-                                                  j < allExercises.length;
-                                                  j++) {
-                                                if (allExercises[j].name ==
-                                                    allIndivWorkouts[
-                                                                widget.index]
-                                                            .exercisesCompleted[
-                                                        i]) {
-                                                  Navigator.of(context)
-                                                      .push(MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              EditExercisePage(
-                                                                  j)))
-                                                      .then((value) {
-                                                    setState(() {});
-                                                  });
-                                                }
-                                              }
-                                            },
+                                            onPressed: () => _weightsSetsReps(
+                                                widget.index, i),
                                             alignment: Alignment.centerLeft,
                                             padding: const EdgeInsets.all(0),
                                             splashColor: Colors.transparent,
@@ -3987,8 +3969,189 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
   }
 
   Future<bool> _onBackPressed() async {
+    // reverts to old reps completed, sets planned, reps planned, weights
     allIndivWorkouts[widget.index].repsCompleted = widget.copyRepsCompleted;
+    allIndivWorkouts[widget.index].setsPlanned = copySetsPlanned;
+    allIndivWorkouts[widget.index].repsPlanned = copyRepsPlanned;
+    allIndivWorkouts[widget.index].weights = copyWeights;
     Navigator.of(context).pop();
     return true;
+  }
+
+  void _weightsSetsReps(int idx, int exIdx) {
+    final _myController = TextEditingController();
+    final _myController2 = TextEditingController();
+    final _weightsController = TextEditingController();
+    _myController.text = allIndivWorkouts[idx].setsPlanned[exIdx].toString();
+    _myController2.text = allIndivWorkouts[idx].repsPlanned[exIdx].toString();
+
+    allIndivWorkouts[idx].weights[exIdx] % 1 == 0
+        ? _weightsController.text =
+            allIndivWorkouts[idx].weights[exIdx].toInt().toString()
+        : _weightsController.text =
+            allIndivWorkouts[idx].weights[exIdx].toString();
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.all(10),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                const Text("Edit Exercise",
+                    style: TextStyle(
+                      fontSize: 18,
+                    )),
+                const Text("Changes are only for this individual workout",
+                    style: TextStyle(
+                      fontSize: 14,
+                    )),
+                const SizedBox(height: 20),
+                TextField(
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter(RegExp(r'[0-9.]'), allow: true)
+                  ],
+                  controller: _weightsController,
+                  autofocus: true,
+                  keyboardType: TextInputType.number,
+                  textAlignVertical: TextAlignVertical.bottom,
+                  decoration: const InputDecoration(
+                    labelText: "Weight",
+                    labelStyle: TextStyle(fontSize: 20, color: Colors.white),
+                    contentPadding: EdgeInsets.only(bottom: 0),
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
+                ),
+                Divider(
+                  color: Colors.white.withOpacity(.7),
+                  height: 2,
+                  thickness: 2,
+                ),
+                const SizedBox(height: 30),
+                TextField(
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter(RegExp(r'[0-99]'), allow: true)
+                  ],
+                  controller: _myController,
+                  autofocus: true,
+                  keyboardType: TextInputType.number,
+                  textAlignVertical: TextAlignVertical.bottom,
+                  decoration: const InputDecoration(
+                    labelText: "Sets",
+                    labelStyle: TextStyle(fontSize: 20, color: Colors.white),
+                    contentPadding: EdgeInsets.only(bottom: 0),
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
+                ),
+                Divider(
+                  color: Colors.white.withOpacity(.7),
+                  height: 2,
+                  thickness: 2,
+                ),
+                const SizedBox(height: 30),
+                TextField(
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter(RegExp(r'[0-9]'), allow: true)
+                  ],
+                  controller: _myController2,
+                  autofocus: true,
+                  keyboardType: TextInputType.number,
+                  textAlignVertical: TextAlignVertical.bottom,
+                  decoration: const InputDecoration(
+                    labelText: "Reps",
+                    labelStyle: TextStyle(fontSize: 20, color: Colors.white),
+                    contentPadding: EdgeInsets.only(bottom: 0),
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
+                ),
+                Divider(
+                  color: Colors.white.withOpacity(.7),
+                  height: 2,
+                  thickness: 2,
+                ),
+                const SizedBox(height: 20),
+                Row(children: <Widget>[
+                  const SizedBox(width: 187.4),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      primary: redColor,
+                      textStyle: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                      alignment: Alignment.center,
+                    ),
+                    child: const Text("Cancel"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  const SizedBox(width: 20),
+                  TextButton(
+                      style: TextButton.styleFrom(
+                        primary: redColor,
+                        textStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        alignment: Alignment.center,
+                      ),
+                      child: const Text("OK"),
+                      onPressed: () {
+                        int oldReps = allIndivWorkouts[idx].repsPlanned[exIdx];
+                        int oldSets = allIndivWorkouts[idx].setsPlanned[exIdx];
+                        setState(() => {
+                              allIndivWorkouts[idx].weights[exIdx] =
+                                  double.parse(_weightsController.text),
+                              allIndivWorkouts[idx].setsPlanned[exIdx] =
+                                  int.parse(_myController.text),
+                              allIndivWorkouts[idx].repsPlanned[exIdx] =
+                                  int.parse(_myController2.text),
+                              if (oldSets !=
+                                  allIndivWorkouts[idx].setsPlanned[exIdx])
+                                {
+                                  for (int i = 0;
+                                      i <
+                                          allIndivWorkouts[idx]
+                                                  .setsPlanned[exIdx] -
+                                              oldSets;
+                                      i++)
+                                    {
+                                      allIndivWorkouts[idx]
+                                          .repsCompleted[exIdx]
+                                          .add(allIndivWorkouts[idx]
+                                                  .repsPlanned[exIdx] +
+                                              1),
+                                    },
+                                },
+                              if (oldReps !=
+                                  allIndivWorkouts[idx].repsPlanned[exIdx])
+                                {
+                                  allIndivWorkouts[idx]
+                                      .repsCompleted[exIdx]
+                                      .clear(),
+                                  for (int j = 0;
+                                      j <
+                                          allIndivWorkouts[idx]
+                                              .setsPlanned[exIdx];
+                                      ++j)
+                                    {
+                                      allIndivWorkouts[idx]
+                                          .repsCompleted[exIdx]
+                                          .add(allIndivWorkouts[idx]
+                                                  .repsPlanned[exIdx] +
+                                              1),
+                                    },
+                                }
+                            });
+                        Navigator.of(context).pop();
+                      }),
+                ]),
+              ]),
+        ),
+      ),
+    );
   }
 }
