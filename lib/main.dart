@@ -1,10 +1,50 @@
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart' as pathProvider;
 
-void main() {
+part 'main.g.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final directory = await pathProvider.getApplicationDocumentsDirectory();
+  await Hive.initFlutter(directory.path);
+
+  Hive
+    ..registerAdapter(WorkoutAdapter())
+    ..registerAdapter(ExerciseAdapter())
+    ..registerAdapter(IndivWorkoutAdapter());
+
+  await Hive.openBox<Exercise>('exercisesBox');
+
+  Box<Exercise> exercisesBox = Hive.box<Exercise>('exercisesBox');
+
+  // UNCOMMENT ONCE RESETTODEFAULT IS STORED
+  //if (resetToDefault) {
+  //  defaultState();
+  //}
+
+  // temporary section
+  Workout defaultA = Workout("BlockLifts A");
+  Exercise squat = Exercise("Squat");
+  defaultA.exercises.add(squat);
+  allWorkouts.add(defaultA);
+  exercisesBox.deleteAll(exercisesBox.keys);
+  allExercises.clear();
+  exercisesBox.add(squat);
+
+  allExercises = exercisesBox.values.toList();
+  allExercises.insert(0, customxyz);
+
+  for (var i in allExercises) {
+    print(i.name);
+  }
+
   runApp(const MyApp());
 }
 
@@ -12,6 +52,9 @@ List<Workout> allWorkouts = []; // global list of workouts
 List<IndivWorkout> allIndivWorkouts = []; // global list of each indiv workout
 List<double> bodyWeights = []; // global list of body weight
 List<String> notes = [];
+
+// sort by date
+List<Exercise> allExercises = []; // global list of exercises
 
 String tempNote = "";
 String postWorkoutTempNote = "";
@@ -21,33 +64,26 @@ Timer? timer;
 Duration duration = const Duration();
 bool showTimer = false;
 
-// should probably be an ordered set
-List<Exercise> allExercises = []; // global list of exercises
-
 var headerColor = Colors.black;
 var backColor = Colors.black;
 var widgetNavColor = const Color.fromARGB(133, 65, 64, 64);
 var redColor = Colors.red;
-int counter = 0;
+
+bool resetToDefault = true; // store this
+int counter = 0; // going to need to store counter
 
 ValueNotifier<int> _counter = ValueNotifier<int>(0); // to update list page
 
-Exercise customxyz = Exercise("Custom Exercise");
-Workout defaultA = Workout("BlockLifts A");
-Workout defaultB = Workout("BlockLifts B");
-Exercise squat = Exercise("Squat");
-Exercise benchPress = Exercise("Bench Press");
-Exercise barbellRow = Exercise("Barbell Row");
-Exercise overheadPress = Exercise("Overhead Press");
-Exercise deadlift = Exercise("Deadlift");
-
+@HiveType(typeId: 1)
 class Workout {
+  @HiveField(0)
   String name; // workout name (like "Workout A")
+  @HiveField(1)
   List<Exercise> exercises = []; // List of workouts (bench, squat, curl, etc)
-  Workout(this.name); // constructor for name
-
+  @HiveField(2)
   bool isInitialized = false; // used to fill the reps completed only once
 
+  Workout(this.name); // constructor for name
   // addWorkout function to add to the end of the list
   // public implementation so no underscore
   // not necessary, remove later
@@ -56,61 +92,95 @@ class Workout {
   }
 }
 
+@HiveType(typeId: 0)
 class Exercise {
   // weight, bar weight, increments, sets x reps
+  @HiveField(0)
   String name;
+  @HiveField(1)
   double weight = 45;
+  @HiveField(2)
   double barWeight = 45;
+  @HiveField(3)
   double increment = 5;
+  @HiveField(4)
   int sets = 5;
+  @HiveField(5)
   int reps = 5;
-
+  @HiveField(6)
   List<int> repsCompleted = [];
-
+  @HiveField(7)
   int failed =
       0; // EACH TIME FAILED, ADD ONE TO EXERCISE. IF EXERCISE HAS X NUMBER OF FAILURES IN A ROW, DECREASE WEIGHT
   Exercise(this.name);
 }
 
 // used for the edit page, stores all relevant single-workout data
+@HiveType(typeId: 2)
 class IndivWorkout {
+  @HiveField(0)
   String name;
+  @HiveField(1)
   String date;
+  @HiveField(2)
   List<String> exercisesCompleted;
+  @HiveField(3)
   List<double> weights;
+  @HiveField(4)
   List<int> repsPlanned;
+  @HiveField(5)
   List<int> setsPlanned;
+  @HiveField(6)
   List<List<int>> repsCompleted;
 
   IndivWorkout(this.name, this.date, this.exercisesCompleted, this.weights,
       this.repsPlanned, this.setsPlanned, this.repsCompleted);
 }
 
+Exercise customxyz = Exercise("Custom Exercise");
+
+void defaultState() {
+  allWorkouts.clear();
+  allIndivWorkouts.clear();
+  bodyWeights.clear();
+  notes.clear();
+  allExercises.clear();
+
+  Workout defaultA = Workout("BlockLifts A");
+  Workout defaultB = Workout("BlockLifts B");
+  Exercise squat = Exercise("Squat");
+  Exercise benchPress = Exercise("Bench Press");
+  Exercise barbellRow = Exercise("Barbell Row");
+  Exercise overheadPress = Exercise("Overhead Press");
+  Exercise deadlift = Exercise("Deadlift");
+  deadlift.sets = 1;
+  deadlift.reps = 1;
+
+  defaultA.exercises.add(squat);
+  defaultB.exercises.add(squat);
+  defaultA.exercises.add(benchPress);
+  defaultA.exercises.add(barbellRow);
+  defaultB.exercises.add(overheadPress);
+  defaultB.exercises.add(deadlift);
+  allWorkouts.add(defaultA);
+  allWorkouts.add(defaultB);
+
+  Box<Exercise> exercisesBox = Hive.box<Exercise>('exercisesBox');
+  exercisesBox.clear();
+  exercisesBox.add(squat);
+  exercisesBox.add(benchPress);
+  exercisesBox.add(barbellRow);
+  exercisesBox.add(overheadPress);
+  exercisesBox.add(deadlift);
+
+  resetToDefault = false;
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    allExercises.clear(); // TEMPORARY, TO AVOID REFRESHING A TON
-    // all temporary
-    if (allWorkouts.contains(defaultA)) {
-    } else {
-      allExercises.add(customxyz);
-      defaultA.addWorkout(squat);
-      defaultA.addWorkout(benchPress);
-      defaultA.addWorkout(barbellRow);
-      defaultB.addWorkout(squat);
-      defaultB.addWorkout(overheadPress);
-      deadlift.sets = 1;
-      deadlift.reps = 1;
-      defaultB.addWorkout(deadlift);
-      allWorkouts.add(defaultA);
-      allWorkouts.add(defaultB);
-      allExercises.add(squat);
-      allExercises.add(benchPress);
-      allExercises.add(barbellRow);
-      allExercises.add(overheadPress);
-      allExercises.add(deadlift);
-    }
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'BlockLifts',
@@ -364,10 +434,9 @@ class _HomeState extends State<Home> {
                 shrinkWrap: true,
                 children: <Widget>[
                   for (int i = counter; i < allWorkouts.length; i++)
-                      buildTile(i),
-                  for (int i = 0; i < counter; i++)
-                      buildTile(i),
-                  ]),
+                    buildTile(i),
+                  for (int i = 0; i < counter; i++) buildTile(i),
+                ]),
           ),
         ),
         floatingActionButton: SizedBox(
@@ -412,32 +481,26 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-  
+
   Widget buildTile(int i) {
     return Column(children: <Widget>[
       GestureDetector(
           onTap: () {
             // if statement prevents excessive adding to list
             if (allWorkouts[i].isInitialized == false) {
-              for (int j = 0;
-                  j < allWorkouts[i].exercises.length;
-                  ++j) {
-                for (int k = 0;
-                    k < allWorkouts[i].exercises[j].sets;
-                    k++) {
+              for (int j = 0; j < allWorkouts[i].exercises.length; ++j) {
+                for (int k = 0; k < allWorkouts[i].exercises[j].sets; k++) {
                   // repsCompleted initialized with initial reps value
                   allWorkouts[i]
                       .exercises[j]
                       .repsCompleted
-                      .add(allWorkouts[i].exercises[j].reps +
-                          1);
+                      .add(allWorkouts[i].exercises[j].reps + 1);
                 }
               }
               allWorkouts[i].isInitialized = true;
             }
             Navigator.of(context)
-                .push(MaterialPageRoute(
-                    builder: (context) => WorkoutPage(i)))
+                .push(MaterialPageRoute(builder: (context) => WorkoutPage(i)))
                 .then((value) {
               setState(() {});
             });
@@ -463,65 +526,40 @@ class _HomeState extends State<Home> {
                           fontSize: 17,
                         )),
                   ),
-                  const Divider(
-                      height: 20,
-                      color: Colors.transparent),
+                  const Divider(height: 20, color: Colors.transparent),
                   Column(children: [
-                    for (int j = 0;
-                        j <
-                            allWorkouts[i]
-                                .exercises
-                                .length;
-                        j++)
+                    for (int j = 0; j < allWorkouts[i].exercises.length; j++)
                       Column(children: <Widget>[
                         Row(children: <Widget>[
                           Expanded(
                             child: Align(
-                              alignment:
-                                  Alignment.centerLeft,
-                              child: Text(
-                                  allWorkouts[i]
-                                      .exercises[j]
-                                      .name,
+                              alignment: Alignment.centerLeft,
+                              child: Text(allWorkouts[i].exercises[j].name,
                                   style: const TextStyle(
                                     fontSize: 17,
                                   )),
                             ),
                           ),
-                          if (allWorkouts[i]
-                                      .exercises[j]
-                                      .weight %
-                                  1 ==
-                              0)
+                          if (allWorkouts[i].exercises[j].weight % 1 == 0)
                             Expanded(
                                 child: Align(
-                                    alignment: Alignment
-                                        .centerRight,
+                                    alignment: Alignment.centerRight,
                                     child: Text(
                                         "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight ~/ 1}lb",
-                                        style:
-                                            const TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 17,
                                         ))))
                           else
                             Expanded(
                                 child: Align(
-                                    alignment: Alignment
-                                        .centerRight,
+                                    alignment: Alignment.centerRight,
                                     child: Text(
                                         "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight.toString()}lb",
-                                        style:
-                                            const TextStyle(
-                                                fontSize:
-                                                    17)))),
+                                        style: const TextStyle(fontSize: 17)))),
                         ]),
                         Divider(
                             // larger divider if not at end of list
-                            height: j !=
-                                    allWorkouts[i]
-                                            .exercises
-                                            .length -
-                                        1
+                            height: j != allWorkouts[i].exercises.length - 1
                                 ? 25
                                 : 10,
                             color: Colors.transparent),
@@ -1964,10 +2002,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                   children: [
                                     Text("Rest please"),
                                     IconButton(
-                                      icon: const Icon(Icons.close),
-                                      onPressed: () =>
-                                        setState(() => showTimer = false)
-                                    ),
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () =>
+                                            setState(() => showTimer = false)),
                                   ]),
                             ),
                           ]),
@@ -2071,6 +2108,13 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
 class _EditWorkoutPageState extends State<EditWorkoutPage> {
   final _myController = TextEditingController();
+  late final Box<Exercise> exercisesBox;
+
+  @override
+  void initState() {
+    super.initState();
+    exercisesBox = Hive.box<Exercise>('exercisesBox');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2580,6 +2624,12 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                               }
                                                               if (duplicate ==
                                                                   false) {
+                                                                // Adds to Hive local storage
+                                                                exercisesBox.add(
+                                                                    Exercise(
+                                                                        _myController
+                                                                            .text));
+
                                                                 allExercises.add(
                                                                     Exercise(
                                                                         _myController
