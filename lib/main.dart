@@ -304,6 +304,22 @@ class _HomePageState extends State<HomePage> {
 
 class _HomeState extends State<Home> {
   @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
+  }
+
+  void addTime(Timer? timer) {
+    const addSeconds = 1;
+    final seconds = duration.inSeconds + addSeconds;
+    if (seconds < 0) {
+      timer?.cancel();
+    } else {
+      duration = Duration(seconds: seconds);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Theme(
       data: ThemeData(
@@ -1431,7 +1447,11 @@ class _WorkoutPageState extends State<WorkoutPage> {
     for (int i = 0; i < 10; i++) ListTile(title: Text(i.toString())),
   ];
 
-  bool timerStarted = false;
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1525,6 +1545,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                     ? counter = 0
                     : counter = widget.index +
                         1; // loops counter according to selected workout
+                showTimer = false;
+                timer?.cancel();
 
                 String name = allWorkouts[widget.index].name;
                 var now = DateTime.now();
@@ -1769,7 +1791,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                             setState(() {
                                               showTimer = true;
                                               startTimer(timer);
-                                              timerStarted = true;
                                               allWorkouts[widget.index]
                                                   .exercises[i]
                                                   .repsCompleted[j] -= 1;
@@ -2046,7 +2067,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                           height: 80,
                           width: double.infinity,
                           child: Row(children: <Widget>[
-                            buildTime(),
+                            buildTime(), // need to prevent this from rebuilding on pop
                           ]),
                           decoration: BoxDecoration(
                             color: widgetNavColor,
@@ -2105,13 +2126,12 @@ class _WorkoutPageState extends State<WorkoutPage> {
     return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
       buildTimeCard(minutes, 20),
       const SizedBox(
-        width: 4,
-        child: Text(":",
-          style: TextStyle(
-            fontSize: 30,
-            color: Colors.white,
-        ))
-      ),
+          width: 4,
+          child: Text(":",
+              style: TextStyle(
+                fontSize: 30,
+                color: Colors.white,
+              ))),
       buildTimeCard(seconds, 5),
     ]);
   }
@@ -2119,13 +2139,13 @@ class _WorkoutPageState extends State<WorkoutPage> {
   void startTimer(Timer? timer) {
     timer?.cancel();
     duration = const Duration(seconds: 0);
-    if (!timerStarted) {
-      timer = Timer.periodic(const Duration(seconds: 1), (_) => addTime(timer));
-    }
+    timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
   }
 
+  // the time is incremented in _homeState
+  // however, this is used for setState, so the time actually updates and shows
   void addTime(Timer? timer) {
-    const addSeconds = 1;
+    const addSeconds = 0;
     setState(() {
       final seconds = duration.inSeconds + addSeconds;
       if (seconds < 0) {
@@ -2136,16 +2156,14 @@ class _WorkoutPageState extends State<WorkoutPage> {
     });
   }
 
-  Widget buildTimeCard(String time, double inset) =>
-    Container(
-      alignment: Alignment.center,
-      padding: EdgeInsets.only(left: inset),
-      child: Text(time,
-        style: const TextStyle(
-            color: Colors.white,
-            fontSize: 30),
-      ),
-    );
+  Widget buildTimeCard(String time, double inset) => Container(
+        alignment: Alignment.center,
+        padding: EdgeInsets.only(left: inset),
+        child: Text(
+          time,
+          style: const TextStyle(color: Colors.white, fontSize: 30),
+        ),
+      );
 }
 
 class _EditWorkoutPageState extends State<EditWorkoutPage> {
