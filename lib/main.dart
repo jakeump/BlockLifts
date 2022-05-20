@@ -358,252 +358,17 @@ class _HomeState extends State<Home> {
           constraints: const BoxConstraints(
             maxHeight: 690,
           ),
-          child: Column(children: <Widget>[
-            Flexible(
-              child: ListView(
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  children: <Widget>[
-                    for (int i = counter; i < allWorkouts.length; i++)
-                      Column(children: <Widget>[
-                        GestureDetector(
-                            onTap: () {
-                              if (allWorkouts[i].isInitialized == false) {
-                                for (int k = 0;
-                                    k < allWorkouts[i].exercises.length;
-                                    ++k) {
-                                  for (int j = 0;
-                                      j < allWorkouts[i].exercises[k].sets;
-                                      j++) {
-                                    // repsCompleted initialized with initial reps value
-                                    allWorkouts[i]
-                                        .exercises[k]
-                                        .repsCompleted
-                                        .add(allWorkouts[i].exercises[k].reps +
-                                            1);
-                                  }
-                                }
-                                allWorkouts[i].isInitialized = true;
-                              }
-                              Navigator.of(context)
-                                  .push(MaterialPageRoute(
-                                      builder: (context) => WorkoutPage(i)))
-                                  .then((value) {
-                                setState(() {});
-                              });
-                            },
-                            child: Flexible(
-                                child: Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      border: i == counter
-                                          ? Border.all(color: Colors.red)
-                                          : Border.all(color: Colors.grey),
-                                      borderRadius: BorderRadius.circular(6),
-                                      color: widgetNavColor,
-                                    ),
-                                    alignment: Alignment.topLeft,
-                                    child: Column(
-                                      children: [
-                                        Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(allWorkouts[i].name,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                fontSize: 17,
-                                              )),
-                                        ),
-                                        const Divider(
-                                            height: 20,
-                                            color: Colors.transparent),
-                                        Column(children: [
-                                          for (int j = 0;
-                                              j <
-                                                  allWorkouts[i]
-                                                      .exercises
-                                                      .length;
-                                              j++)
-                                            Column(children: <Widget>[
-                                              Row(children: <Widget>[
-                                                Expanded(
-                                                  child: Align(
-                                                    alignment:
-                                                        Alignment.centerLeft,
-                                                    child: Text(
-                                                        allWorkouts[i]
-                                                            .exercises[j]
-                                                            .name,
-                                                        style: const TextStyle(
-                                                          fontSize: 17,
-                                                        )),
-                                                  ),
-                                                ),
-                                                if (allWorkouts[i]
-                                                            .exercises[j]
-                                                            .weight %
-                                                        1 ==
-                                                    0)
-                                                  Flexible(
-                                                      child: Align(
-                                                          alignment: Alignment
-                                                              .centerRight,
-                                                          child: Text(
-                                                              "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight ~/ 1}lb",
-                                                              style:
-                                                                  const TextStyle(
-                                                                fontSize: 17,
-                                                              ))))
-                                                else
-                                                  Expanded(
-                                                      child: Align(
-                                                          alignment: Alignment
-                                                              .centerRight,
-                                                          child: Text(
-                                                              "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight.toString()}lb",
-                                                              style:
-                                                                  const TextStyle(
-                                                                      fontSize:
-                                                                          17)))),
-                                              ]),
-                                              Divider(
-                                                  // larger divider if not at end of list
-                                                  height: j !=
-                                                          allWorkouts[i]
-                                                                  .exercises
-                                                                  .length -
-                                                              1
-                                                      ? 25
-                                                      : 10,
-                                                  color: Colors.transparent),
-                                            ])
-                                        ])
-                                      ],
-                                    )))),
-                        const Divider(height: 5, color: Colors.transparent),
-                      ]),
-                    for (int i = 0; i < counter; i++)
-                      Column(children: <Widget>[
-                        GestureDetector(
-                            onTap: () {
-                              // if statement prevents excessive adding to list
-                              if (allWorkouts[i].isInitialized == false) {
-                                for (int j = 0;
-                                    j < allWorkouts[i].exercises.length;
-                                    ++j) {
-                                  for (int k = 0;
-                                      k < allWorkouts[i].exercises[j].sets;
-                                      k++) {
-                                    // repsCompleted initialized with initial reps value
-                                    allWorkouts[i]
-                                        .exercises[j]
-                                        .repsCompleted
-                                        .add(allWorkouts[i].exercises[j].reps +
-                                            1);
-                                  }
-                                }
-                                allWorkouts[i].isInitialized = true;
-                              }
-                              Navigator.of(context)
-                                  .push(MaterialPageRoute(
-                                      builder: (context) => WorkoutPage(i)))
-                                  .then((value) {
-                                setState(() {});
-                              });
-                            },
-                            child: Flexible(
-                                child: Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      border: i == counter
-                                          ? Border.all(color: Colors.red)
-                                          : Border.all(color: Colors.grey),
-                                      borderRadius: BorderRadius.circular(6),
-                                      color: widgetNavColor,
-                                    ),
-                                    alignment: Alignment.topLeft,
-                                    child: Column(
-                                      children: [
-                                        Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(allWorkouts[i].name,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                fontSize: 17,
-                                              )),
-                                        ),
-                                        const Divider(
-                                            height: 20,
-                                            color: Colors.transparent),
-                                        Column(children: [
-                                          for (int j = 0;
-                                              j <
-                                                  allWorkouts[i]
-                                                      .exercises
-                                                      .length;
-                                              j++)
-                                            Column(children: <Widget>[
-                                              Row(children: <Widget>[
-                                                Expanded(
-                                                  child: Align(
-                                                    alignment:
-                                                        Alignment.centerLeft,
-                                                    child: Text(
-                                                        allWorkouts[i]
-                                                            .exercises[j]
-                                                            .name,
-                                                        style: const TextStyle(
-                                                          fontSize: 17,
-                                                        )),
-                                                  ),
-                                                ),
-                                                if (allWorkouts[i]
-                                                            .exercises[j]
-                                                            .weight %
-                                                        1 ==
-                                                    0)
-                                                  Flexible(
-                                                      child: Align(
-                                                          alignment: Alignment
-                                                              .centerRight,
-                                                          child: Text(
-                                                              "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight ~/ 1}lb",
-                                                              style:
-                                                                  const TextStyle(
-                                                                fontSize: 17,
-                                                              ))))
-                                                else
-                                                  Expanded(
-                                                      child: Align(
-                                                          alignment: Alignment
-                                                              .centerRight,
-                                                          child: Text(
-                                                              "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight.toString()}lb",
-                                                              style:
-                                                                  const TextStyle(
-                                                                      fontSize:
-                                                                          17)))),
-                                              ]),
-                                              Divider(
-                                                  // larger divider if not at end of list
-                                                  height: j !=
-                                                          allWorkouts[i]
-                                                                  .exercises
-                                                                  .length -
-                                                              1
-                                                      ? 25
-                                                      : 10,
-                                                  color: Colors.transparent),
-                                            ])
-                                        ]),
-                                      ],
-                                    )))),
-                        const Divider(height: 5, color: Colors.transparent),
-                      ]),
+          child: Expanded(
+            child: ListView(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                children: <Widget>[
+                  for (int i = counter; i < allWorkouts.length; i++)
+                      buildTile(i),
+                  for (int i = 0; i < counter; i++)
+                      buildTile(i),
                   ]),
-            ),
-          ]),
+          ),
         ),
         floatingActionButton: SizedBox(
           width: 150,
@@ -646,6 +411,126 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
+  }
+  
+  Widget buildTile(int i) {
+    return Column(children: <Widget>[
+      GestureDetector(
+          onTap: () {
+            // if statement prevents excessive adding to list
+            if (allWorkouts[i].isInitialized == false) {
+              for (int j = 0;
+                  j < allWorkouts[i].exercises.length;
+                  ++j) {
+                for (int k = 0;
+                    k < allWorkouts[i].exercises[j].sets;
+                    k++) {
+                  // repsCompleted initialized with initial reps value
+                  allWorkouts[i]
+                      .exercises[j]
+                      .repsCompleted
+                      .add(allWorkouts[i].exercises[j].reps +
+                          1);
+                }
+              }
+              allWorkouts[i].isInitialized = true;
+            }
+            Navigator.of(context)
+                .push(MaterialPageRoute(
+                    builder: (context) => WorkoutPage(i)))
+                .then((value) {
+              setState(() {});
+            });
+          },
+          child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: i == counter
+                    ? Border.all(color: Colors.red)
+                    : Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(6),
+                color: widgetNavColor,
+              ),
+              alignment: Alignment.topLeft,
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(allWorkouts[i].name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 17,
+                        )),
+                  ),
+                  const Divider(
+                      height: 20,
+                      color: Colors.transparent),
+                  Column(children: [
+                    for (int j = 0;
+                        j <
+                            allWorkouts[i]
+                                .exercises
+                                .length;
+                        j++)
+                      Column(children: <Widget>[
+                        Row(children: <Widget>[
+                          Expanded(
+                            child: Align(
+                              alignment:
+                                  Alignment.centerLeft,
+                              child: Text(
+                                  allWorkouts[i]
+                                      .exercises[j]
+                                      .name,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                  )),
+                            ),
+                          ),
+                          if (allWorkouts[i]
+                                      .exercises[j]
+                                      .weight %
+                                  1 ==
+                              0)
+                            Expanded(
+                                child: Align(
+                                    alignment: Alignment
+                                        .centerRight,
+                                    child: Text(
+                                        "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight ~/ 1}lb",
+                                        style:
+                                            const TextStyle(
+                                          fontSize: 17,
+                                        ))))
+                          else
+                            Expanded(
+                                child: Align(
+                                    alignment: Alignment
+                                        .centerRight,
+                                    child: Text(
+                                        "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight.toString()}lb",
+                                        style:
+                                            const TextStyle(
+                                                fontSize:
+                                                    17)))),
+                        ]),
+                        Divider(
+                            // larger divider if not at end of list
+                            height: j !=
+                                    allWorkouts[i]
+                                            .exercises
+                                            .length -
+                                        1
+                                ? 25
+                                : 10,
+                            color: Colors.transparent),
+                      ])
+                  ]),
+                ],
+              ))),
+      const Divider(height: 5, color: Colors.transparent),
+    ]);
   }
 }
 
@@ -2067,7 +1952,24 @@ class _WorkoutPageState extends State<WorkoutPage> {
                           height: 80,
                           width: double.infinity,
                           child: Row(children: <Widget>[
-                            buildTime(), // need to prevent this from rebuilding on pop
+                            Flexible(
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                  buildTime(),
+                                ])),
+                            Flexible(
+                              child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text("Rest please"),
+                                    IconButton(
+                                      icon: const Icon(Icons.close),
+                                      onPressed: () =>
+                                        setState(() => showTimer = false)
+                                    ),
+                                  ]),
+                            ),
                           ]),
                           decoration: BoxDecoration(
                             color: widgetNavColor,
@@ -2146,6 +2048,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
   // however, this is used for setState, so the time actually updates and shows
   void addTime(Timer? timer) {
     const addSeconds = 0;
+    if (!mounted) return;
     setState(() {
       final seconds = duration.inSeconds + addSeconds;
       if (seconds < 0) {
@@ -3855,7 +3758,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                         fontSize: 17,
                                                       ))))
                                         else
-                                          Expanded(
+                                          Flexible(
                                               child: Align(
                                                   alignment:
                                                       Alignment.centerRight,
