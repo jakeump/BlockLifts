@@ -27,13 +27,15 @@ void main() async {
 
   // on first time opening app, sets to default state
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  resetToDefault = prefs.getBool('resetToDefault')!;
-  if (resetToDefault) {
+  bool? resetToDefault = prefs.getBool('resetToDefault');
+
+  if (resetToDefault != null && !resetToDefault) {
+    allExercises = exercisesBox.values.toList();
+    allExercises.insert(0, customxyz);
+  }
+  else {
     defaultState();
   }
-
-  allExercises = exercisesBox.values.toList();
-  allExercises.insert(0, customxyz);
 
   runApp(const MyApp());
 }
@@ -43,6 +45,7 @@ List<IndivWorkout> allIndivWorkouts = []; // global list of each indiv workout
 List<double> bodyWeights = []; // global list of body weight
 List<String> notes = [];
 
+// stored
 // sort by date
 List<Exercise> allExercises = []; // global list of exercises
 
@@ -59,7 +62,6 @@ var backColor = Colors.black;
 var widgetNavColor = const Color.fromARGB(133, 65, 64, 64);
 var redColor = Colors.red;
 
-bool resetToDefault = true;
 int counter = 0; // going to need to store counter
 
 ValueNotifier<int> _counter = ValueNotifier<int>(0); // to update list page
@@ -156,6 +158,9 @@ void defaultState() async {
   exercisesBox.add(barbellRow);
   exercisesBox.add(overheadPress);
   exercisesBox.add(deadlift);
+
+  allExercises = exercisesBox.values.toList();
+  allExercises.insert(0, customxyz);
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('resetToDefault', false);
@@ -629,14 +634,6 @@ class _ProgressState extends State<Progress> {
 }
 
 class _SettingsState extends State<Settings> {
-  late final Box<Exercise> exercisesBox;
-
-  @override
-  void initState() {
-    super.initState();
-    exercisesBox = Hive.box<Exercise>('exercisesBox');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -666,8 +663,6 @@ class _SettingsState extends State<Settings> {
             onPressed: () {
               setState(() {
                 defaultState();
-                allExercises = exercisesBox.values.toList();
-                allExercises.insert(0, customxyz);
                 _counter.value++;
               });
             }),
