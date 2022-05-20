@@ -6,13 +6,14 @@ import 'package:intl/intl.dart';
 import 'dart:async';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart' as pathProvider;
+import 'package:path_provider/path_provider.dart' as pathprovider;
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'main.g.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final directory = await pathProvider.getApplicationDocumentsDirectory();
+  final directory = await pathprovider.getApplicationDocumentsDirectory();
   await Hive.initFlutter(directory.path);
 
   Hive
@@ -24,26 +25,15 @@ void main() async {
 
   Box<Exercise> exercisesBox = Hive.box<Exercise>('exercisesBox');
 
-  // UNCOMMENT ONCE RESETTODEFAULT IS STORED
-  //if (resetToDefault) {
-  //  defaultState();
-  //}
-
-  // temporary section
-  Workout defaultA = Workout("BlockLifts A");
-  Exercise squat = Exercise("Squat");
-  defaultA.exercises.add(squat);
-  allWorkouts.add(defaultA);
-  exercisesBox.deleteAll(exercisesBox.keys);
-  allExercises.clear();
-  exercisesBox.add(squat);
+  // on first time opening app, sets to default state
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  resetToDefault = prefs.getBool('resetToDefault')!;
+  if (resetToDefault) {
+    defaultState();
+  }
 
   allExercises = exercisesBox.values.toList();
   allExercises.insert(0, customxyz);
-
-  for (var i in allExercises) {
-    print(i.name);
-  }
 
   runApp(const MyApp());
 }
@@ -69,7 +59,7 @@ var backColor = Colors.black;
 var widgetNavColor = const Color.fromARGB(133, 65, 64, 64);
 var redColor = Colors.red;
 
-bool resetToDefault = true; // store this
+bool resetToDefault = true;
 int counter = 0; // going to need to store counter
 
 ValueNotifier<int> _counter = ValueNotifier<int>(0); // to update list page
@@ -84,12 +74,6 @@ class Workout {
   bool isInitialized = false; // used to fill the reps completed only once
 
   Workout(this.name); // constructor for name
-  // addWorkout function to add to the end of the list
-  // public implementation so no underscore
-  // not necessary, remove later
-  void addWorkout(Exercise exercise) {
-    exercises.add(exercise);
-  }
 }
 
 @HiveType(typeId: 0)
@@ -139,7 +123,7 @@ class IndivWorkout {
 
 Exercise customxyz = Exercise("Custom Exercise");
 
-void defaultState() {
+void defaultState() async {
   allWorkouts.clear();
   allIndivWorkouts.clear();
   bodyWeights.clear();
@@ -166,14 +150,15 @@ void defaultState() {
   allWorkouts.add(defaultB);
 
   Box<Exercise> exercisesBox = Hive.box<Exercise>('exercisesBox');
-  exercisesBox.clear();
+  exercisesBox.deleteAll(exercisesBox.keys);
   exercisesBox.add(squat);
   exercisesBox.add(benchPress);
   exercisesBox.add(barbellRow);
   exercisesBox.add(overheadPress);
   exercisesBox.add(deadlift);
 
-  resetToDefault = false;
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setBool('resetToDefault', false);
 }
 
 class MyApp extends StatelessWidget {
@@ -423,22 +408,26 @@ class _HomeState extends State<Home> {
             ),
           ],
         ),
-        body: Container(
-          padding: const EdgeInsets.all(10),
-          constraints: const BoxConstraints(
-            maxHeight: 690,
-          ),
-          child: Expanded(
-            child: ListView(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                children: <Widget>[
-                  for (int i = counter; i < allWorkouts.length; i++)
-                    buildTile(i),
-                  for (int i = 0; i < counter; i++) buildTile(i),
-                ]),
-          ),
-        ),
+        body: ValueListenableBuilder(
+            valueListenable: _counter,
+            builder: (context, value, child) {
+              return Container(
+                padding: const EdgeInsets.all(10),
+                constraints: const BoxConstraints(
+                  maxHeight: 690,
+                ),
+                child: Expanded(
+                  child: ListView(
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      children: <Widget>[
+                        for (int i = counter; i < allWorkouts.length; i++)
+                          buildTile(i),
+                        for (int i = 0; i < counter; i++) buildTile(i),
+                      ]),
+                ),
+              );
+            }),
         floatingActionButton: SizedBox(
           width: 150,
           height: 50,
@@ -640,6 +629,14 @@ class _ProgressState extends State<Progress> {
 }
 
 class _SettingsState extends State<Settings> {
+  late final Box<Exercise> exercisesBox;
+
+  @override
+  void initState() {
+    super.initState();
+    exercisesBox = Hive.box<Exercise>('exercisesBox');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -654,6 +651,26 @@ class _SettingsState extends State<Settings> {
         alignment: Alignment.center,
         child:
             const Text('Here you will be able to toggle light and dark mode'),
+      ),
+      floatingActionButton: SizedBox(
+        width: 150,
+        height: 50,
+        child: OutlinedButton(
+            child: const Text("Reset to Defaults"),
+            style: OutlinedButton.styleFrom(
+              primary: Colors.white,
+              backgroundColor: redColor,
+              shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(50))),
+            ),
+            onPressed: () {
+              setState(() {
+                defaultState();
+                allExercises = exercisesBox.values.toList();
+                allExercises.insert(0, customxyz);
+                _counter.value++;
+              });
+            }),
       ),
     );
   }
