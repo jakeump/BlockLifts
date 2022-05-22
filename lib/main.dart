@@ -2351,6 +2351,9 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                 // deletes
                                 else if (value == 'delete') {
                                   setState(() {
+                                    allWorkouts[widget.index]
+                                        .exercises
+                                        .removeAt(i);
                                     final tempWorkout =
                                         Hive.box<Workout>('workoutsBox')
                                             .getAt(widget.index);
@@ -2394,6 +2397,10 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                         }
                                       }
                                     }
+                                    allWorkouts[widget.index]
+                                        .exercises
+                                        .removeAt(i);
+
                                     final tempWorkout =
                                         Hive.box<Workout>('workoutsBox')
                                             .getAt(widget.index);
@@ -2788,10 +2795,13 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                 tempWorkout
                                                                     ?.save();
 
-                                                                allWorkouts[widget.index]
+                                                                allWorkouts[widget
+                                                                        .index]
                                                                     .exercises
-                                                                    .add(allExercises[allExercises.length - 1]);
-                                                                    
+                                                                    .add(allExercises[
+                                                                        allExercises.length -
+                                                                            1]);
+
                                                                 if (allWorkouts[
                                                                             widget.index]
                                                                         .isInitialized ==
