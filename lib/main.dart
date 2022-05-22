@@ -36,7 +36,12 @@ void main() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool? resetToDefault = prefs.getBool('resetToDefault');
 
-// TO UPDATE BOX VALUES: exercisesBox.getAt(0)?.name = "whatever";
+/* TO UPDATE BOX VALUES: final tempWorkout =
+      Hive.box<Workout>('workoutsBox')
+          .getAt(widget.index);
+  tempWorkout?.name =
+      _myController.text;
+  tempWorkout?.save(); */
 
   if (resetToDefault != null && !resetToDefault) {
     allExercises = exercisesBox.values.toList();
@@ -1333,6 +1338,7 @@ class _EditState extends State<Edit> {
                   child: const Text("Delete All Workouts"),
                   onPressed: () {
                     setState(() {
+                      counter = 0;
                       workoutsBox.deleteAll(workoutsBox.keys);
                       allWorkouts.clear();
                     });
@@ -2345,11 +2351,11 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                 // deletes
                                 else if (value == 'delete') {
                                   setState(() {
-                                    final testWorkout =
+                                    final tempWorkout =
                                         Hive.box<Workout>('workoutsBox')
                                             .getAt(widget.index);
-                                    testWorkout?.exercises.removeAt(i);
-                                    testWorkout?.save();
+                                    tempWorkout?.exercises.removeAt(i);
+                                    tempWorkout?.save();
                                   });
                                 } else if (value == 'deleteAll') {
                                   setState(() {
@@ -2358,8 +2364,9 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                         k++) {
                                       if (allExercises[k].name ==
                                           allWorkouts[widget.index]
-                                              .exercises[i].name) {
-                                        exercisesBox.deleteAt(k-1);
+                                              .exercises[i]
+                                              .name) {
+                                        exercisesBox.deleteAt(k - 1);
                                         allExercises.removeAt(k);
                                       }
                                     }
@@ -2369,21 +2376,29 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                       if (allWorkouts[j] ==
                                           allWorkouts[widget.index]) {
                                       } else {
-                                        for (int k = 0; k < allWorkouts[j].exercises.length; k++) {
-                                          if (allWorkouts[j].exercises[i].name == allWorkouts[widget.index]
-                                            .exercises[i].name) {
-                                              final testWorkout = Hive.box<Workout>('workoutsBox').getAt(j);
-                                              testWorkout?.exercises.removeAt(i);
-                                              testWorkout?.save();
-                                            }
+                                        for (int k = 0;
+                                            k < allWorkouts[j].exercises.length;
+                                            k++) {
+                                          if (allWorkouts[j]
+                                                  .exercises[k]
+                                                  .name ==
+                                              allWorkouts[widget.index]
+                                                  .exercises[i]
+                                                  .name) {
+                                            final tempWorkout =
+                                                Hive.box<Workout>('workoutsBox')
+                                                    .getAt(j);
+                                            tempWorkout?.exercises.removeAt(i);
+                                            tempWorkout?.save();
+                                          }
                                         }
                                       }
                                     }
-                                    final testWorkout =
+                                    final tempWorkout =
                                         Hive.box<Workout>('workoutsBox')
                                             .getAt(widget.index);
-                                    testWorkout?.exercises.removeAt(i);
-                                    testWorkout?.save();
+                                    tempWorkout?.exercises.removeAt(i);
+                                    tempWorkout?.save();
                                   });
                                 }
                               },
@@ -2496,9 +2511,16 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                         ),
                                         child: const Text("OK"),
                                         onPressed: () {
-                                          setState(() =>
-                                              allWorkouts[widget.index].name =
-                                                  _myController.text);
+                                          setState(() {
+                                            final tempWorkout =
+                                                Hive.box<Workout>('workoutsBox')
+                                                    .getAt(widget.index);
+                                            tempWorkout?.name =
+                                                _myController.text;
+                                            tempWorkout?.save();
+                                            allWorkouts[widget.index].name =
+                                                _myController.text;
+                                          });
                                           Navigator.of(context).pop();
                                         },
                                       ),
@@ -2521,7 +2543,13 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                   child: const Text("Delete All Exercises"),
                   onPressed: () {
                     // add confirmation "would you like to delete all exercises?""
-                    setState(() => allWorkouts[widget.index].exercises.clear());
+                    setState(() {
+                      final tempWorkout =
+                          Hive.box<Workout>('workoutsBox').getAt(widget.index);
+                      tempWorkout?.exercises.clear();
+                      tempWorkout?.save();
+                      allWorkouts[widget.index].exercises.clear();
+                    });
                   },
                 ),
               ),
@@ -2747,19 +2775,23 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                         _myController
                                                                             .text));
 
-                                                                final testWorkout = Hive.box<
+                                                                final tempWorkout = Hive.box<
                                                                             Workout>(
                                                                         'workoutsBox')
                                                                     .getAt(widget
                                                                         .index);
-                                                                testWorkout
+                                                                tempWorkout
                                                                     ?.exercises
                                                                     .add(allExercises[
                                                                         allExercises.length -
                                                                             1]);
-                                                                testWorkout
+                                                                tempWorkout
                                                                     ?.save();
 
+                                                                allWorkouts[widget.index]
+                                                                    .exercises
+                                                                    .add(allExercises[allExercises.length - 1]);
+                                                                    
                                                                 if (allWorkouts[
                                                                             widget.index]
                                                                         .isInitialized ==
@@ -2857,12 +2889,16 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                           duration: Duration(seconds: 2)),
                                     );
                                   } else {
-                                    final testWorkout =
+                                    final tempWorkout =
                                         Hive.box<Workout>('workoutsBox')
                                             .getAt(widget.index);
-                                    testWorkout?.exercises.add(selectVal!);
+                                    tempWorkout?.exercises.add(selectVal!);
 
-                                    testWorkout?.save();
+                                    tempWorkout?.save();
+
+                                    allWorkouts[widget.index]
+                                        .exercises
+                                        .add(selectVal!);
 
                                     if (allWorkouts[widget.index]
                                             .isInitialized ==
