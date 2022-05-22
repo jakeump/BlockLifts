@@ -31,8 +31,6 @@ void main() async {
   Box<Workout> workoutsBox = Hive.box<Workout>('workoutsBox');
   Box<IndivWorkout> indivWorkoutsBox =
       Hive.box<IndivWorkout>('indivWorkoutsBox');
-  Box<double> bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
-  Box<String> notesBox = Hive.box<String>('notesBox');
 
   // on first time opening app, sets to default state
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -45,8 +43,7 @@ void main() async {
     allExercises.insert(0, customxyz);
     allWorkouts = workoutsBox.values.toList();
     allIndivWorkouts = indivWorkoutsBox.values.toList();
-    bodyWeights = bodyWeightsBox.values.toList();
-    notes = notesBox.values.toList();
+    _setTempBodyWeight();
   } else {
     defaultState();
   }
@@ -58,10 +55,6 @@ void main() async {
 List<Workout> allWorkouts = []; // global list of workouts
 //stored
 List<IndivWorkout> allIndivWorkouts = []; // global list of each indiv workout
-//stored
-List<double> bodyWeights = []; // global list of body weight
-//stored
-List<String> notes = [];
 
 // stored
 // sort by date
@@ -69,7 +62,8 @@ List<Exercise> allExercises = []; // global list of exercises
 
 String tempNote = "";
 String postWorkoutTempNote = "";
-double tempBodyWeight = 100.5;
+
+double tempBodyWeight = _setTempBodyWeight();
 
 Timer? timer;
 Duration duration = const Duration();
@@ -146,8 +140,6 @@ Exercise customxyz = Exercise("Custom Exercise");
 void defaultState() async {
   allWorkouts.clear();
   allIndivWorkouts.clear();
-  bodyWeights.clear();
-  notes.clear();
   allExercises.clear();
   showTimer = false;
 
@@ -189,6 +181,7 @@ void defaultState() async {
 
   Box<double> bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
   bodyWeightsBox.deleteAll(bodyWeightsBox.keys);
+  _setTempBodyWeight();
 
   Box<String> notesBox = Hive.box<String>('notesBox');
   notesBox.deleteAll(notesBox.keys);
@@ -198,6 +191,14 @@ void defaultState() async {
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('resetToDefault', false);
+}
+
+double _setTempBodyWeight() {
+  Box<double> bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
+  bodyWeightsBox.isEmpty
+      ? tempBodyWeight = 150
+      : tempBodyWeight = bodyWeightsBox.getAt(bodyWeightsBox.length - 1)!;
+  return tempBodyWeight;
 }
 
 class MyApp extends StatelessWidget {
@@ -706,6 +707,14 @@ class _SettingsState extends State<Settings> {
 }
 
 class _ListState extends State<ListPage> {
+  late final Box<String> notesBox;
+
+  @override
+  void initState() {
+    super.initState();
+    notesBox = Hive.box<String>('notesBox');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -742,7 +751,7 @@ class _ListState extends State<ListPage> {
                                       allIndivWorkouts[i].repsCompleted[j][k]);
                                 }
                               }
-                              postWorkoutTempNote = notes[i];
+                              postWorkoutTempNote = notesBox.getAt(i)!;
                               Navigator.of(context)
                                   .push(MaterialPageRoute(
                                       builder: (context) => PostWorkoutEditPage(
@@ -935,6 +944,14 @@ class _CalendarState extends State<CalendarPage> {
 }
 
 class _NotesState extends State<NotesPage> {
+  late final Box<String> notesBox;
+
+  @override
+  void initState() {
+    super.initState();
+    notesBox = Hive.box<String>('notesBox');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -948,7 +965,7 @@ class _NotesState extends State<NotesPage> {
                   shrinkWrap: true,
                   children: <Widget>[
                     for (int i = allIndivWorkouts.length - 1; i >= 0; i--)
-                      if (notes[i] != "") // doesn't show empty notes
+                      if (notesBox.getAt(i) != "") // doesn't show empty notes
                         Column(children: <Widget>[
                           GestureDetector(
                               onTap: () {
@@ -975,7 +992,7 @@ class _NotesState extends State<NotesPage> {
                                         .repsCompleted[j][k]);
                                   }
                                 }
-                                postWorkoutTempNote = notes[i];
+                                postWorkoutTempNote = notesBox.getAt(i)!;
                                 Navigator.of(context)
                                     .push(MaterialPageRoute(
                                         builder: (context) =>
@@ -1026,7 +1043,7 @@ class _NotesState extends State<NotesPage> {
                                               color: Colors.transparent),
                                           Align(
                                               alignment: Alignment.centerLeft,
-                                              child: Text(notes[i],
+                                              child: Text(notesBox.getAt(i)!,
                                                   style: const TextStyle(
                                                     fontSize: 16,
                                                   ))),
@@ -1597,11 +1614,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
                     repsCompleted));
 
                 notesBox.add(tempNote);
-                notes.add(tempNote);
                 tempNote = ""; // clears note for next workout
 
                 bodyWeightsBox.add(tempBodyWeight);
-                bodyWeights.add(tempBodyWeight);
 
                 _counter.value++;
 
@@ -2338,25 +2353,37 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                   });
                                 } else if (value == 'deleteAll') {
                                   setState(() {
-                                    allExercises.remove(
-                                        allWorkouts[widget.index].exercises[i]);
+                                    for (int k = 0;
+                                        k < allExercises.length;
+                                        k++) {
+                                      if (allExercises[k].name ==
+                                          allWorkouts[widget.index]
+                                              .exercises[i].name) {
+                                        exercisesBox.deleteAt(k-1);
+                                        allExercises.removeAt(k);
+                                      }
+                                    }
                                     for (int j = 0;
                                         j < allWorkouts.length;
                                         j++) {
                                       if (allWorkouts[j] ==
                                           allWorkouts[widget.index]) {
-                                      } else if (allWorkouts[j]
-                                          .exercises
-                                          .contains(allWorkouts[widget.index]
-                                              .exercises[i])) {
-                                        allWorkouts[j].exercises.remove(
-                                            allWorkouts[widget.index]
-                                                .exercises[i]);
+                                      } else {
+                                        for (int k = 0; k < allWorkouts[j].exercises.length; k++) {
+                                          if (allWorkouts[j].exercises[i].name == allWorkouts[widget.index]
+                                            .exercises[i].name) {
+                                              final testWorkout = Hive.box<Workout>('workoutsBox').getAt(j);
+                                              testWorkout?.exercises.removeAt(i);
+                                              testWorkout?.save();
+                                            }
+                                        }
                                       }
                                     }
-                                    allWorkouts[widget.index]
-                                        .exercises
-                                        .removeAt(i);
+                                    final testWorkout =
+                                        Hive.box<Workout>('workoutsBox')
+                                            .getAt(widget.index);
+                                    testWorkout?.exercises.removeAt(i);
+                                    testWorkout?.save();
                                   });
                                 }
                               },
@@ -2719,12 +2746,20 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                     Exercise(
                                                                         _myController
                                                                             .text));
-                                                                allWorkouts[widget
-                                                                        .index]
-                                                                    .exercises
+
+                                                                final testWorkout = Hive.box<
+                                                                            Workout>(
+                                                                        'workoutsBox')
+                                                                    .getAt(widget
+                                                                        .index);
+                                                                testWorkout
+                                                                    ?.exercises
                                                                     .add(allExercises[
                                                                         allExercises.length -
                                                                             1]);
+                                                                testWorkout
+                                                                    ?.save();
+
                                                                 if (allWorkouts[
                                                                             widget.index]
                                                                         .isInitialized ==
@@ -2822,9 +2857,12 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                           duration: Duration(seconds: 2)),
                                     );
                                   } else {
-                                    allWorkouts[widget.index]
-                                        .exercises
-                                        .add(selectVal!);
+                                    final testWorkout =
+                                        Hive.box<Workout>('workoutsBox')
+                                            .getAt(widget.index);
+                                    testWorkout?.exercises.add(selectVal!);
+
+                                    testWorkout?.save();
 
                                     if (allWorkouts[widget.index]
                                             .isInitialized ==
@@ -3754,7 +3792,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
     notesBox = Hive.box<String>('notesBox');
     dateinput.text = allIndivWorkouts[widget.index].date.substring(5);
     dateChange = allIndivWorkouts[widget.index].date;
-    postTempBodyWeight = bodyWeights[widget.index];
+    postTempBodyWeight = bodyWeightsBox.getAt(widget.index)!;
     // yet again roundabout way of making a copy
     for (int i = 0;
         i < allIndivWorkouts[widget.index].setsPlanned.length;
@@ -3841,9 +3879,10 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                 // don't need to save reps because going back reverts it
                 // only change body weight on save
 
-                bodyWeights[widget.index] = postTempBodyWeight;
+                bodyWeightsBox.putAt(widget.index, postTempBodyWeight);
 
-                notes[widget.index] = postWorkoutTempNote;
+                notesBox.putAt(widget.index, postWorkoutTempNote);
+
                 postWorkoutTempNote = "";
                 allIndivWorkouts[widget.index].date = dateChange;
 
@@ -4270,9 +4309,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                         indivWorkoutsBox.deleteAt(widget.index);
                         bodyWeightsBox.deleteAt(widget.index);
                         notesBox.deleteAt(widget.index);
-                        notes.removeAt(widget.index);
                         allIndivWorkouts.removeAt(widget.index);
-                        bodyWeights.removeAt(widget.index);
+                        bodyWeightsBox.deleteAt(widget.index);
                         Navigator.of(context).pop();
                       },
                       child: const Text("Delete"),
