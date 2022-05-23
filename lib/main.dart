@@ -28,7 +28,6 @@ void main() async {
   await Hive.openBox<String>('notesBox');
 
   Box<Exercise> exercisesBox = Hive.box<Exercise>('exercisesBox');
-  Box<Workout> workoutsBox = Hive.box<Workout>('workoutsBox');
   Box<IndivWorkout> indivWorkoutsBox =
       Hive.box<IndivWorkout>('indivWorkoutsBox');
 
@@ -46,7 +45,6 @@ void main() async {
   if (resetToDefault != null && !resetToDefault) {
     allExercises = exercisesBox.values.toList();
     allExercises.insert(0, customxyz);
-    allWorkouts = workoutsBox.values.toList();
     allIndivWorkouts = indivWorkoutsBox.values.toList();
     _setTempBodyWeight();
   } else {
@@ -57,7 +55,7 @@ void main() async {
 }
 
 //stored
-List<Workout> allWorkouts = []; // global list of workouts
+//List<Workout> workoutsBox = []; // global list of workouts
 //stored
 List<IndivWorkout> allIndivWorkouts = []; // global list of each indiv workout
 
@@ -143,7 +141,6 @@ class IndivWorkout extends HiveObject {
 Exercise customxyz = Exercise("Custom Exercise");
 
 void defaultState() async {
-  allWorkouts.clear();
   allIndivWorkouts.clear();
   allExercises.clear();
   showTimer = false;
@@ -164,8 +161,6 @@ void defaultState() async {
   defaultA.exercises.add(barbellRow);
   defaultB.exercises.add(overheadPress);
   defaultB.exercises.add(deadlift);
-  allWorkouts.add(defaultA);
-  allWorkouts.add(defaultB);
 
   Box<Exercise> exercisesBox = Hive.box<Exercise>('exercisesBox');
   exercisesBox.deleteAll(exercisesBox.keys);
@@ -403,9 +398,12 @@ class _HomePageState extends State<HomePage> {
 }
 
 class _HomeState extends State<Home> {
+  late final Box<Workout> workoutsBox;
+
   @override
   void initState() {
     super.initState();
+    workoutsBox = Hive.box<Workout>('workoutsBox');
     timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
   }
 
@@ -466,7 +464,7 @@ class _HomeState extends State<Home> {
                     scrollDirection: Axis.vertical,
                     shrinkWrap: true,
                     children: <Widget>[
-                      for (int i = counter; i < allWorkouts.length; i++)
+                      for (int i = counter; i < workoutsBox.length; i++)
                         buildTile(i),
                       for (int i = 0; i < counter; i++) buildTile(i),
                     ]),
@@ -485,22 +483,23 @@ class _HomeState extends State<Home> {
             ),
             onPressed: () {
               // if statement prevents excessive adding to list
-              if (allWorkouts[counter].isInitialized == false) {
+              if (workoutsBox.getAt(counter)!.isInitialized == false) {
                 // change from 0 to counter (index of first workout that's up)
                 for (int i = 0;
-                    i < allWorkouts[counter].exercises.length;
+                    i < workoutsBox.getAt(counter)!.exercises.length;
                     ++i) {
                   for (int j = 0;
-                      j < allWorkouts[counter].exercises[i].sets;
+                      j < workoutsBox.getAt(counter)!.exercises[i].sets;
                       j++) {
                     // repsCompleted initialized with initial reps value
-                    allWorkouts[counter]
+                    workoutsBox
+                        .getAt(counter)!
                         .exercises[i]
                         .repsCompleted
-                        .add(allWorkouts[counter].exercises[i].reps + 1);
+                        .add(workoutsBox.getAt(counter)!.exercises[i].reps + 1);
                   }
                 }
-                allWorkouts[counter].isInitialized = true;
+                workoutsBox.getAt(counter)!.isInitialized = true;
               }
               Navigator.of(context)
                   .push(MaterialPageRoute(
@@ -520,17 +519,20 @@ class _HomeState extends State<Home> {
       GestureDetector(
           onTap: () {
             // if statement prevents excessive adding to list
-            if (allWorkouts[i].isInitialized == false) {
-              for (int j = 0; j < allWorkouts[i].exercises.length; ++j) {
-                for (int k = 0; k < allWorkouts[i].exercises[j].sets; k++) {
+            if (workoutsBox.getAt(i)!.isInitialized == false) {
+              for (int j = 0; j < workoutsBox.getAt(i)!.exercises.length; ++j) {
+                for (int k = 0;
+                    k < workoutsBox.getAt(i)!.exercises[j].sets;
+                    k++) {
                   // repsCompleted initialized with initial reps value
-                  allWorkouts[i]
+                  workoutsBox
+                      .getAt(i)!
                       .exercises[j]
                       .repsCompleted
-                      .add(allWorkouts[i].exercises[j].reps + 1);
+                      .add(workoutsBox.getAt(i)!.exercises[j].reps + 1);
                 }
               }
-              allWorkouts[i].isInitialized = true;
+              workoutsBox.getAt(i)!.isInitialized = true;
             }
             Navigator.of(context)
                 .push(MaterialPageRoute(builder: (context) => WorkoutPage(i)))
@@ -552,7 +554,7 @@ class _HomeState extends State<Home> {
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Text(allWorkouts[i].name,
+                    child: Text(workoutsBox.getAt(i)!.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -561,24 +563,28 @@ class _HomeState extends State<Home> {
                   ),
                   const Divider(height: 20, color: Colors.transparent),
                   Column(children: [
-                    for (int j = 0; j < allWorkouts[i].exercises.length; j++)
+                    for (int j = 0;
+                        j < workoutsBox.getAt(i)!.exercises.length;
+                        j++)
                       Column(children: <Widget>[
                         Row(children: <Widget>[
                           Expanded(
                             child: Align(
                               alignment: Alignment.centerLeft,
-                              child: Text(allWorkouts[i].exercises[j].name,
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                  )),
+                              child:
+                                  Text(workoutsBox.getAt(i)!.exercises[j].name,
+                                      style: const TextStyle(
+                                        fontSize: 17,
+                                      )),
                             ),
                           ),
-                          if (allWorkouts[i].exercises[j].weight % 1 == 0)
+                          if (workoutsBox.getAt(i)!.exercises[j].weight % 1 ==
+                              0)
                             Expanded(
                                 child: Align(
                                     alignment: Alignment.centerRight,
                                     child: Text(
-                                        "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight ~/ 1}lb",
+                                        "${workoutsBox.getAt(i)!.exercises[j].sets}x${workoutsBox.getAt(i)!.exercises[j].reps} ${workoutsBox.getAt(i)!.exercises[j].weight ~/ 1}lb",
                                         style: const TextStyle(
                                           fontSize: 17,
                                         ))))
@@ -587,14 +593,15 @@ class _HomeState extends State<Home> {
                                 child: Align(
                                     alignment: Alignment.centerRight,
                                     child: Text(
-                                        "${allWorkouts[i].exercises[j].sets}x${allWorkouts[i].exercises[j].reps} ${allWorkouts[i].exercises[j].weight.toString()}lb",
+                                        "${workoutsBox.getAt(i)!.exercises[j].sets}x${workoutsBox.getAt(i)!.exercises[j].reps} ${workoutsBox.getAt(i)!.exercises[j].weight.toString()}lb",
                                         style: const TextStyle(fontSize: 17)))),
                         ]),
                         Divider(
                             // larger divider if not at end of list
-                            height: j != allWorkouts[i].exercises.length - 1
-                                ? 25
-                                : 10,
+                            height:
+                                j != workoutsBox.getAt(i)!.exercises.length - 1
+                                    ? 25
+                                    : 10,
                             color: Colors.transparent),
                       ])
                   ]),
@@ -1192,136 +1199,139 @@ class _EditState extends State<Edit> {
               scrollDirection: Axis.vertical,
               buildDefaultDragHandles: false,
               children: <Widget>[
-                for (int index = 0; index < allWorkouts.length; index++)
+                for (int index = 0; index < workoutsBox.length; index++)
                   GestureDetector(
                     key: Key('$index'),
                     child: Container(
-                      constraints: const BoxConstraints(
-                        minHeight: 80,
-                      ),
-                      color: Colors.black, // custom color goes here
-                      child: Row(children: <Widget>[
-                        Container(
-                          width: 70,
-                          padding: const EdgeInsets.fromLTRB(8,24,8,8),
-                          child: ReorderableDragStartListener(
-                            index: index,
-                            child: const Icon(Icons.drag_indicator_outlined),
-                          ),
+                        constraints: const BoxConstraints(
+                          minHeight: 80,
                         ),
-                        Flexible(
-                          child: Container(
-                          padding: const EdgeInsets.fromLTRB(0, 14, 0, 0),
-                          width: 280,
-                          child: Column(
-                            children: [
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  allWorkouts[index].name,
-                                  style: const TextStyle(
-                                    fontSize: 18,
+                        color: Colors.black, // custom color goes here
+                        child: Row(children: <Widget>[
+                          Container(
+                            width: 70,
+                            padding: const EdgeInsets.fromLTRB(8, 24, 8, 8),
+                            child: ReorderableDragStartListener(
+                              index: index,
+                              child: const Icon(Icons.drag_indicator_outlined),
+                            ),
+                          ),
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(0, 14, 0, 0),
+                              width: 280,
+                              child: Column(
+                                children: [
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      workoutsBox.getAt(index)!.name,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                      ),
+                                      softWrap: false,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                  softWrap: false,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              // Prints out names of each exercise in the workout
-                              Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Wrap(children: [
-                                    for (int i = 0;
-                                        i <
-                                            allWorkouts[index]
-                                                .exercises
-                                                .length;
-                                        i++)
-                                      // If not last exercise, print comma after
-                                      if (i !=
-                                          allWorkouts[index]
-                                                  .exercises
-                                                  .length -
-                                              1)
-                                        Text(
-                                          "${allWorkouts[index].exercises[i].name}, ",
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                          ),
-                                        )
-                                      else
-                                        Text(
-                                          allWorkouts[index]
-                                              .exercises[i]
-                                              .name,
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                  ])),
+                                  // Prints out names of each exercise in the workout
+                                  Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Wrap(children: [
+                                        for (int i = 0;
+                                            i <
+                                                workoutsBox
+                                                    .getAt(index)!
+                                                    .exercises
+                                                    .length;
+                                            i++)
+                                          // If not last exercise, print comma after
+                                          if (i !=
+                                              workoutsBox
+                                                      .getAt(index)!
+                                                      .exercises
+                                                      .length -
+                                                  1)
+                                            Text(
+                                              "${workoutsBox.getAt(index)!.exercises[i].name}, ",
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                              ),
+                                            )
+                                          else
+                                            Text(
+                                              workoutsBox
+                                                  .getAt(index)!
+                                                  .exercises[i]
+                                                  .name,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                              ),
+                                            ),
+                                      ])),
                                 ],
                               ),
                             ),
                           ),
-                        PopupMenuButton(
-                          icon: const Icon(Icons.more_vert),
-                          onSelected: (dynamic value) {
-                            // edits
-                            if (value == 'edit') {
-                              Navigator.of(context)
-                                  .push(MaterialPageRoute(
-                                      builder: (context) =>
-                                          EditWorkoutPage(index)))
-                                  .then((value) {
-                                setState(() {});
-                              });
-                            }
-                            // deletes
-                            else if (value == 'delete') {
-                              setState(() {
-                                workoutsBox.deleteAt(index);
-                                allWorkouts.removeAt(index);
-                              });
-                            }
-                          },
-                          itemBuilder: (BuildContext bc) {
-                            return const [
-                              PopupMenuItem(
-                                child: Text("Edit"),
-                                value: 'edit',
-                              ),
-                              PopupMenuItem(
-                                child: Text("Delete"),
-                                value: 'delete',
-                              ),
-                            ];
-                          },
-                        ),
-                      ])
-                      ),
-                      onTap: () {
-                        Navigator.of(context)
-                            .push(MaterialPageRoute(
-                                builder: (context) =>
-                                    EditWorkoutPage(index)))
-                            .then((value) {
-                          setState(() {});
-                        });
-                      },
-                    ),
+                          PopupMenuButton(
+                            icon: const Icon(Icons.more_vert),
+                            onSelected: (dynamic value) {
+                              // edits
+                              if (value == 'edit') {
+                                Navigator.of(context)
+                                    .push(MaterialPageRoute(
+                                        builder: (context) =>
+                                            EditWorkoutPage(index)))
+                                    .then((value) {
+                                  setState(() {});
+                                });
+                              }
+                              // deletes
+                              else if (value == 'delete') {
+                                setState(() {
+                                  workoutsBox.deleteAt(index);
+                                });
+                              }
+                            },
+                            itemBuilder: (BuildContext bc) {
+                              return const [
+                                PopupMenuItem(
+                                  child: Text("Edit"),
+                                  value: 'edit',
+                                ),
+                                PopupMenuItem(
+                                  child: Text("Delete"),
+                                  value: 'delete',
+                                ),
+                              ];
+                            },
+                          ),
+                        ])),
+                    onTap: () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(
+                              builder: (context) => EditWorkoutPage(index)))
+                          .then((value) {
+                        setState(() {});
+                      });
+                    },
+                  ),
               ],
               onReorder: (oldIndex, newIndex) {
+                if (oldIndex < newIndex) {
+                  newIndex -= 1;
+                }
                 setState(() {
-                  if (newIndex > oldIndex) {
-                    newIndex = newIndex - 1;
-                  }
-                  final element = allWorkouts.removeAt(oldIndex);
-                  allWorkouts.insert(newIndex, element);
+                  final oldItem = workoutsBox.getAt(oldIndex);
+                  final newItem = workoutsBox.getAt(newIndex);
+
+                  workoutsBox.putAt(oldIndex, newItem!);
+                  workoutsBox.putAt(newIndex, oldItem!);
                 });
               },
             ),
           ),
-          if (allWorkouts.isNotEmpty)
+          if (workoutsBox.isNotEmpty)
             SizedBox(
               height: 55,
               width: double.infinity,
@@ -1335,7 +1345,7 @@ class _EditState extends State<Edit> {
                   setState(() {
                     counter = 0;
                     workoutsBox.deleteAll(workoutsBox.keys);
-                    allWorkouts.clear();
+                    workoutsBox.clear();
                   });
                 },
               ),
@@ -1416,15 +1426,13 @@ class _EditState extends State<Edit> {
                                       onPressed: () {
                                         workoutsBox
                                             .add(Workout(_myController.text));
-                                        allWorkouts
-                                            .add(Workout(_myController.text));
                                         _myController.text = "";
                                         Navigator.of(context).pop();
                                         Navigator.of(context)
                                             .push(MaterialPageRoute(
                                                 builder: (context) =>
                                                     EditWorkoutPage(
-                                                        allWorkouts.length -
+                                                        workoutsBox.length -
                                                             1)))
                                             .then((value) {
                                           setState(() {});
@@ -1448,6 +1456,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
     for (int i = 0; i < 10; i++) ListTile(title: Text(i.toString())),
   ];
 
+  late final Box<Workout> workoutsBox;
   late final Box<IndivWorkout> indivWorkoutsBox;
   late final Box<double> bodyWeightsBox;
   late final Box<String> notesBox;
@@ -1463,7 +1472,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
   @override
   Widget build(BuildContext context) {
-    Workout? selectVal = allWorkouts[0];
+    Box<Workout> workoutsBox = Hive.box<Workout>('workoutsBox');
+    Workout? selectVal = workoutsBox.getAt(0);
     return Scaffold(
         backgroundColor: backColor,
         appBar: AppBar(
@@ -1473,7 +1483,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           backgroundColor: headerColor,
-          title: Center(
+          /*title: Center(
               child: SizedBox(
                   height: 40,
                   child: DecoratedBox(
@@ -1486,7 +1496,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                           child: DropdownButton(
                             underline: const SizedBox(),
                             isExpanded: false,
-                            items: allWorkouts.map((Workout workout) {
+                            items: workoutsBox.map((Workout workout) {
                               return DropdownMenuItem<Workout>(
                                   value: workout, child: Text(workout.name));
                             }).toList(),
@@ -1498,7 +1508,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                     child: Align(
                                       alignment: Alignment.center,
                                       child: Text(
-                                          allWorkouts[widget.index].name,
+                                          workoutsBox[widget.index].name,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis),
                                     ))
@@ -1508,25 +1518,25 @@ class _WorkoutPageState extends State<WorkoutPage> {
                               setState(() {
                                 // index of selection
                                 selectVal = w;
-                                int idx = allWorkouts.indexOf(selectVal!);
+                                int idx = workoutsBox.indexOf(selectVal!);
                                 // do nothing if same selection
                                 if (idx == widget.index) {
                                 } else {
                                   for (int j = 0;
-                                      j < allWorkouts[idx].exercises.length;
+                                      j < workoutsBox[idx].exercises.length;
                                       ++j) {
-                                    allWorkouts[idx]
+                                    workoutsBox[idx]
                                         .exercises[j]
                                         .repsCompleted
                                         .clear();
                                     for (int k = 0;
-                                        k < allWorkouts[idx].exercises[j].sets;
+                                        k < workoutsBox[idx].exercises[j].sets;
                                         k++) {
                                       // repsCompleted initialized with initial reps value
-                                      allWorkouts[idx]
+                                      workoutsBox[idx]
                                           .exercises[j]
                                           .repsCompleted
-                                          .add(allWorkouts[idx]
+                                          .add(workoutsBox[idx]
                                                   .exercises[j]
                                                   .reps +
                                               1);
@@ -1538,7 +1548,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                 }
                               });
                             },
-                          ))))),
+                          ))))),*/
           actions: <Widget>[
             TextButton(
               style: TextButton.styleFrom(
@@ -1549,14 +1559,14 @@ class _WorkoutPageState extends State<WorkoutPage> {
               ),
               child: const Text("Finish"),
               onPressed: () {
-                widget.index == allWorkouts.length - 1
+                widget.index == workoutsBox.length - 1
                     ? counter = 0
                     : counter = widget.index +
                         1; // loops counter according to selected workout
                 showTimer = false;
                 timer?.cancel();
 
-                String name = allWorkouts[widget.index].name;
+                String name = workoutsBox.getAt(widget.index)!.name;
                 var now = DateTime.now();
                 String date = DateFormat('E, d MMM yyyy').format(now);
                 List<String> exercisesCompleted = [];
@@ -1565,34 +1575,46 @@ class _WorkoutPageState extends State<WorkoutPage> {
                 List<int> setsPlanned = [];
                 List<List<int>> repsCompleted = [];
                 for (int i = 0;
-                    i < allWorkouts[widget.index].exercises.length;
+                    i < workoutsBox.getAt(widget.index)!.exercises.length;
                     i++) {
                   exercisesCompleted
-                      .add(allWorkouts[widget.index].exercises[i].name);
-                  weights.add(allWorkouts[widget.index].exercises[i].weight);
-                  repsPlanned.add(allWorkouts[widget.index].exercises[i].reps);
-                  setsPlanned.add(allWorkouts[widget.index].exercises[i].sets);
+                      .add(workoutsBox.getAt(widget.index)!.exercises[i].name);
+                  weights.add(
+                      workoutsBox.getAt(widget.index)!.exercises[i].weight);
+                  repsPlanned
+                      .add(workoutsBox.getAt(widget.index)!.exercises[i].reps);
+                  setsPlanned
+                      .add(workoutsBox.getAt(widget.index)!.exercises[i].sets);
 
                   // extremely weird error (appeared to be pass-by-reference
                   // with the repsCompleted, despite that not being possible)
                   // this is the roundabout solution I found
                   repsCompleted.add([0]);
-                  repsCompleted[i].add(
-                      allWorkouts[widget.index].exercises[i].repsCompleted[0]);
+                  repsCompleted[i].add(workoutsBox
+                      .getAt(widget.index)!
+                      .exercises[i]
+                      .repsCompleted[0]);
                   repsCompleted[i].removeAt(0);
                   for (int j = 1;
                       j <
-                          allWorkouts[widget.index]
+                          workoutsBox
+                              .getAt(widget.index)!
                               .exercises[i]
                               .repsCompleted
                               .length;
                       j++) {
-                    repsCompleted[i].add(allWorkouts[widget.index]
+                    repsCompleted[i].add(workoutsBox
+                        .getAt(widget.index)!
                         .exercises[i]
                         .repsCompleted[j]);
                   }
 
-                  allWorkouts[widget.index].exercises[i].repsCompleted.clear();
+                  // not gonna work
+                  workoutsBox
+                      .getAt(widget.index)!
+                      .exercises[i]
+                      .repsCompleted
+                      .clear();
                 }
 
                 indivWorkoutsBox.add(IndivWorkout(
@@ -1620,11 +1642,14 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
                 _counter.value++;
 
-                for (int i = 0; i < allWorkouts.length; i++) {
-                  allWorkouts[i].isInitialized = false;
+                // probably won't work, need to use hive box method
+                for (int i = 0; i < workoutsBox.length; i++) {
+                  workoutsBox.getAt(i)!.isInitialized = false;
 
-                  for (int j = 0; j < allWorkouts[i].exercises.length; j++) {
-                    allWorkouts[i].exercises[j].repsCompleted.clear();
+                  for (int j = 0;
+                      j < workoutsBox.getAt(i)!.exercises.length;
+                      j++) {
+                    workoutsBox.getAt(i)!.exercises[j].repsCompleted.clear();
                   }
                 }
 
@@ -1645,7 +1670,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                       shrinkWrap: true,
                       children: <Widget>[
                     for (int i = 0;
-                        i < allWorkouts[widget.index].exercises.length;
+                        i < workoutsBox.getAt(widget.index)!.exercises.length;
                         i++)
                       Column(children: <Widget>[
                         Row(children: <Widget>[
@@ -1653,7 +1678,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                  "  ${allWorkouts[widget.index].exercises[i].name}",
+                                  "  ${workoutsBox.getAt(widget.index)!.exercises[i].name}",
                                   style: const TextStyle(
                                     fontSize: 17,
                                   )),
@@ -1668,7 +1693,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                             j < allExercises.length;
                                             j++) {
                                           if (allExercises[j].name ==
-                                              allWorkouts[widget.index]
+                                              workoutsBox
+                                                  .getAt(widget.index)!
                                                   .exercises[i]
                                                   .name) {
                                             Navigator.of(context)
@@ -1682,7 +1708,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                         }
                                       },
                                       child: Row(children: <Widget>[
-                                        if (allWorkouts[widget.index]
+                                        if (workoutsBox
+                                                    .getAt(widget.index)!
                                                     .exercises[i]
                                                     .weight %
                                                 1 ==
@@ -1692,7 +1719,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                   alignment:
                                                       Alignment.centerRight,
                                                   child: Text(
-                                                      "${allWorkouts[widget.index].exercises[i].sets}x${allWorkouts[widget.index].exercises[i].reps} ${allWorkouts[widget.index].exercises[i].weight ~/ 1}lb",
+                                                      "${workoutsBox.getAt(widget.index)!.exercises[i].sets}x${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight ~/ 1}lb",
                                                       style: const TextStyle(
                                                         fontSize: 17,
                                                       ))))
@@ -1702,7 +1729,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                   alignment:
                                                       Alignment.centerRight,
                                                   child: Text(
-                                                      "${allWorkouts[widget.index].exercises[i].sets}x${allWorkouts[widget.index].exercises[i].reps} ${allWorkouts[widget.index].exercises[i].weight.toString()}lb",
+                                                      "${workoutsBox.getAt(widget.index)!.exercises[i].sets}x${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight.toString()}lb",
                                                       style: const TextStyle(
                                                           fontSize: 17)))),
                                         SizedBox(
@@ -1713,7 +1740,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                   j < allExercises.length;
                                                   j++) {
                                                 if (allExercises[j].name ==
-                                                    allWorkouts[widget.index]
+                                                    workoutsBox
+                                                        .getAt(widget.index)!
                                                         .exercises[i]
                                                         .name) {
                                                   Navigator.of(context)
@@ -1750,7 +1778,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                   // one circle for each set, initialized with number of reps
                                   for (int j = 0;
                                       j <
-                                          allWorkouts[widget.index]
+                                          workoutsBox
+                                              .getAt(widget.index)!
                                               .exercises[i]
                                               .sets;
                                       j++)
@@ -1763,24 +1792,30 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                             side: BorderSide(
                                                 width: 1,
                                                 style: BorderStyle.none)),
-                                        child: allWorkouts[widget.index]
+                                        child: workoutsBox
+                                                    .getAt(widget.index)!
                                                     .exercises[i]
                                                     .repsCompleted[j] >
-                                                allWorkouts[widget.index]
+                                                workoutsBox
+                                                    .getAt(widget.index)!
                                                     .exercises[i]
                                                     .reps
-                                            ? Text(allWorkouts[widget.index]
+                                            ? Text(workoutsBox
+                                                .getAt(widget.index)!
                                                 .exercises[i]
                                                 .reps
                                                 .toString())
-                                            : Text(allWorkouts[widget.index]
+                                            : Text(workoutsBox
+                                                .getAt(widget.index)!
                                                 .exercises[i]
                                                 .repsCompleted[j]
                                                 .toString()),
-                                        color: allWorkouts[widget.index]
+                                        color: workoutsBox
+                                                    .getAt(widget.index)!
                                                     .exercises[i]
                                                     .repsCompleted[j] >
-                                                allWorkouts[widget.index]
+                                                workoutsBox
+                                                    .getAt(widget.index)!
                                                     .exercises[i]
                                                     .reps
                                             ? const Color.fromARGB(
@@ -1789,16 +1824,19 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                         textColor: Colors.white,
                                         onPressed: () {
                                           // loops around
-                                          if (allWorkouts[widget.index]
+                                          if (workoutsBox
+                                                  .getAt(widget.index)!
                                                   .exercises[i]
                                                   .repsCompleted[j] ==
                                               0) {
                                             setState(() {
                                               showTimer = false;
-                                              allWorkouts[widget.index]
+                                              workoutsBox
+                                                      .getAt(widget.index)!
                                                       .exercises[i]
                                                       .repsCompleted[j] =
-                                                  allWorkouts[widget.index]
+                                                  workoutsBox
+                                                          .getAt(widget.index)!
                                                           .exercises[i]
                                                           .reps +
                                                       1;
@@ -1808,7 +1846,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                             setState(() {
                                               showTimer = true;
                                               startTimer(timer);
-                                              allWorkouts[widget.index]
+                                              workoutsBox
+                                                  .getAt(widget.index)!
                                                   .exercises[i]
                                                   .repsCompleted[j] -= 1;
                                             });
@@ -2223,7 +2262,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         backgroundColor: headerColor,
-        title: Text(allWorkouts[widget.index].name),
+        title: Text(workoutsBox.getAt(widget.index)!.name),
         titleTextStyle: const TextStyle(fontSize: 22),
       ),
       body: Container(
@@ -2242,7 +2281,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                 buildDefaultDragHandles: false,
                 children: <Widget>[
                   for (int i = 0;
-                      i < allWorkouts[widget.index].exercises.length;
+                      i < workoutsBox.getAt(widget.index)!.exercises.length;
                       i++)
                     Container(
                       key: Key('$i'),
@@ -2254,8 +2293,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                             height: 80,
                             child: ReorderableDragStartListener(
                               index: i,
-                              child:
-                                  const Icon(Icons.drag_indicator_outlined),
+                              child: const Icon(Icons.drag_indicator_outlined),
                             ),
                           ),
                           GestureDetector(
@@ -2268,7 +2306,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                     Align(
                                       alignment: Alignment.centerLeft,
                                       child: Text(
-                                        allWorkouts[widget.index]
+                                        workoutsBox
+                                            .getAt(widget.index)!
                                             .exercises[i]
                                             .name,
                                         style: const TextStyle(
@@ -2286,7 +2325,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                         Align(
                                           alignment: Alignment.centerLeft,
                                           child: Text(
-                                            "${allWorkouts[widget.index].exercises[i].sets.toString()} sets of ${allWorkouts[widget.index].exercises[i].reps.toString()} reps",
+                                            "${workoutsBox.getAt(widget.index)!.exercises[i].sets.toString()} sets of ${workoutsBox.getAt(widget.index)!.exercises[i].reps.toString()} reps",
                                             style: const TextStyle(
                                               fontSize: 14,
                                             ),
@@ -2304,7 +2343,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                             onTap: () {
                               for (int j = 0; j < allExercises.length; j++) {
                                 if (allExercises[j].name ==
-                                    allWorkouts[widget.index]
+                                    workoutsBox
+                                        .getAt(widget.index)!
                                         .exercises[i]
                                         .name) {
                                   Navigator.of(context)
@@ -2323,11 +2363,10 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                             onSelected: (dynamic value) {
                               // edits
                               if (value == 'edit') {
-                                for (int j = 0;
-                                    j < allExercises.length;
-                                    j++) {
+                                for (int j = 0; j < allExercises.length; j++) {
                                   if (allExercises[j].name ==
-                                      allWorkouts[widget.index]
+                                      workoutsBox
+                                          .getAt(widget.index)!
                                           .exercises[i]
                                           .name) {
                                     Navigator.of(context)
@@ -2343,9 +2382,6 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                               // deletes
                               else if (value == 'delete') {
                                 setState(() {
-                                  allWorkouts[widget.index]
-                                      .exercises
-                                      .removeAt(i);
                                   final tempWorkout =
                                       Hive.box<Workout>('workoutsBox')
                                           .getAt(widget.index);
@@ -2358,26 +2394,31 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                       k < allExercises.length;
                                       k++) {
                                     if (allExercises[k].name ==
-                                        allWorkouts[widget.index]
+                                        workoutsBox
+                                            .getAt(widget.index)!
                                             .exercises[i]
                                             .name) {
                                       exercisesBox.deleteAt(k - 1);
                                       allExercises.removeAt(k);
                                     }
                                   }
-                                  for (int j = 0;
-                                      j < allWorkouts.length;
-                                      j++) {
-                                    if (allWorkouts[j] ==
-                                        allWorkouts[widget.index]) {
+                                  for (int j = 0; j < workoutsBox.length; j++) {
+                                    if (workoutsBox.getAt(j)! ==
+                                        workoutsBox.getAt(widget.index)!) {
                                     } else {
                                       for (int k = 0;
-                                          k < allWorkouts[j].exercises.length;
+                                          k <
+                                              workoutsBox
+                                                  .getAt(j)!
+                                                  .exercises
+                                                  .length;
                                           k++) {
-                                        if (allWorkouts[j]
+                                        if (workoutsBox
+                                                .getAt(j)!
                                                 .exercises[k]
                                                 .name ==
-                                            allWorkouts[widget.index]
+                                            workoutsBox
+                                                .getAt(widget.index)!
                                                 .exercises[i]
                                                 .name) {
                                           final tempWorkout =
@@ -2389,10 +2430,6 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                       }
                                     }
                                   }
-                                  allWorkouts[widget.index]
-                                      .exercises
-                                      .removeAt(i);
-
                                   final tempWorkout =
                                       Hive.box<Workout>('workoutsBox')
                                           .getAt(widget.index);
@@ -2427,12 +2464,12 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                     if (newIndex > oldIndex) {
                       newIndex = newIndex - 1;
                     }
-                    final element = allWorkouts[widget.index]
-                        .exercises
-                        .removeAt(oldIndex);
-                    allWorkouts[widget.index]
-                        .exercises
-                        .insert(newIndex, element);
+                    final tempWorkout =
+                        Hive.box<Workout>('workoutsBox').getAt(widget.index);
+
+                    final element = tempWorkout?.exercises.removeAt(oldIndex);
+                    tempWorkout!.exercises.insert(newIndex, element!);
+                    tempWorkout.save();
                   });
                 },
               ),
@@ -2447,8 +2484,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                     alignment: const Alignment(-.32, 0)),
                 child: const Text("Change Workout Name"),
                 onPressed: () {
-                  setState(() =>
-                      _myController.text = allWorkouts[widget.index].name);
+                  setState(() => _myController.text =
+                      workoutsBox.getAt(widget.index)!.name);
                   showDialog(
                       context: context,
                       builder: (context) => Dialog(
@@ -2516,8 +2553,9 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                             tempWorkout?.name =
                                                 _myController.text;
                                             tempWorkout?.save();
-                                            allWorkouts[widget.index].name =
-                                                _myController.text;
+                                            workoutsBox
+                                                .getAt(widget.index)!
+                                                .name = _myController.text;
                                           });
                                           Navigator.of(context).pop();
                                         },
@@ -2529,7 +2567,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                 },
               ),
             ),
-            if (allWorkouts[widget.index].exercises.isNotEmpty)
+            if (workoutsBox.getAt(widget.index)!.exercises.isNotEmpty)
               SizedBox(
                 height: 55,
                 width: double.infinity,
@@ -2546,7 +2584,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                           Hive.box<Workout>('workoutsBox').getAt(widget.index);
                       tempWorkout?.exercises.clear();
                       tempWorkout?.save();
-                      allWorkouts[widget.index].exercises.clear();
+                      workoutsBox.getAt(widget.index)!.exercises.clear();
                     });
                   },
                 ),
@@ -2744,15 +2782,17 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                               }
                                                               for (int i = 0;
                                                                   i <
-                                                                      allWorkouts[
-                                                                              widget.index]
+                                                                      workoutsBox
+                                                                          .getAt(
+                                                                              widget.index)!
                                                                           .exercises
                                                                           .length;
                                                                   i++) {
                                                                 if (_myController
                                                                         .text ==
-                                                                    allWorkouts[widget
-                                                                            .index]
+                                                                    workoutsBox
+                                                                        .getAt(widget
+                                                                            .index)!
                                                                         .exercises[
                                                                             i]
                                                                         .name) {
@@ -2786,57 +2826,63 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                 tempWorkout
                                                                     ?.save();
 
-                                                                /*allWorkouts[widget
+                                                                /*workoutsBox[widget
                                                                         .index]
                                                                     .exercises
                                                                     .add(allExercises[
                                                                         allExercises.length -
                                                                             1]);*/
 
-                                                                if (allWorkouts[
-                                                                            widget.index]
+                                                                if (workoutsBox
+                                                                        .getAt(widget
+                                                                            .index)!
                                                                         .isInitialized ==
                                                                     false) {
                                                                   for (int j =
                                                                           0;
                                                                       j <
-                                                                          allWorkouts[widget.index]
+                                                                          workoutsBox
+                                                                              .getAt(widget.index)!
                                                                               .exercises
                                                                               .length;
                                                                       ++j) {
                                                                     for (int k =
                                                                             0;
-                                                                        k < allWorkouts[widget.index].exercises[j].sets;
+                                                                        k < workoutsBox.getAt(widget.index)!.exercises[j].sets;
                                                                         k++) {
                                                                       // repsCompleted initialized with initial reps value
-                                                                      allWorkouts[widget
-                                                                              .index]
+                                                                      workoutsBox
+                                                                          .getAt(widget
+                                                                              .index)!
                                                                           .exercises[
                                                                               j]
                                                                           .repsCompleted
-                                                                          .add(allWorkouts[widget.index].exercises[j].reps +
+                                                                          .add(workoutsBox.getAt(widget.index)!.exercises[j].reps +
                                                                               1);
                                                                     }
                                                                   }
-                                                                  allWorkouts[widget
-                                                                          .index]
+                                                                  workoutsBox
+                                                                      .getAt(widget
+                                                                          .index)!
                                                                       .isInitialized = true;
                                                                 } else {
                                                                   // adds to repsCompleted, initializes it
                                                                   for (int j =
                                                                           0;
                                                                       j <
-                                                                          allWorkouts[widget.index]
-                                                                              .exercises[allWorkouts[widget.index].exercises.length - 1]
+                                                                          workoutsBox
+                                                                              .getAt(widget.index)!
+                                                                              .exercises[workoutsBox.getAt(widget.index)!.exercises.length - 1]
                                                                               .sets;
                                                                       j++) {
-                                                                    allWorkouts[widget
-                                                                            .index]
+                                                                    workoutsBox
+                                                                        .getAt(widget
+                                                                            .index)!
                                                                         .exercises[
-                                                                            allWorkouts[widget.index].exercises.length -
+                                                                            workoutsBox.getAt(widget.index)!.exercises.length -
                                                                                 1]
                                                                         .repsCompleted
-                                                                        .add(allWorkouts[widget.index].exercises[allWorkouts[widget.index].exercises.length - 1].reps +
+                                                                        .add(workoutsBox.getAt(widget.index)!.exercises[workoutsBox.getAt(widget.index)!.exercises.length - 1].reps +
                                                                             1);
                                                                   }
                                                                   setState(() =>
@@ -2882,9 +2928,14 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                   } else {
                                     bool duplicate = false;
                                     for (int i = 0;
-                                        i < allWorkouts[widget.index].exercises.length;
+                                        i <
+                                            workoutsBox
+                                                .getAt(widget.index)!
+                                                .exercises
+                                                .length;
                                         i++) {
-                                      if (allWorkouts[widget.index]
+                                      if (workoutsBox
+                                              .getAt(widget.index)!
                                               .exercises[i]
                                               .name ==
                                           selectVal!.name) {
@@ -2906,59 +2957,70 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
 
                                       tempWorkout?.save();
 
-                                      /*allWorkouts[widget.index]
+                                      /*workoutsBox[widget.index]
                                           .exercises
                                           .add(selectVal!);*/
 
-                                      if (allWorkouts[widget.index]
+                                      if (workoutsBox
+                                              .getAt(widget.index)!
                                               .isInitialized ==
                                           false) {
                                         for (int j = 0;
                                             j <
-                                                allWorkouts[widget.index]
+                                                workoutsBox
+                                                    .getAt(widget.index)!
                                                     .exercises
                                                     .length;
                                             ++j) {
                                           for (int k = 0;
                                               k <
-                                                  allWorkouts[widget.index]
+                                                  workoutsBox
+                                                      .getAt(widget.index)!
                                                       .exercises[j]
                                                       .sets;
                                               k++) {
                                             // repsCompleted initialized with initial reps value
-                                            allWorkouts[widget.index]
+                                            workoutsBox
+                                                .getAt(widget.index)!
                                                 .exercises[j]
                                                 .repsCompleted
-                                                .add(allWorkouts[widget.index]
+                                                .add(workoutsBox
+                                                        .getAt(widget.index)!
                                                         .exercises[j]
                                                         .reps +
                                                     1);
                                           }
                                         }
-                                        allWorkouts[widget.index]
+                                        workoutsBox
+                                            .getAt(widget.index)!
                                             .isInitialized = true;
                                       } else {
                                         // adds to repsCompleted, initializes it
                                         for (int j = 0;
                                             j <
-                                                allWorkouts[widget.index]
-                                                    .exercises[allWorkouts[
-                                                                widget.index]
+                                                workoutsBox
+                                                    .getAt(widget.index)!
+                                                    .exercises[workoutsBox
+                                                            .getAt(
+                                                                widget.index)!
                                                             .exercises
                                                             .length -
                                                         1]
                                                     .sets;
                                             j++) {
-                                          allWorkouts[widget.index]
-                                              .exercises[
-                                                  allWorkouts[widget.index]
-                                                          .exercises
-                                                          .length -
-                                                      1]
+                                          workoutsBox
+                                              .getAt(widget.index)!
+                                              .exercises[workoutsBox
+                                                      .getAt(widget.index)!
+                                                      .exercises
+                                                      .length -
+                                                  1]
                                               .repsCompleted
-                                              .add(allWorkouts[widget.index]
-                                                      .exercises[allWorkouts[
-                                                                  widget.index]
+                                              .add(workoutsBox
+                                                      .getAt(widget.index)!
+                                                      .exercises[workoutsBox
+                                                              .getAt(
+                                                                  widget.index)!
                                                               .exercises
                                                               .length -
                                                           1]
@@ -3912,7 +3974,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
               ),
               child: const Text("Save"),
               onPressed: () {
-                /*String name = allWorkouts[widget.index].name;
+                /*String name = workoutsBox[widget.index].name;
               String date = "date";
               List<String> exercisesCompleted = [];
               List<double> weights = [];
@@ -3920,7 +3982,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
               List<int> setsPlanned = [];
               List<List<int>> repsCompleted = [];
               for (int i = 0;
-                  i < allWorkouts[widget.index].exercises.length;
+                  i < workoutsBox[widget.index].exercises.length;
                   i++) {}
               */
                 // save any weight, rep, set, name changes
