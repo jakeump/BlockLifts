@@ -461,16 +461,15 @@ class _HomeState extends State<Home> {
                 constraints: const BoxConstraints(
                   maxHeight: 690,
                 ),
-                child: Expanded(
-                  child: ListView(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      children: <Widget>[
-                        for (int i = counter; i < allWorkouts.length; i++)
-                          buildTile(i),
-                        for (int i = 0; i < counter; i++) buildTile(i),
-                      ]),
-                ),
+                child: ListView(
+                    physics: const BouncingScrollPhysics(),
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    children: <Widget>[
+                      for (int i = counter; i < allWorkouts.length; i++)
+                        buildTile(i),
+                      for (int i = 0; i < counter; i++) buildTile(i),
+                    ]),
               );
             }),
         floatingActionButton: SizedBox(
@@ -728,6 +727,7 @@ class _ListState extends State<ListPage> {
             valueListenable: _counter,
             builder: (context, value, child) {
               return ListView(
+                  physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(10),
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,
@@ -965,6 +965,7 @@ class _NotesState extends State<NotesPage> {
             valueListenable: _counter,
             builder: (context, value, child) {
               return ListView(
+                  physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(10),
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,
@@ -1181,172 +1182,165 @@ class _EditState extends State<Edit> {
         constraints: const BoxConstraints(
           maxHeight: 750,
         ),
-        child: Column(
-          children: <Widget>[
-            Flexible(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: ReorderableListView(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  // for every item of the List<Workout> class, display the reorder indicator
-                  // the name, the exercises, and three dots on the right
-                  scrollDirection: Axis.vertical,
-                  buildDefaultDragHandles: false,
-                  children: <Widget>[
-                    for (int index = 0; index < allWorkouts.length; index++)
-                      Container(
-                        key: Key('$index'),
-                        color: Colors.black, // custom color goes here
-                        child: Row(
-                          children: <Widget>[
-                            Container(
-                              width: 70,
-                              height: 100,
-                              padding: const EdgeInsets.all(8),
-                              child: ReorderableDragStartListener(
-                                index: index,
-                                child:
-                                    const Icon(Icons.drag_indicator_outlined),
-                              ),
-                            ),
-                            GestureDetector(
-                              child: Container(
-                                padding: const EdgeInsets.fromLTRB(0, 14, 0, 0),
-                                width: 280,
-                                height: 100,
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          allWorkouts[index].name,
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                          ),
-                                          softWrap: false,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      // Prints out names of each exercise in the workout
-                                      Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: Wrap(children: [
-                                            for (int i = 0;
-                                                i <
-                                                    allWorkouts[index]
-                                                        .exercises
-                                                        .length;
-                                                i++)
-                                              // If not last exercise, print comma after
-                                              if (i !=
-                                                  allWorkouts[index]
-                                                          .exercises
-                                                          .length -
-                                                      1)
-                                                Text(
-                                                  "${allWorkouts[index].exercises[i].name}, ",
-                                                  style: const TextStyle(
-                                                    fontSize: 15,
-                                                  ),
-                                                )
-                                              else
-                                                Text(
-                                                  allWorkouts[index]
-                                                      .exercises[i]
-                                                      .name,
-                                                  style: const TextStyle(
-                                                    fontSize: 15,
-                                                  ),
-                                                ),
-                                          ])),
-                                    ],
+        child: Column(children: <Widget>[
+          Flexible(
+            child: ReorderableListView(
+              physics: const BouncingScrollPhysics(),
+              shrinkWrap: true,
+              // for every item of the List<Workout> class, display the reorder indicator
+              // the name, the exercises, and three dots on the right
+              scrollDirection: Axis.vertical,
+              buildDefaultDragHandles: false,
+              children: <Widget>[
+                for (int index = 0; index < allWorkouts.length; index++)
+                  GestureDetector(
+                    key: Key('$index'),
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        minHeight: 80,
+                      ),
+                      color: Colors.black, // custom color goes here
+                      child: Row(children: <Widget>[
+                        Container(
+                          width: 70,
+                          padding: const EdgeInsets.fromLTRB(8,24,8,8),
+                          child: ReorderableDragStartListener(
+                            index: index,
+                            child: const Icon(Icons.drag_indicator_outlined),
+                          ),
+                        ),
+                        Flexible(
+                          child: Container(
+                          padding: const EdgeInsets.fromLTRB(0, 14, 0, 0),
+                          width: 280,
+                          child: Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  allWorkouts[index].name,
+                                  style: const TextStyle(
+                                    fontSize: 18,
                                   ),
+                                  softWrap: false,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              onTap: () {
-                                Navigator.of(context)
-                                    .push(MaterialPageRoute(
-                                        builder: (context) =>
-                                            EditWorkoutPage(index)))
-                                    .then((value) {
-                                  setState(() {});
-                                });
-                              },
+                              // Prints out names of each exercise in the workout
+                              Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Wrap(children: [
+                                    for (int i = 0;
+                                        i <
+                                            allWorkouts[index]
+                                                .exercises
+                                                .length;
+                                        i++)
+                                      // If not last exercise, print comma after
+                                      if (i !=
+                                          allWorkouts[index]
+                                                  .exercises
+                                                  .length -
+                                              1)
+                                        Text(
+                                          "${allWorkouts[index].exercises[i].name}, ",
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                          ),
+                                        )
+                                      else
+                                        Text(
+                                          allWorkouts[index]
+                                              .exercises[i]
+                                              .name,
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                  ])),
+                                ],
+                              ),
                             ),
-                            PopupMenuButton(
-                              icon: const Icon(Icons.more_vert),
-                              onSelected: (dynamic value) {
-                                // edits
-                                if (value == 'edit') {
-                                  Navigator.of(context)
-                                      .push(MaterialPageRoute(
-                                          builder: (context) =>
-                                              EditWorkoutPage(index)))
-                                      .then((value) {
-                                    setState(() {});
-                                  });
-                                }
-                                // deletes
-                                else if (value == 'delete') {
-                                  setState(() {
-                                    workoutsBox.deleteAt(index);
-                                    allWorkouts.removeAt(index);
-                                  });
-                                }
-                              },
-                              itemBuilder: (BuildContext bc) {
-                                return const [
-                                  PopupMenuItem(
-                                    child: Text("Edit"),
-                                    value: 'edit',
-                                  ),
-                                  PopupMenuItem(
-                                    child: Text("Delete"),
-                                    value: 'delete',
-                                  ),
-                                ];
-                              },
-                            ),
-                          ],
+                          ),
+                        PopupMenuButton(
+                          icon: const Icon(Icons.more_vert),
+                          onSelected: (dynamic value) {
+                            // edits
+                            if (value == 'edit') {
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(
+                                      builder: (context) =>
+                                          EditWorkoutPage(index)))
+                                  .then((value) {
+                                setState(() {});
+                              });
+                            }
+                            // deletes
+                            else if (value == 'delete') {
+                              setState(() {
+                                workoutsBox.deleteAt(index);
+                                allWorkouts.removeAt(index);
+                              });
+                            }
+                          },
+                          itemBuilder: (BuildContext bc) {
+                            return const [
+                              PopupMenuItem(
+                                child: Text("Edit"),
+                                value: 'edit',
+                              ),
+                              PopupMenuItem(
+                                child: Text("Delete"),
+                                value: 'delete',
+                              ),
+                            ];
+                          },
                         ),
+                      ])
                       ),
-                  ],
-                  onReorder: (oldIndex, newIndex) {
-                    setState(() {
-                      if (newIndex > oldIndex) {
-                        newIndex = newIndex - 1;
-                      }
-                      final element = allWorkouts.removeAt(oldIndex);
-                      allWorkouts.insert(newIndex, element);
-                    });
-                  },
-                ),
+                      onTap: () {
+                        Navigator.of(context)
+                            .push(MaterialPageRoute(
+                                builder: (context) =>
+                                    EditWorkoutPage(index)))
+                            .then((value) {
+                          setState(() {});
+                        });
+                      },
+                    ),
+              ],
+              onReorder: (oldIndex, newIndex) {
+                setState(() {
+                  if (newIndex > oldIndex) {
+                    newIndex = newIndex - 1;
+                  }
+                  final element = allWorkouts.removeAt(oldIndex);
+                  allWorkouts.insert(newIndex, element);
+                });
+              },
+            ),
+          ),
+          if (allWorkouts.isNotEmpty)
+            SizedBox(
+              height: 55,
+              width: double.infinity,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                    primary: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16),
+                    alignment: const Alignment(-.42, 0)),
+                child: const Text("Delete All Workouts"),
+                onPressed: () {
+                  setState(() {
+                    counter = 0;
+                    workoutsBox.deleteAll(workoutsBox.keys);
+                    allWorkouts.clear();
+                  });
+                },
               ),
             ),
-            if (allWorkouts.isNotEmpty)
-              SizedBox(
-                height: 55,
-                width: double.infinity,
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                      primary: Colors.white,
-                      textStyle: const TextStyle(fontSize: 16),
-                      alignment: const Alignment(-.42, 0)),
-                  child: const Text("Delete All Workouts"),
-                  onPressed: () {
-                    setState(() {
-                      counter = 0;
-                      workoutsBox.deleteAll(workoutsBox.keys);
-                      allWorkouts.clear();
-                    });
-                  },
-                ),
-              ),
-          ],
-        ),
+        ]),
       ),
       floatingActionButton: Align(
         alignment: const Alignment(.93, 1), // custom alignment
@@ -2239,78 +2233,99 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
         child: Column(
           children: <Widget>[
             Flexible(
-              child: SingleChildScrollView(
+              child: ReorderableListView(
+                shrinkWrap: true,
+                physics: const BouncingScrollPhysics(),
+                // for every item of the List<Workout> class, display the reorder indicator
+                // the name, the exercises, and three dots on the right
                 scrollDirection: Axis.vertical,
-                child: ReorderableListView(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  // for every item of the List<Workout> class, display the reorder indicator
-                  // the name, the exercises, and three dots on the right
-                  scrollDirection: Axis.vertical,
-                  buildDefaultDragHandles: false,
-                  children: <Widget>[
-                    for (int i = 0;
-                        i < allWorkouts[widget.index].exercises.length;
-                        i++)
-                      Container(
-                        key: Key('$i'),
-                        color: Colors.black, // custom color goes here
-                        child: Row(
-                          children: <Widget>[
-                            SizedBox(
-                              width: 70,
-                              height: 80,
-                              child: ReorderableDragStartListener(
-                                index: i,
-                                child:
-                                    const Icon(Icons.drag_indicator_outlined),
-                              ),
+                buildDefaultDragHandles: false,
+                children: <Widget>[
+                  for (int i = 0;
+                      i < allWorkouts[widget.index].exercises.length;
+                      i++)
+                    Container(
+                      key: Key('$i'),
+                      color: Colors.black, // custom color goes here
+                      child: Row(
+                        children: <Widget>[
+                          SizedBox(
+                            width: 70,
+                            height: 80,
+                            child: ReorderableDragStartListener(
+                              index: i,
+                              child:
+                                  const Icon(Icons.drag_indicator_outlined),
                             ),
-                            GestureDetector(
-                              child: SizedBox(
-                                width: 280,
-                                height: 60,
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          allWorkouts[widget.index]
-                                              .exercises[i]
-                                              .name,
-                                          style: const TextStyle(
-                                            fontSize: 17,
-                                          ),
-                                          softWrap: false,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
+                          ),
+                          GestureDetector(
+                            child: SizedBox(
+                              width: 280,
+                              height: 60,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        allWorkouts[widget.index]
+                                            .exercises[i]
+                                            .name,
+                                        style: const TextStyle(
+                                          fontSize: 17,
                                         ),
+                                        softWrap: false,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      // Prints out names of each exercise in the workout
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Wrap(children: [
-                                          Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Text(
-                                              "${allWorkouts[widget.index].exercises[i].sets.toString()} sets of ${allWorkouts[widget.index].exercises[i].reps.toString()} reps",
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                              ),
-                                              softWrap: false,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
+                                    ),
+                                    // Prints out names of each exercise in the workout
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Wrap(children: [
+                                        Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            "${allWorkouts[widget.index].exercises[i].sets.toString()} sets of ${allWorkouts[widget.index].exercises[i].reps.toString()} reps",
+                                            style: const TextStyle(
+                                              fontSize: 14,
                                             ),
+                                            softWrap: false,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                        ]),
-                                      ),
-                                    ],
-                                  ),
+                                        ),
+                                      ]),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              onTap: () {
-                                for (int j = 0; j < allExercises.length; j++) {
+                            ),
+                            onTap: () {
+                              for (int j = 0; j < allExercises.length; j++) {
+                                if (allExercises[j].name ==
+                                    allWorkouts[widget.index]
+                                        .exercises[i]
+                                        .name) {
+                                  Navigator.of(context)
+                                      .push(MaterialPageRoute(
+                                          builder: (context) =>
+                                              EditExercisePage(j)))
+                                      .then((value) {
+                                    setState(() {});
+                                  });
+                                }
+                              }
+                            },
+                          ),
+                          PopupMenuButton(
+                            icon: const Icon(Icons.more_vert),
+                            onSelected: (dynamic value) {
+                              // edits
+                              if (value == 'edit') {
+                                for (int j = 0;
+                                    j < allExercises.length;
+                                    j++) {
                                   if (allExercises[j].name ==
                                       allWorkouts[widget.index]
                                           .exercises[i]
@@ -2324,126 +2339,102 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                     });
                                   }
                                 }
-                              },
-                            ),
-                            PopupMenuButton(
-                              icon: const Icon(Icons.more_vert),
-                              onSelected: (dynamic value) {
-                                // edits
-                                if (value == 'edit') {
-                                  for (int j = 0;
-                                      j < allExercises.length;
-                                      j++) {
-                                    if (allExercises[j].name ==
+                              }
+                              // deletes
+                              else if (value == 'delete') {
+                                setState(() {
+                                  allWorkouts[widget.index]
+                                      .exercises
+                                      .removeAt(i);
+                                  final tempWorkout =
+                                      Hive.box<Workout>('workoutsBox')
+                                          .getAt(widget.index);
+                                  tempWorkout?.exercises.removeAt(i);
+                                  tempWorkout?.save();
+                                });
+                              } else if (value == 'deleteAll') {
+                                setState(() {
+                                  for (int k = 0;
+                                      k < allExercises.length;
+                                      k++) {
+                                    if (allExercises[k].name ==
                                         allWorkouts[widget.index]
                                             .exercises[i]
                                             .name) {
-                                      Navigator.of(context)
-                                          .push(MaterialPageRoute(
-                                              builder: (context) =>
-                                                  EditExercisePage(j)))
-                                          .then((value) {
-                                        setState(() {});
-                                      });
+                                      exercisesBox.deleteAt(k - 1);
+                                      allExercises.removeAt(k);
                                     }
                                   }
-                                }
-                                // deletes
-                                else if (value == 'delete') {
-                                  setState(() {
-                                    allWorkouts[widget.index]
-                                        .exercises
-                                        .removeAt(i);
-                                    final tempWorkout =
-                                        Hive.box<Workout>('workoutsBox')
-                                            .getAt(widget.index);
-                                    tempWorkout?.exercises.removeAt(i);
-                                    tempWorkout?.save();
-                                  });
-                                } else if (value == 'deleteAll') {
-                                  setState(() {
-                                    for (int k = 0;
-                                        k < allExercises.length;
-                                        k++) {
-                                      if (allExercises[k].name ==
-                                          allWorkouts[widget.index]
-                                              .exercises[i]
-                                              .name) {
-                                        exercisesBox.deleteAt(k - 1);
-                                        allExercises.removeAt(k);
-                                      }
-                                    }
-                                    for (int j = 0;
-                                        j < allWorkouts.length;
-                                        j++) {
-                                      if (allWorkouts[j] ==
-                                          allWorkouts[widget.index]) {
-                                      } else {
-                                        for (int k = 0;
-                                            k < allWorkouts[j].exercises.length;
-                                            k++) {
-                                          if (allWorkouts[j]
-                                                  .exercises[k]
-                                                  .name ==
-                                              allWorkouts[widget.index]
-                                                  .exercises[i]
-                                                  .name) {
-                                            final tempWorkout =
-                                                Hive.box<Workout>('workoutsBox')
-                                                    .getAt(j);
-                                            tempWorkout?.exercises.removeAt(i);
-                                            tempWorkout?.save();
-                                          }
+                                  for (int j = 0;
+                                      j < allWorkouts.length;
+                                      j++) {
+                                    if (allWorkouts[j] ==
+                                        allWorkouts[widget.index]) {
+                                    } else {
+                                      for (int k = 0;
+                                          k < allWorkouts[j].exercises.length;
+                                          k++) {
+                                        if (allWorkouts[j]
+                                                .exercises[k]
+                                                .name ==
+                                            allWorkouts[widget.index]
+                                                .exercises[i]
+                                                .name) {
+                                          final tempWorkout =
+                                              Hive.box<Workout>('workoutsBox')
+                                                  .getAt(j);
+                                          tempWorkout?.exercises.removeAt(i);
+                                          tempWorkout?.save();
                                         }
                                       }
                                     }
-                                    allWorkouts[widget.index]
-                                        .exercises
-                                        .removeAt(i);
+                                  }
+                                  allWorkouts[widget.index]
+                                      .exercises
+                                      .removeAt(i);
 
-                                    final tempWorkout =
-                                        Hive.box<Workout>('workoutsBox')
-                                            .getAt(widget.index);
-                                    tempWorkout?.exercises.removeAt(i);
-                                    tempWorkout?.save();
-                                  });
-                                }
-                              },
-                              itemBuilder: (BuildContext bc) {
-                                return const [
-                                  PopupMenuItem(
-                                    child: Text("Edit"),
-                                    value: 'edit',
-                                  ),
-                                  PopupMenuItem(
-                                    child: Text("Delete"),
-                                    value: 'delete',
-                                  ),
-                                  PopupMenuItem(
-                                    child: Text("Delete From All Workouts"),
-                                    value: 'deleteAll',
-                                  ),
-                                ];
-                              },
-                            ),
-                          ],
-                        ),
+                                  final tempWorkout =
+                                      Hive.box<Workout>('workoutsBox')
+                                          .getAt(widget.index);
+                                  tempWorkout?.exercises.removeAt(i);
+                                  tempWorkout?.save();
+                                });
+                              }
+                            },
+                            itemBuilder: (BuildContext bc) {
+                              return const [
+                                PopupMenuItem(
+                                  child: Text("Edit"),
+                                  value: 'edit',
+                                ),
+                                PopupMenuItem(
+                                  child: Text("Delete"),
+                                  value: 'delete',
+                                ),
+                                PopupMenuItem(
+                                  child: Text("Delete From All Workouts"),
+                                  value: 'deleteAll',
+                                ),
+                              ];
+                            },
+                          ),
+                        ],
                       ),
-                  ],
-                  onReorder: (oldIndex, newIndex) {
-                    setState(() {
-                      if (newIndex > oldIndex) {
-                        newIndex = newIndex - 1;
-                      }
-                      final element = allWorkouts[widget.index]
-                          .exercises
-                          .removeAt(oldIndex);
-                      allWorkouts[widget.index]
-                          .exercises
-                          .insert(newIndex, element);
-                    });
-                  },
-                ),
+                    ),
+                ],
+                onReorder: (oldIndex, newIndex) {
+                  setState(() {
+                    if (newIndex > oldIndex) {
+                      newIndex = newIndex - 1;
+                    }
+                    final element = allWorkouts[widget.index]
+                        .exercises
+                        .removeAt(oldIndex);
+                    allWorkouts[widget.index]
+                        .exercises
+                        .insert(newIndex, element);
+                  });
+                },
               ),
             ),
             SizedBox(
@@ -2795,12 +2786,12 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                 tempWorkout
                                                                     ?.save();
 
-                                                                allWorkouts[widget
+                                                                /*allWorkouts[widget
                                                                         .index]
                                                                     .exercises
                                                                     .add(allExercises[
                                                                         allExercises.length -
-                                                                            1]);
+                                                                            1]);*/
 
                                                                 if (allWorkouts[
                                                                             widget.index]
@@ -2888,84 +2879,95 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                             }),
                                                       ]),
                                                     ]))));
-                                  } else if (allWorkouts[widget.index]
-                                      .exercises
-                                      .contains(selectVal)) {
-                                    Navigator.of(context).pop();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              "Exercise already in workout"),
-                                          duration: Duration(seconds: 2)),
-                                    );
                                   } else {
-                                    final tempWorkout =
-                                        Hive.box<Workout>('workoutsBox')
-                                            .getAt(widget.index);
-                                    tempWorkout?.exercises.add(selectVal!);
-
-                                    tempWorkout?.save();
-
-                                    allWorkouts[widget.index]
-                                        .exercises
-                                        .add(selectVal!);
-
-                                    if (allWorkouts[widget.index]
-                                            .isInitialized ==
-                                        false) {
-                                      for (int j = 0;
-                                          j <
-                                              allWorkouts[widget.index]
-                                                  .exercises
-                                                  .length;
-                                          ++j) {
-                                        for (int k = 0;
-                                            k <
-                                                allWorkouts[widget.index]
-                                                    .exercises[j]
-                                                    .sets;
-                                            k++) {
-                                          // repsCompleted initialized with initial reps value
-                                          allWorkouts[widget.index]
-                                              .exercises[j]
-                                              .repsCompleted
-                                              .add(allWorkouts[widget.index]
-                                                      .exercises[j]
-                                                      .reps +
-                                                  1);
-                                        }
+                                    bool duplicate = false;
+                                    for (int i = 0;
+                                        i < allWorkouts[widget.index].exercises.length;
+                                        i++) {
+                                      if (allWorkouts[widget.index]
+                                              .exercises[i]
+                                              .name ==
+                                          selectVal!.name) {
+                                        duplicate = true;
                                       }
-                                      allWorkouts[widget.index].isInitialized =
-                                          true;
+                                    }
+                                    if (duplicate == true) {
+                                      Navigator.of(context).pop();
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                              content: Text(
+                                                  "Exercise already in workout"),
+                                              duration: Duration(seconds: 2)));
                                     } else {
-                                      // adds to repsCompleted, initializes it
-                                      for (int j = 0;
-                                          j <
-                                              allWorkouts[widget.index]
-                                                  .exercises[
-                                                      allWorkouts[widget.index]
-                                                              .exercises
-                                                              .length -
-                                                          1]
-                                                  .sets;
-                                          j++) {
-                                        allWorkouts[widget.index]
-                                            .exercises[allWorkouts[widget.index]
+                                      final tempWorkout =
+                                          Hive.box<Workout>('workoutsBox')
+                                              .getAt(widget.index);
+                                      tempWorkout?.exercises.add(selectVal!);
+
+                                      tempWorkout?.save();
+
+                                      /*allWorkouts[widget.index]
+                                          .exercises
+                                          .add(selectVal!);*/
+
+                                      if (allWorkouts[widget.index]
+                                              .isInitialized ==
+                                          false) {
+                                        for (int j = 0;
+                                            j <
+                                                allWorkouts[widget.index]
                                                     .exercises
-                                                    .length -
-                                                1]
-                                            .repsCompleted
-                                            .add(allWorkouts[widget.index]
+                                                    .length;
+                                            ++j) {
+                                          for (int k = 0;
+                                              k <
+                                                  allWorkouts[widget.index]
+                                                      .exercises[j]
+                                                      .sets;
+                                              k++) {
+                                            // repsCompleted initialized with initial reps value
+                                            allWorkouts[widget.index]
+                                                .exercises[j]
+                                                .repsCompleted
+                                                .add(allWorkouts[widget.index]
+                                                        .exercises[j]
+                                                        .reps +
+                                                    1);
+                                          }
+                                        }
+                                        allWorkouts[widget.index]
+                                            .isInitialized = true;
+                                      } else {
+                                        // adds to repsCompleted, initializes it
+                                        for (int j = 0;
+                                            j <
+                                                allWorkouts[widget.index]
                                                     .exercises[allWorkouts[
                                                                 widget.index]
                                                             .exercises
                                                             .length -
                                                         1]
-                                                    .reps +
-                                                1);
+                                                    .sets;
+                                            j++) {
+                                          allWorkouts[widget.index]
+                                              .exercises[
+                                                  allWorkouts[widget.index]
+                                                          .exercises
+                                                          .length -
+                                                      1]
+                                              .repsCompleted
+                                              .add(allWorkouts[widget.index]
+                                                      .exercises[allWorkouts[
+                                                                  widget.index]
+                                                              .exercises
+                                                              .length -
+                                                          1]
+                                                      .reps +
+                                                  1);
+                                        }
+                                        setState(
+                                            () => Navigator.of(context).pop());
                                       }
-                                      setState(
-                                          () => Navigator.of(context).pop());
                                     }
                                   }
                                 });
