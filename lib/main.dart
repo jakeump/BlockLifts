@@ -28,8 +28,6 @@ void main() async {
   await Hive.openBox<String>('notesBox');
 
   Box<Exercise> exercisesBox = Hive.box<Exercise>('exercisesBox');
-  Box<IndivWorkout> indivWorkoutsBox =
-      Hive.box<IndivWorkout>('indivWorkoutsBox');
 
   // on first time opening app, sets to default state
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -45,7 +43,6 @@ void main() async {
   if (resetToDefault != null && !resetToDefault) {
     allExercises = exercisesBox.values.toList();
     allExercises.insert(0, customxyz);
-    allIndivWorkouts = indivWorkoutsBox.values.toList();
     _setTempBodyWeight();
   } else {
     defaultState();
@@ -53,11 +50,6 @@ void main() async {
 
   runApp(const MyApp());
 }
-
-//stored
-//List<Workout> workoutsBox = []; // global list of workouts
-//stored
-List<IndivWorkout> allIndivWorkouts = []; // global list of each indiv workout
 
 // stored
 // sort by date
@@ -141,7 +133,6 @@ class IndivWorkout extends HiveObject {
 Exercise customxyz = Exercise("Custom Exercise");
 
 void defaultState() async {
-  allIndivWorkouts.clear();
   allExercises.clear();
   showTimer = false;
 
@@ -719,10 +710,12 @@ class _SettingsState extends State<Settings> {
 
 class _ListState extends State<ListPage> {
   late final Box<String> notesBox;
+  late final Box<IndivWorkout> indivWorkoutsBox;
 
   @override
   void initState() {
     super.initState();
+    indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
     notesBox = Hive.box<String>('notesBox');
   }
 
@@ -739,7 +732,7 @@ class _ListState extends State<ListPage> {
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,
                   children: <Widget>[
-                    for (int i = allIndivWorkouts.length - 1; i >= 0; i--)
+                    for (int i = indivWorkoutsBox.length - 1; i >= 0; i--)
                       Column(children: <Widget>[
                         GestureDetector(
                             onTap: () {
@@ -747,20 +740,27 @@ class _ListState extends State<ListPage> {
                               List<List<int>> copyRepsCompleted = [];
 
                               for (int j = 0;
-                                  j < allIndivWorkouts[i].repsCompleted.length;
+                                  j <
+                                      indivWorkoutsBox
+                                          .getAt(i)!
+                                          .repsCompleted
+                                          .length;
                                   j++) {
                                 copyRepsCompleted.add([0]);
-                                copyRepsCompleted[j].add(
-                                    allIndivWorkouts[i].repsCompleted[j][0]);
+                                copyRepsCompleted[j].add(indivWorkoutsBox
+                                    .getAt(i)!
+                                    .repsCompleted[j][0]);
                                 copyRepsCompleted[j].removeAt(0);
                                 for (int k = 1;
                                     k <
-                                        allIndivWorkouts[i]
+                                        indivWorkoutsBox
+                                            .getAt(i)!
                                             .repsCompleted[j]
                                             .length;
                                     k++) {
-                                  copyRepsCompleted[j].add(
-                                      allIndivWorkouts[i].repsCompleted[j][k]);
+                                  copyRepsCompleted[j].add(indivWorkoutsBox
+                                      .getAt(i)!
+                                      .repsCompleted[j][k]);
                                 }
                               }
                               postWorkoutTempNote = notesBox.getAt(i)!;
@@ -786,23 +786,23 @@ class _ListState extends State<ListPage> {
                                         Expanded(
                                           child: Align(
                                             alignment: Alignment.centerLeft,
-                                            child:
-                                                Text(allIndivWorkouts[i].name,
-                                                    style: const TextStyle(
-                                                      fontSize: 16,
-                                                      color: Colors.grey,
-                                                    )),
+                                            child: Text(
+                                                indivWorkoutsBox.getAt(i)!.name,
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.grey,
+                                                )),
                                           ),
                                         ),
                                         Expanded(
                                           child: Align(
                                             alignment: Alignment.centerRight,
-                                            child:
-                                                Text(allIndivWorkouts[i].date,
-                                                    style: const TextStyle(
-                                                      fontSize: 16,
-                                                      color: Colors.grey,
-                                                    )),
+                                            child: Text(
+                                                indivWorkoutsBox.getAt(i)!.date,
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.grey,
+                                                )),
                                           ),
                                         ),
                                       ]),
@@ -812,7 +812,8 @@ class _ListState extends State<ListPage> {
                                       Column(children: [
                                         for (int j = 0;
                                             j <
-                                                allIndivWorkouts[i]
+                                                indivWorkoutsBox
+                                                    .getAt(i)!
                                                     .exercisesCompleted
                                                     .length;
                                             j++)
@@ -824,7 +825,8 @@ class _ListState extends State<ListPage> {
                                                   alignment:
                                                       Alignment.centerLeft,
                                                   child: Text(
-                                                      allIndivWorkouts[i]
+                                                      indivWorkoutsBox
+                                                          .getAt(i)!
                                                           .exercisesCompleted[j],
                                                       style: const TextStyle(
                                                         fontSize: 16,
@@ -843,25 +845,26 @@ class _ListState extends State<ListPage> {
                                                           children: <Widget>[
                                                             for (int k = 0;
                                                                 k <
-                                                                    allIndivWorkouts[i].setsPlanned[
+                                                                    indivWorkoutsBox.getAt(i)!.setsPlanned[
                                                                         j];
                                                                 k++)
                                                               if (k == 5 &&
-                                                                  allIndivWorkouts[i].weights[j] % 1 ==
+                                                                  indivWorkoutsBox.getAt(i)!.weights[j] %
+                                                                          1 ==
                                                                       0)
                                                                 Text(
-                                                                    "... ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
+                                                                    "... ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
                                                                     style:
                                                                         const TextStyle(
                                                                       fontSize:
                                                                           16,
                                                                     ))
                                                               else if (k == 5 &&
-                                                                  allIndivWorkouts[i].weights[j] %
+                                                                  indivWorkoutsBox.getAt(i)!.weights[j] %
                                                                           1 !=
                                                                       0)
                                                                 Text(
-                                                                    "... ${allIndivWorkouts[i].weights[j]}lb",
+                                                                    "... ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
                                                                     style:
                                                                         const TextStyle(
                                                                       fontSize:
@@ -870,52 +873,53 @@ class _ListState extends State<ListPage> {
                                                               else if (k > 5)
                                                                 const SizedBox(
                                                                     width: 0)
-                                                              else if (k == allIndivWorkouts[i].setsPlanned[j] - 1 &&
-                                                                  allIndivWorkouts[i].weights[j] %
+                                                              else if (k == indivWorkoutsBox.getAt(i)!.setsPlanned[j] - 1 &&
+                                                                  indivWorkoutsBox.getAt(i)!.weights[j] %
                                                                           1 ==
                                                                       0)
-                                                                allIndivWorkouts[i].repsCompleted[j][k] ==
-                                                                        allIndivWorkouts[i].repsPlanned[j] +
+                                                                indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
+                                                                        indivWorkoutsBox.getAt(i)!.repsPlanned[j] +
                                                                             1
                                                                     ? Text(
-                                                                        "0 ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
+                                                                        "0 ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
                                                                         style:
                                                                             const TextStyle(
                                                                           fontSize:
                                                                               16,
                                                                         ))
                                                                     : Text(
-                                                                        "${allIndivWorkouts[i].repsCompleted[j][k]} ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
+                                                                        "${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
                                                                         style:
                                                                             const TextStyle(
                                                                           fontSize:
                                                                               16,
                                                                         ))
-                                                              else if (k == allIndivWorkouts[i].setsPlanned[j] - 1 &&
-                                                                  allIndivWorkouts[i].weights[j] %
+                                                              else if (k == indivWorkoutsBox.getAt(i)!.setsPlanned[j] - 1 &&
+                                                                  indivWorkoutsBox.getAt(i)!.weights[j] %
                                                                           1 !=
                                                                       0)
-                                                                allIndivWorkouts[i].repsCompleted[j]
-                                                                            [k] ==
-                                                                        allIndivWorkouts[i].repsPlanned[j] + 1
-                                                                    ? Text("0 ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
+                                                                indivWorkoutsBox
+                                                                            .getAt(i)!
+                                                                            .repsCompleted[j][k] ==
+                                                                        indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
+                                                                    ? Text("0 ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
                                                                         style: const TextStyle(
                                                                           fontSize:
                                                                               16,
                                                                         ))
-                                                                    : Text("${allIndivWorkouts[i].repsCompleted[j][k]} ${allIndivWorkouts[i].weights[j] ~/ 1}lb",
+                                                                    : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
                                                                         style: const TextStyle(
                                                                           fontSize:
                                                                               16,
                                                                         ))
                                                               else
-                                                                allIndivWorkouts[i].repsCompleted[j][k] == allIndivWorkouts[i].repsPlanned[j] + 1
+                                                                indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] == indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
                                                                     ? const Text("0/",
                                                                         style: TextStyle(
                                                                           fontSize:
                                                                               16,
                                                                         ))
-                                                                    : Text("${allIndivWorkouts[i].repsCompleted[j][k]}/",
+                                                                    : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]}/",
                                                                         style: const TextStyle(
                                                                           fontSize:
                                                                               16,
@@ -925,7 +929,8 @@ class _ListState extends State<ListPage> {
                                             Divider(
                                                 // larger divider if not at end of list
                                                 height: j !=
-                                                        allIndivWorkouts[i]
+                                                        indivWorkoutsBox
+                                                                .getAt(i)!
                                                                 .exercisesCompleted
                                                                 .length -
                                                             1
@@ -957,11 +962,13 @@ class _CalendarState extends State<CalendarPage> {
 
 class _NotesState extends State<NotesPage> {
   late final Box<String> notesBox;
+  late final Box<IndivWorkout> indivWorkoutsBox;
 
   @override
   void initState() {
     super.initState();
     notesBox = Hive.box<String>('notesBox');
+    indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
   }
 
   @override
@@ -977,7 +984,7 @@ class _NotesState extends State<NotesPage> {
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,
                   children: <Widget>[
-                    for (int i = allIndivWorkouts.length - 1; i >= 0; i--)
+                    for (int i = indivWorkoutsBox.length - 1; i >= 0; i--)
                       if (notesBox.getAt(i) != "") // doesn't show empty notes
                         Column(children: <Widget>[
                           GestureDetector(
@@ -987,21 +994,25 @@ class _NotesState extends State<NotesPage> {
 
                                 for (int j = 0;
                                     j <
-                                        allIndivWorkouts[i]
+                                        indivWorkoutsBox
+                                            .getAt(i)!
                                             .repsCompleted
                                             .length;
                                     j++) {
                                   copyRepsCompleted.add([0]);
-                                  copyRepsCompleted[j].add(
-                                      allIndivWorkouts[i].repsCompleted[j][0]);
+                                  copyRepsCompleted[j].add(indivWorkoutsBox
+                                      .getAt(i)!
+                                      .repsCompleted[j][0]);
                                   copyRepsCompleted[j].removeAt(0);
                                   for (int k = 1;
                                       k <
-                                          allIndivWorkouts[i]
+                                          indivWorkoutsBox
+                                              .getAt(i)!
                                               .repsCompleted[j]
                                               .length;
                                       k++) {
-                                    copyRepsCompleted[j].add(allIndivWorkouts[i]
+                                    copyRepsCompleted[j].add(indivWorkoutsBox
+                                        .getAt(i)!
                                         .repsCompleted[j][k]);
                                   }
                                 }
@@ -1031,7 +1042,9 @@ class _NotesState extends State<NotesPage> {
                                               child: Align(
                                                 alignment: Alignment.centerLeft,
                                                 child: Text(
-                                                    allIndivWorkouts[i].name,
+                                                    indivWorkoutsBox
+                                                        .getAt(i)!
+                                                        .name,
                                                     style: const TextStyle(
                                                       fontSize: 16,
                                                       color: Colors.grey,
@@ -1043,7 +1056,9 @@ class _NotesState extends State<NotesPage> {
                                                 alignment:
                                                     Alignment.centerRight,
                                                 child: Text(
-                                                    allIndivWorkouts[i].date,
+                                                    indivWorkoutsBox
+                                                        .getAt(i)!
+                                                        .date,
                                                     style: const TextStyle(
                                                       fontSize: 16,
                                                       color: Colors.grey,
@@ -1618,7 +1633,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
                         .repsCompleted[j]);
                   }
 
-                  // not gonna work
                   workoutsBox
                       .getAt(widget.index)!
                       .exercises[i]
@@ -1627,15 +1641,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
                 }
 
                 indivWorkoutsBox.add(IndivWorkout(
-                    name,
-                    date,
-                    exercisesCompleted,
-                    weights,
-                    repsPlanned,
-                    setsPlanned,
-                    repsCompleted));
-
-                allIndivWorkouts.add(IndivWorkout(
                     name,
                     date,
                     exercisesCompleted,
@@ -2562,9 +2567,6 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                             tempWorkout?.name =
                                                 _myController.text;
                                             tempWorkout?.save();
-                                            workoutsBox
-                                                .getAt(widget.index)!
-                                                .name = _myController.text;
                                           });
                                           Navigator.of(context).pop();
                                         },
@@ -3866,8 +3868,16 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                     ),
                                     child: const Text("OK"),
                                     onPressed: () {
-                                      setState(() => allExercises[widget.index]
-                                          .name = _myController.text);
+                                      setState(() {
+                                        /*final tempEx =
+                                          Hive.box<Exercise>('exercisesBox')
+                                            .getAt(widget.index);
+                                        tempEx.name = _myController.text;
+                                        tempEx.save();*/
+
+                                        allExercises[widget.index].name =
+                                            _myController.text;
+                                      });
                                       Navigator.of(context).pop();
                                     },
                                   ),
@@ -3909,22 +3919,22 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
     indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
     bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
     notesBox = Hive.box<String>('notesBox');
-    dateinput.text = allIndivWorkouts[widget.index].date.substring(5);
-    dateChange = allIndivWorkouts[widget.index].date;
+    dateinput.text = indivWorkoutsBox.getAt(widget.index)!.date.substring(5);
+    dateChange = indivWorkoutsBox.getAt(widget.index)!.date;
     postTempBodyWeight = bodyWeightsBox.getAt(widget.index)!;
     // yet again roundabout way of making a copy
     for (int i = 0;
-        i < allIndivWorkouts[widget.index].setsPlanned.length;
+        i < indivWorkoutsBox.getAt(widget.index)!.setsPlanned.length;
         i++) {
-      copySetsPlanned.add(allIndivWorkouts[widget.index].setsPlanned[i]);
+      copySetsPlanned.add(indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]);
     }
     for (int i = 0;
-        i < allIndivWorkouts[widget.index].repsPlanned.length;
+        i < indivWorkoutsBox.getAt(widget.index)!.repsPlanned.length;
         i++) {
-      copyRepsPlanned.add(allIndivWorkouts[widget.index].repsPlanned[i]);
+      copyRepsPlanned.add(indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]);
     }
-    for (int i = 0; i < allIndivWorkouts[widget.index].weights.length; i++) {
-      copyWeights.add(allIndivWorkouts[widget.index].weights[i]);
+    for (int i = 0; i < indivWorkoutsBox.getAt(widget.index)!.weights.length; i++) {
+      copyWeights.add(indivWorkoutsBox.getAt(widget.index)!.weights[i]);
     }
   }
 
@@ -4003,7 +4013,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                 notesBox.putAt(widget.index, postWorkoutTempNote);
 
                 postWorkoutTempNote = "";
-                allIndivWorkouts[widget.index].date = dateChange;
+                indivWorkoutsBox.getAt(widget.index)!.date = dateChange;
 
                 Navigator.of(context).pop();
               },
@@ -4022,7 +4032,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                       shrinkWrap: true,
                       children: <Widget>[
                     for (int i = 0;
-                        i < allIndivWorkouts[widget.index].repsCompleted.length;
+                        i < indivWorkoutsBox.getAt(widget.index)!.repsCompleted.length;
                         i++)
                       Column(children: <Widget>[
                         Row(children: <Widget>[
@@ -4030,7 +4040,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                  "  ${allIndivWorkouts[widget.index].exercisesCompleted[i]}",
+                                  "  ${indivWorkoutsBox.getAt(widget.index)!.exercisesCompleted[i]}",
                                   style: const TextStyle(
                                     fontSize: 17,
                                   )),
@@ -4043,7 +4053,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                       onTap: () =>
                                           _weightsSetsReps(widget.index, i),
                                       child: Row(children: <Widget>[
-                                        if (allIndivWorkouts[widget.index]
+                                        if (indivWorkoutsBox.getAt(widget.index)!
                                                     .weights[i] %
                                                 1 ==
                                             0)
@@ -4052,7 +4062,10 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                   alignment:
                                                       Alignment.centerRight,
                                                   child: Text(
-                                                      "${allIndivWorkouts[widget.index].setsPlanned[i]}x${allIndivWorkouts[widget.index].repsPlanned[i]} ${allIndivWorkouts[widget.index].weights[i] ~/ 1}lb",
+                                                      "${indivWorkoutsBox.getAt(widget.index)!.
+                                                        setsPlanned[i]}x${indivWorkoutsBox.getAt(widget.index)!.
+                                                        repsPlanned[i]} ${indivWorkoutsBox.getAt(widget.index)!.
+                                                        weights[i] ~/ 1}lb",
                                                       style: const TextStyle(
                                                         fontSize: 17,
                                                       ))))
@@ -4062,7 +4075,9 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                   alignment:
                                                       Alignment.centerRight,
                                                   child: Text(
-                                                      "${allIndivWorkouts[widget.index].setsPlanned[i]}x${allIndivWorkouts[widget.index].repsPlanned[i]} ${allIndivWorkouts[widget.index].weights[i].toString()}lb",
+                                                      "${indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]}x${
+                                                        indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]} ${
+                                                          indivWorkoutsBox.getAt(widget.index)!.weights[i].toString()}lb",
                                                       style: const TextStyle(
                                                           fontSize: 17)))),
                                         SizedBox(
@@ -4093,7 +4108,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                   // one circle for each set, initialized with number of reps
                                   for (int j = 0;
                                       j <
-                                          allIndivWorkouts[widget.index]
+                                          indivWorkoutsBox.getAt(widget.index)!
                                               .setsPlanned[i];
                                       j++)
                                     // circle, onTap decrement, loops back to rep number
@@ -4105,21 +4120,21 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                             side: BorderSide(
                                                 width: 1,
                                                 style: BorderStyle.none)),
-                                        child: allIndivWorkouts[widget.index]
+                                        child: indivWorkoutsBox.getAt(widget.index)!
                                                     .repsCompleted[i][j] >
-                                                allIndivWorkouts[widget.index]
+                                                indivWorkoutsBox.getAt(widget.index)!
                                                     .repsPlanned[i]
                                             ? Text(
-                                                allIndivWorkouts[widget.index]
+                                                indivWorkoutsBox.getAt(widget.index)!
                                                     .repsPlanned[i]
                                                     .toString())
                                             : Text(
-                                                allIndivWorkouts[widget.index]
+                                                indivWorkoutsBox.getAt(widget.index)!
                                                     .repsCompleted[i][j]
                                                     .toString()),
-                                        color: allIndivWorkouts[widget.index]
+                                        color: indivWorkoutsBox.getAt(widget.index)!
                                                     .repsCompleted[i][j] >
-                                                allIndivWorkouts[widget.index]
+                                                indivWorkoutsBox.getAt(widget.index)!
                                                     .repsPlanned[i]
                                             ? const Color.fromARGB(
                                                 255, 41, 41, 41)
@@ -4127,18 +4142,17 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                         textColor: Colors.white,
                                         onPressed: () {
                                           // loops around
-                                          if (allIndivWorkouts[widget.index]
+                                          if (indivWorkoutsBox.getAt(widget.index)!
                                                   .repsCompleted[i][j] ==
                                               0) {
-                                            setState(() => allIndivWorkouts[
-                                                        widget.index]
+                                            setState(() => indivWorkoutsBox.getAt(widget.index)!
                                                     .repsCompleted[i][j] =
-                                                allIndivWorkouts[widget.index]
+                                                indivWorkoutsBox.getAt(widget.index)!
                                                         .repsPlanned[i] +
                                                     1);
                                           } else {
                                             setState(() =>
-                                                allIndivWorkouts[widget.index]
+                                                indivWorkoutsBox.getAt(widget.index)!
                                                     .repsCompleted[i][j] -= 1);
                                           }
                                         },
@@ -4428,7 +4442,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                         indivWorkoutsBox.deleteAt(widget.index);
                         bodyWeightsBox.deleteAt(widget.index);
                         notesBox.deleteAt(widget.index);
-                        allIndivWorkouts.removeAt(widget.index);
+                        indivWorkoutsBox.deleteAt(widget.index);
                         bodyWeightsBox.deleteAt(widget.index);
                         Navigator.of(context).pop();
                       },
@@ -4447,10 +4461,10 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
 
   Future<bool> _onBackPressed() async {
     // reverts to old reps completed, sets planned, reps planned, weights
-    allIndivWorkouts[widget.index].repsCompleted = widget.copyRepsCompleted;
-    allIndivWorkouts[widget.index].setsPlanned = copySetsPlanned;
-    allIndivWorkouts[widget.index].repsPlanned = copyRepsPlanned;
-    allIndivWorkouts[widget.index].weights = copyWeights;
+    indivWorkoutsBox.getAt(widget.index)!.repsCompleted = widget.copyRepsCompleted;
+    indivWorkoutsBox.getAt(widget.index)!.setsPlanned = copySetsPlanned;
+    indivWorkoutsBox.getAt(widget.index)!.repsPlanned = copyRepsPlanned;
+    indivWorkoutsBox.getAt(widget.index)!.weights = copyWeights;
     Navigator.of(context).pop();
     return true;
   }
@@ -4459,14 +4473,14 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
     final _myController = TextEditingController();
     final _myController2 = TextEditingController();
     final _weightsController = TextEditingController();
-    _myController.text = allIndivWorkouts[idx].setsPlanned[exIdx].toString();
-    _myController2.text = allIndivWorkouts[idx].repsPlanned[exIdx].toString();
+    _myController.text = indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx].toString();
+    _myController2.text = indivWorkoutsBox.getAt(idx)!.repsPlanned[exIdx].toString();
 
-    allIndivWorkouts[idx].weights[exIdx] % 1 == 0
+    indivWorkoutsBox.getAt(idx)!.weights[exIdx] % 1 == 0
         ? _weightsController.text =
-            allIndivWorkouts[idx].weights[exIdx].toInt().toString()
+            indivWorkoutsBox.getAt(idx)!.weights[exIdx].toInt().toString()
         : _weightsController.text =
-            allIndivWorkouts[idx].weights[exIdx].toString();
+            indivWorkoutsBox.getAt(idx)!.weights[exIdx].toString();
 
     showDialog(
       context: context,
@@ -4577,47 +4591,47 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                       ),
                       child: const Text("OK"),
                       onPressed: () {
-                        int oldReps = allIndivWorkouts[idx].repsPlanned[exIdx];
-                        int oldSets = allIndivWorkouts[idx].setsPlanned[exIdx];
+                        int oldReps = indivWorkoutsBox.getAt(idx)!.repsPlanned[exIdx];
+                        int oldSets = indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx];
                         setState(() => {
-                              allIndivWorkouts[idx].weights[exIdx] =
+                              indivWorkoutsBox.getAt(idx)!.weights[exIdx] =
                                   double.parse(_weightsController.text),
-                              allIndivWorkouts[idx].setsPlanned[exIdx] =
+                              indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx] =
                                   int.parse(_myController.text),
-                              allIndivWorkouts[idx].repsPlanned[exIdx] =
+                              indivWorkoutsBox.getAt(idx)!.repsPlanned[exIdx] =
                                   int.parse(_myController2.text),
                               if (oldSets !=
-                                  allIndivWorkouts[idx].setsPlanned[exIdx])
+                                  indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx])
                                 {
                                   for (int i = 0;
                                       i <
-                                          allIndivWorkouts[idx]
+                                          indivWorkoutsBox.getAt(idx)!
                                                   .setsPlanned[exIdx] -
                                               oldSets;
                                       i++)
                                     {
-                                      allIndivWorkouts[idx]
+                                      indivWorkoutsBox.getAt(idx)!
                                           .repsCompleted[exIdx]
-                                          .add(allIndivWorkouts[idx]
+                                          .add(indivWorkoutsBox.getAt(idx)!
                                                   .repsPlanned[exIdx] +
                                               1),
                                     },
                                 },
                               if (oldReps !=
-                                  allIndivWorkouts[idx].repsPlanned[exIdx])
+                                  indivWorkoutsBox.getAt(idx)!.repsPlanned[exIdx])
                                 {
-                                  allIndivWorkouts[idx]
+                                  indivWorkoutsBox.getAt(idx)!
                                       .repsCompleted[exIdx]
                                       .clear(),
                                   for (int j = 0;
                                       j <
-                                          allIndivWorkouts[idx]
+                                          indivWorkoutsBox.getAt(idx)!
                                               .setsPlanned[exIdx];
                                       ++j)
                                     {
-                                      allIndivWorkouts[idx]
+                                      indivWorkoutsBox.getAt(idx)!
                                           .repsCompleted[exIdx]
-                                          .add(allIndivWorkouts[idx]
+                                          .add(indivWorkoutsBox.getAt(idx)!
                                                   .repsPlanned[exIdx] +
                                               1),
                                     },
