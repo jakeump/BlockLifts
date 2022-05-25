@@ -1322,11 +1322,20 @@ class _EditState extends State<Edit> {
                   newIndex -= 1;
                 }
                 setState(() {
-                  final oldItem = workoutsBox.getAt(oldIndex);
-                  final newItem = workoutsBox.getAt(newIndex);
+                  final List<Workout> tempList = workoutsBox.values.toList();
 
-                  workoutsBox.putAt(oldIndex, newItem!);
-                  workoutsBox.putAt(newIndex, oldItem!);
+                  final oldItem = tempList[oldIndex];
+                  final newItem = tempList[newIndex];
+
+                  tempList[oldIndex] = newItem;
+                  tempList[newIndex] = oldItem;
+
+                  // interesting dynamic with Box. Traditional putAt
+                  // method doesn't work. need to completely refill
+                  workoutsBox.deleteAll(workoutsBox.keys);
+                  for (var i in tempList) {
+                    workoutsBox.add(i);
+                  }
                 });
               },
             ),
