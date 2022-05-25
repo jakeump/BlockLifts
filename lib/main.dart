@@ -2248,14 +2248,14 @@ class _WorkoutPageState extends State<WorkoutPage> {
 class _EditWorkoutPageState extends State<EditWorkoutPage> {
   final _myController = TextEditingController();
   late final Box<Exercise> exercisesBox;
-  late final List<Exercise> exercisesList;
+  late List<Exercise> exercisesList;
+  late List<Exercise> copyExercisesList;
   late final Box<Workout> workoutsBox;
 
   @override
   void initState() {
     super.initState();
     exercisesBox = Hive.box<Exercise>('exercisesBox');
-    exercisesList = exercisesBox.values.toList();
     workoutsBox = Hive.box<Workout>('workoutsBox');
   }
 
@@ -2610,6 +2610,26 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                   borderRadius: BorderRadius.all(Radius.circular(50))),
             ),
             onPressed: () {
+              exercisesList = exercisesBox.values.toList();
+              exercisesList.removeAt(0);
+              copyExercisesList = exercisesBox.values.toList();
+              copyExercisesList.removeAt(0);
+              copyExercisesList.sort((a, b) {
+                return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+              });
+              // removes if already in workout
+              for (var ex in exercisesList) {
+                for (int i = 0;
+                    i < workoutsBox.getAt(widget.index)!.exercises.length;
+                    i++) {
+                  if (ex.name ==
+                      workoutsBox.getAt(widget.index)!.exercises[i].name) {
+                    copyExercisesList.remove(ex);
+                  }
+                }
+              }
+              copyExercisesList.insert(0, customxyz);
+
               Exercise? selectVal = customxyz;
               showDialog(
                 context: context,
@@ -2630,7 +2650,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                           // dropdown list with "custom" at top
                           DropdownButton(
                               isExpanded: true,
-                              items: exercisesList.map((Exercise exercise) {
+                              items: copyExercisesList.map((Exercise exercise) {
                                 return DropdownMenuItem<Exercise>(
                                     value: exercise,
                                     child: Text(exercise.name));
@@ -2826,13 +2846,6 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                 tempWorkout
                                                                     ?.save();
 
-                                                                /*workoutsBox[widget
-                                                                        .index]
-                                                                    .exercises
-                                                                    .add(allExercises[
-                                                                        allExercises.length -
-                                                                            1]);*/
-
                                                                 if (workoutsBox
                                                                         .getAt(widget
                                                                             .index)!
@@ -2913,7 +2926,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                     .showSnackBar(
                                                                   const SnackBar(
                                                                       content: Text(
-                                                                          "Exercise already exists or is in current workout"),
+                                                                          "Exercise already exists"),
                                                                       duration: Duration(
                                                                           seconds:
                                                                               2)),
@@ -2926,75 +2939,68 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                       ]),
                                                     ]))));
                                   } else {
-                                    bool duplicate = false;
-                                    for (int i = 0;
-                                        i <
-                                            workoutsBox
-                                                .getAt(widget.index)!
-                                                .exercises
-                                                .length;
-                                        i++) {
-                                      if (workoutsBox
-                                              .getAt(widget.index)!
-                                              .exercises[i]
-                                              .name ==
-                                          selectVal!.name) {
-                                        duplicate = true;
-                                      }
-                                    }
-                                    if (duplicate == true) {
-                                      Navigator.of(context).pop();
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                              content: Text(
-                                                  "Exercise already in workout"),
-                                              duration: Duration(seconds: 2)));
-                                    } else {
-                                      final tempWorkout =
-                                          Hive.box<Workout>('workoutsBox')
-                                              .getAt(widget.index);
-                                      tempWorkout?.exercises.add(selectVal!);
+                                    final tempWorkout =
+                                        Hive.box<Workout>('workoutsBox')
+                                            .getAt(widget.index);
+                                    tempWorkout?.exercises.add(selectVal!);
 
-                                      tempWorkout?.save();
+                                    tempWorkout?.save();
 
-                                      if (workoutsBox
-                                              .getAt(widget.index)!
-                                              .isInitialized ==
-                                          false) {
-                                        for (int j = 0;
-                                            j <
+                                    if (workoutsBox
+                                            .getAt(widget.index)!
+                                            .isInitialized ==
+                                        false) {
+                                      for (int j = 0;
+                                          j <
+                                              workoutsBox
+                                                  .getAt(widget.index)!
+                                                  .exercises
+                                                  .length;
+                                          ++j) {
+                                        for (int k = 0;
+                                            k <
                                                 workoutsBox
                                                     .getAt(widget.index)!
-                                                    .exercises
-                                                    .length;
-                                            ++j) {
-                                          for (int k = 0;
-                                              k <
-                                                  workoutsBox
+                                                    .exercises[j]
+                                                    .sets;
+                                            k++) {
+                                          // repsCompleted initialized with initial reps value
+                                          workoutsBox
+                                              .getAt(widget.index)!
+                                              .exercises[j]
+                                              .repsCompleted
+                                              .add(workoutsBox
                                                       .getAt(widget.index)!
                                                       .exercises[j]
-                                                      .sets;
-                                              k++) {
-                                            // repsCompleted initialized with initial reps value
-                                            workoutsBox
-                                                .getAt(widget.index)!
-                                                .exercises[j]
-                                                .repsCompleted
-                                                .add(workoutsBox
-                                                        .getAt(widget.index)!
-                                                        .exercises[j]
-                                                        .reps +
-                                                    1);
-                                          }
+                                                      .reps +
+                                                  1);
                                         }
+                                      }
+                                      workoutsBox
+                                          .getAt(widget.index)!
+                                          .isInitialized = true;
+                                    } else {
+                                      // adds to repsCompleted, initializes it
+                                      for (int j = 0;
+                                          j <
+                                              workoutsBox
+                                                  .getAt(widget.index)!
+                                                  .exercises[workoutsBox.getAt(
+                                                              widget.index)!
+                                                          .exercises
+                                                          .length -
+                                                      1]
+                                                  .sets;
+                                          j++) {
                                         workoutsBox
                                             .getAt(widget.index)!
-                                            .isInitialized = true;
-                                      } else {
-                                        // adds to repsCompleted, initializes it
-                                        for (int j = 0;
-                                            j <
-                                                workoutsBox
+                                            .exercises[workoutsBox
+                                                    .getAt(widget.index)!
+                                                    .exercises
+                                                    .length -
+                                                1]
+                                            .repsCompleted
+                                            .add(workoutsBox
                                                     .getAt(widget.index)!
                                                     .exercises[workoutsBox
                                                             .getAt(
@@ -3002,30 +3008,11 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                             .exercises
                                                             .length -
                                                         1]
-                                                    .sets;
-                                            j++) {
-                                          workoutsBox
-                                              .getAt(widget.index)!
-                                              .exercises[workoutsBox
-                                                      .getAt(widget.index)!
-                                                      .exercises
-                                                      .length -
-                                                  1]
-                                              .repsCompleted
-                                              .add(workoutsBox
-                                                      .getAt(widget.index)!
-                                                      .exercises[workoutsBox
-                                                              .getAt(
-                                                                  widget.index)!
-                                                              .exercises
-                                                              .length -
-                                                          1]
-                                                      .reps +
-                                                  1);
-                                        }
-                                        setState(
-                                            () => Navigator.of(context).pop());
+                                                    .reps +
+                                                1);
                                       }
+                                      setState(
+                                          () => Navigator.of(context).pop());
                                     }
                                   }
                                 });
