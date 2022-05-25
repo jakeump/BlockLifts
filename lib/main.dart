@@ -1473,6 +1473,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
   ];
 
   late final Box<Workout> workoutsBox;
+  late final List<Workout> workoutsList;
   late final Box<IndivWorkout> indivWorkoutsBox;
   late final Box<double> bodyWeightsBox;
   late final Box<String> notesBox;
@@ -1482,6 +1483,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
   @override
   void initState() {
     super.initState();
+    workoutsBox = Hive.box<Workout>('workoutsBox');
+    workoutsList = workoutsBox.values.toList();
     counterBox = Hive.box<int>('counterBox');
     indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
     bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
@@ -1492,7 +1495,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
   @override
   Widget build(BuildContext context) {
-    Box<Workout> workoutsBox = Hive.box<Workout>('workoutsBox');
     Workout? selectVal = workoutsBox.getAt(0);
     return Scaffold(
         backgroundColor: backColor,
@@ -1503,7 +1505,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           backgroundColor: headerColor,
-          /*title: Center(
+          title: Center(
               child: SizedBox(
                   height: 40,
                   child: DecoratedBox(
@@ -1516,7 +1518,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                           child: DropdownButton(
                             underline: const SizedBox(),
                             isExpanded: false,
-                            items: workoutsBox.map((Workout workout) {
+                            items: workoutsList.map((Workout workout) {
                               return DropdownMenuItem<Workout>(
                                   value: workout, child: Text(workout.name));
                             }).toList(),
@@ -1528,7 +1530,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                     child: Align(
                                       alignment: Alignment.center,
                                       child: Text(
-                                          workoutsBox[widget.index].name,
+                                          workoutsList[widget.index].name,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis),
                                     ))
@@ -1538,29 +1540,31 @@ class _WorkoutPageState extends State<WorkoutPage> {
                               setState(() {
                                 // index of selection
                                 selectVal = w;
-                                int idx = workoutsBox.indexOf(selectVal!);
+                                int idx = workoutsList.indexOf(selectVal!);
                                 // do nothing if same selection
                                 if (idx == widget.index) {
                                 } else {
                                   for (int j = 0;
-                                      j < workoutsBox[idx].exercises.length;
+                                      j < workoutsList[idx].exercises.length;
                                       ++j) {
-                                    workoutsBox[idx]
-                                        .exercises[j]
-                                        .repsCompleted
+                                    final tempWorkout =
+                                        Hive.box<Workout>('workoutsBox')
+                                            .getAt(idx);
+                                    tempWorkout!.exercises[j].repsCompleted
                                         .clear();
                                     for (int k = 0;
-                                        k < workoutsBox[idx].exercises[j].sets;
+                                        k < tempWorkout.exercises[j].sets;
                                         k++) {
                                       // repsCompleted initialized with initial reps value
-                                      workoutsBox[idx]
-                                          .exercises[j]
-                                          .repsCompleted
-                                          .add(workoutsBox[idx]
+                                      tempWorkout.exercises[j].repsCompleted
+                                          .add(workoutsBox
+                                                  .getAt(idx)!
                                                   .exercises[j]
                                                   .reps +
                                               1);
+                                      tempWorkout.save();
                                     }
+                                    showTimer = false;
                                   }
                                   Navigator.of(context).pop();
                                   Navigator.of(context).push(MaterialPageRoute(
@@ -1568,7 +1572,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                 }
                               });
                             },
-                          ))))),*/
+                          ))))),
           actions: <Widget>[
             TextButton(
               style: TextButton.styleFrom(
@@ -1646,7 +1650,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
                 _counter.value++;
 
-                // probably won't work, need to use hive box method
                 for (int i = 0; i < workoutsBox.length; i++) {
                   final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(i);
                   tempWorkout!.isInitialized = false;
@@ -2245,12 +2248,14 @@ class _WorkoutPageState extends State<WorkoutPage> {
 class _EditWorkoutPageState extends State<EditWorkoutPage> {
   final _myController = TextEditingController();
   late final Box<Exercise> exercisesBox;
+  late final List<Exercise> exercisesList;
   late final Box<Workout> workoutsBox;
 
   @override
   void initState() {
     super.initState();
     exercisesBox = Hive.box<Exercise>('exercisesBox');
+    exercisesList = exercisesBox.values.toList();
     workoutsBox = Hive.box<Workout>('workoutsBox');
   }
 
@@ -2623,9 +2628,9 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                           const SizedBox(height: 10),
 
                           // dropdown list with "custom" at top
-                          /*DropdownButton(
+                          DropdownButton(
                               isExpanded: true,
-                              items: exercisesBox.map((Exercise exercise) {
+                              items: exercisesList.map((Exercise exercise) {
                                 return DropdownMenuItem<Exercise>(
                                     value: exercise,
                                     child: Text(exercise.name));
@@ -2640,7 +2645,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                               },
                               onChanged: (Exercise? e) {
                                 setState(() => selectVal = e);
-                              }),*/
+                              }),
                           const SizedBox(height: 30),
                           Row(children: <Widget>[
                             const SizedBox(width: 187.4),
@@ -3854,7 +3859,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                           .reps +
                                                       1);
 
-                                              tempWorkout.exercises[j] = exercisesBox.getAt(widget.index)!;
+                                              tempWorkout.exercises[j] =
+                                                  exercisesBox
+                                                      .getAt(widget.index)!;
                                             }
                                           }
                                         }
