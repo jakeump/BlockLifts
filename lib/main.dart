@@ -1,13 +1,13 @@
-import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart' as pathprovider;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 part 'main.g.dart';
 
@@ -38,6 +38,28 @@ void main() async {
   } else {
     defaultState();
   }
+
+  AwesomeNotifications().initialize(
+      // set the icon to null if you want to use the default app icon
+      // android->app->src->main->res->drawable
+      'resource://drawable/notification_icon',
+      [
+        NotificationChannel(
+          channelGroupKey: 'timer_channel_group',
+          channelKey: 'timer_channel',
+          channelName: 'Timer notifications',
+          channelDescription: 'Notification channel workout in progress',
+          defaultColor: Color(0xFF9D50DD),
+          ledColor: Colors.white,
+          enableVibration: false,
+        ),
+      ],
+      // Channel groups are only visual and are not required
+      channelGroups: [
+        NotificationChannelGroup(
+            channelGroupkey: 'timer_channel_group', channelGroupName: 'Timer')
+      ],
+      debug: true);
 
   runApp(const MyApp());
 }
@@ -178,11 +200,32 @@ double _setTempBodyWeight() {
   return tempBodyWeight;
 }
 
+// if seconds is equal to 90, play sound
+void checkTime(int seconds) {
+  if (seconds == 2) {
+    playRemoteFile();
+  }
+}
+
+//Call this function from an event
+void playRemoteFile() {
+  AudioCache player = AudioCache();
+  player.play("workout_alarm.mp3");
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    AwesomeNotifications().actionStream.listen((action) {
+      if (action.buttonKeyPressed == "done") {
+        print("Open button is pressed");
+      } else if (action.buttonKeyPressed == "failed") {
+        print("Delete button is pressed.");
+      }
+    });
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'BlockLifts',
@@ -394,6 +437,9 @@ class _HomeState extends State<Home> {
       timer?.cancel();
     } else {
       duration = Duration(seconds: seconds);
+      if (showTimer) {
+        checkTime(duration.inSeconds);
+      }
     }
   }
 
@@ -1797,69 +1843,127 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                       width: 82,
                                       height: 50,
                                       child: MaterialButton(
-                                        shape: const CircleBorder(
-                                            side: BorderSide(
-                                                width: 1,
-                                                style: BorderStyle.none)),
-                                        child: workoutsBox
-                                                    .getAt(widget.index)!
-                                                    .exercises[i]
-                                                    .repsCompleted[j] >
-                                                workoutsBox
-                                                    .getAt(widget.index)!
-                                                    .exercises[i]
-                                                    .reps
-                                            ? Text(workoutsBox
-                                                .getAt(widget.index)!
-                                                .exercises[i]
-                                                .reps
-                                                .toString())
-                                            : Text(workoutsBox
-                                                .getAt(widget.index)!
-                                                .exercises[i]
-                                                .repsCompleted[j]
-                                                .toString()),
-                                        color: workoutsBox
-                                                    .getAt(widget.index)!
-                                                    .exercises[i]
-                                                    .repsCompleted[j] >
-                                                workoutsBox
-                                                    .getAt(widget.index)!
-                                                    .exercises[i]
-                                                    .reps
-                                            ? const Color.fromARGB(
-                                                255, 41, 41, 41)
-                                            : Colors.red,
-                                        textColor: Colors.white,
-                                        onPressed: () {
-                                          final tempWorkout =
-                                              Hive.box<Workout>('workoutsBox')
-                                                  .getAt(widget.index);
-                                          // loops around
-                                          if (tempWorkout!.exercises[i]
-                                                  .repsCompleted[j] ==
-                                              0) {
-                                            setState(() {
-                                              showTimer = false;
-                                              tempWorkout.exercises[i]
-                                                      .repsCompleted[j] =
-                                                  tempWorkout
-                                                          .exercises[i].reps +
-                                                      1;
-                                              tempWorkout.save();
-                                            });
-                                          } else {
-                                            // starts timer
-                                            setState(() {
-                                              showTimer = true;
-                                              startTimer(timer);
-                                              tempWorkout.exercises[i]
-                                                  .repsCompleted[j] -= 1;
-                                              tempWorkout.save();
-                                            });
-                                          }
-                                        },
-                                      ),
+                                          shape: const CircleBorder(
+                                              side: BorderSide(
+                                                  width: 1,
+                                                  style: BorderStyle.none)),
+                                          child: workoutsBox
+                                                      .getAt(widget.index)!
+                                                      .exercises[i]
+                                                      .repsCompleted[j] >
+                                                  workoutsBox
+                                                      .getAt(widget.index)!
+                                                      .exercises[i]
+                                                      .reps
+                                              ? Text(workoutsBox
+                                                  .getAt(widget.index)!
+                                                  .exercises[i]
+                                                  .reps
+                                                  .toString())
+                                              : Text(workoutsBox
+                                                  .getAt(widget.index)!
+                                                  .exercises[i]
+                                                  .repsCompleted[j]
+                                                  .toString()),
+                                          color: workoutsBox
+                                                      .getAt(widget.index)!
+                                                      .exercises[i]
+                                                      .repsCompleted[j] >
+                                                  workoutsBox
+                                                      .getAt(widget.index)!
+                                                      .exercises[i]
+                                                      .reps
+                                              ? const Color.fromARGB(
+                                                  255, 41, 41, 41)
+                                              : Colors.red,
+                                          textColor: Colors.white,
+                                          onPressed: () {
+                                            final tempWorkout =
+                                                Hive.box<Workout>('workoutsBox')
+                                                    .getAt(widget.index);
+                                            // loops around
+                                            if (tempWorkout!.exercises[i]
+                                                    .repsCompleted[j] ==
+                                                0) {
+                                              setState(() {
+                                                showTimer = false;
+                                                AwesomeNotifications()
+                                                    .cancelAll();
+                                                tempWorkout.exercises[i]
+                                                        .repsCompleted[j] =
+                                                    tempWorkout
+                                                            .exercises[i].reps +
+                                                        1;
+                                                tempWorkout.save();
+                                              });
+                                            } else {
+                                              // starts timer
+                                              setState(() {
+                                                showTimer = true;
+                                                startTimer(timer);
+                                                tempWorkout.exercises[i]
+                                                    .repsCompleted[j] -= 1;
+                                                tempWorkout.save();
+                                              });
+
+                                              if (showTimer == true) {
+                                                // function that adds two digits together and returns the sum
+
+                                                setState(() async {
+                                                  bool isallowed =
+                                                      await AwesomeNotifications()
+                                                          .isNotificationAllowed();
+                                                  if (!isallowed) {
+                                                    //no permission of local notification
+                                                    AwesomeNotifications()
+                                                        .requestPermissionToSendNotifications();
+                                                  } else {
+                                                    //show notification
+                                                    AwesomeNotifications()
+                                                        .createNotification(
+                                                      content:
+                                                          NotificationContent(
+                                                        //simgple notification
+                                                        id: 123,
+                                                        channelKey:
+                                                            'timer_channel', //set configuration wuth key "basic"
+                                                        //title: 'Timer - Rest 3 min',
+                                                        body:
+                                                            "${workoutsBox.getAt(widget.index)!.exercises[i].name} ${workoutsBox.getAt(widget.index)!.exercises[i].sets}x${workoutsBox.getAt(widget.index)!.exercises[i].weight} - Set ${j + 2}/${workoutsBox.getAt(widget.index)!.exercises[i].sets}",
+                                                        //buildNotifTime(),
+                                                        //'Squat 5x200lb - Set 2/5',
+                                                        payload: {
+                                                          "name": "BlockLifts"
+                                                        },
+                                                        autoDismissible: false,
+                                                        locked: true,
+                                                        largeIcon:
+                                                            'resource://drawable/notification_icon',
+                                                        roundedLargeIcon: true,
+                                                        notificationLayout:
+                                                            NotificationLayout
+                                                                .Default,
+                                                      ),
+
+                                                      /*actionButtons: [
+                                                          NotificationActionButton(
+                                                            key: "done", 
+                                                            label: "Done",
+                                                            autoDismissible: false,
+                                                          ),
+
+                                                          NotificationActionButton(
+                                                            key: "failed", 
+                                                            label: "Failed",
+                                                            autoDismissible: false,
+                                                          )
+                                                      ]*/
+                                                    );
+                                                  }
+                                                });
+                                              }
+                                            }
+                                          }),
                                     ),
                                 ]),
                               ]),
@@ -2212,6 +2316,13 @@ class _WorkoutPageState extends State<WorkoutPage> {
               ))),
       buildTimeCard(seconds, 5),
     ]);
+  }
+
+  String buildNotifTime() {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$minutes:$seconds";
   }
 
   void startTimer(Timer? timer) {
@@ -2985,8 +3096,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                           j <
                                               workoutsBox
                                                   .getAt(widget.index)!
-                                                  .exercises[workoutsBox.getAt(
-                                                              widget.index)!
+                                                  .exercises[workoutsBox
+                                                          .getAt(widget.index)!
                                                           .exercises
                                                           .length -
                                                       1]
