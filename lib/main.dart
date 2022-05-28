@@ -27,6 +27,8 @@ void main() async {
   await Hive.openBox<double>('bodyWeightsBox');
   await Hive.openBox<String>('notesBox');
   await Hive.openBox<int>('counterBox');
+  await Hive.openBox<bool>('boolBox');
+  // boolBox contains: theme, timer, ring, vibration
 
   // on first time opening app, sets to default state
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -188,6 +190,13 @@ void defaultState() async {
   counterBox.deleteAll(counterBox.keys);
   counterBox.add(0);
 
+  Box<bool> boolBox = Hive.box<bool>('boolBox');
+  boolBox.deleteAll(boolBox.keys);
+  boolBox.add(true);
+  boolBox.add(true);
+  boolBox.add(true);
+  boolBox.add(true);
+
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('resetToDefault', false);
 }
@@ -200,7 +209,7 @@ double _setTempBodyWeight() {
   return tempBodyWeight;
 }
 
-// if seconds is equal to 90, play sound
+// if seconds is equal to any time in list of custom times, play sound
 void checkTime(int seconds) {
   if (seconds == 2) {
     playRemoteFile();
@@ -212,6 +221,11 @@ void playRemoteFile() {
   AudioCache player = AudioCache();
   player.play("workout_alarm.mp3");
 }
+
+// when circle clicked, show notification "workout in progress, tap to resume"
+// when timer reaches certain point, cancel notification and create a new one,
+// this time one that vibrates. let the user know it's time to resume
+// and see if you can implement done and failed buttons
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -274,6 +288,13 @@ class Settings extends StatefulWidget {
   const Settings({Key? key}) : super(key: key);
   @override
   _SettingsState createState() => _SettingsState();
+  // creating State Object of MyWidget
+}
+
+class TimerPage extends StatefulWidget {
+  const TimerPage({Key? key}) : super(key: key);
+  @override
+  _TimerState createState() => _TimerState();
   // creating State Object of MyWidget
 }
 
@@ -437,6 +458,7 @@ class _HomeState extends State<Home> {
       timer?.cancel();
     } else {
       duration = Duration(seconds: seconds);
+      // checks every second if sound should be played
       if (showTimer) {
         checkTime(duration.inSeconds);
       }
@@ -707,6 +729,28 @@ class _ProgressState extends State<Progress> {
 }
 
 class _SettingsState extends State<Settings> {
+  late final Box<bool> boolBox;
+
+  void toggleSwitch(bool value) {
+    if (boolBox.getAt(0)! == false) {
+      setState(() {
+        boolBox.putAt(0, true);
+      });
+      // set dark theme
+    } else {
+      setState(() {
+        boolBox.putAt(0, false);
+      });
+      // set light theme
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    boolBox = Hive.box<bool>('boolBox');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -717,29 +761,304 @@ class _SettingsState extends State<Settings> {
         title: const Text("Settings"),
         titleTextStyle: const TextStyle(fontSize: 22),
       ),
-      body: Container(
-        alignment: Alignment.center,
-        child:
-            const Text('Here you will be able to toggle light and dark mode'),
-      ),
-      floatingActionButton: SizedBox(
-        width: 150,
-        height: 50,
-        child: OutlinedButton(
-            child: const Text("Reset to Defaults"),
-            style: OutlinedButton.styleFrom(
-              primary: Colors.white,
-              backgroundColor: redColor,
-              shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(50))),
+      body: Column(children: <Widget>[
+        SizedBox(
+          height: 88,
+          width: double.infinity,
+          child: TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Row(children: <Widget>[
+              const Expanded(
+                child: Align(
+                  alignment: Alignment(-.83, 0),
+                  child: Text("Dark Mode"),
+                ),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Switch(
+                    inactiveThumbColor: Colors.grey,
+                    inactiveTrackColor: widgetNavColor,
+                    activeColor: Colors.white,
+                    activeTrackColor: Colors.grey,
+                    value: boolBox.getAt(0)!,
+                    onChanged: toggleSwitch,
+                  ),
+                ),
+              ),
+            ]),
+            onPressed: (() => toggleSwitch(false)),
+          ),
+        ),
+        SizedBox(
+          height: 88,
+          width: double.infinity,
+          child: TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.only(top: 10, bottom: 10),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Column(children: [
+                    const Align(
+                      alignment: Alignment(-.96, 0),
+                      child: Text("Timer"),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: const Alignment(-.96, 0),
+                      child: boolBox.getAt(1)! == true
+                        ? const Text("On", style: TextStyle(color: Colors.grey))
+                        : const Text("Off", style: TextStyle(color: Colors.grey)),
+                    ),
+                  ]),
+                ),
+              ]),
             ),
             onPressed: () {
-              setState(() {
-                defaultState();
-                _counter.value++;
+              Navigator.of(context)
+                  .push(MaterialPageRoute(
+                      builder: (context) => const TimerPage()))
+                  .then((value) {
+                setState(() {});
               });
-            }),
+            },
+          ),
+        ),
+        SizedBox(
+          height: 80,
+          width: double.infinity,
+          child: TextButton(
+              style: TextButton.styleFrom(
+                  primary: Colors.red,
+                  textStyle: const TextStyle(fontSize: 16)),
+              child: const Align(
+                  alignment: Alignment(-.95, 0), child: Text("Reset")),
+              onPressed: () {
+                setState(() {
+                  defaultState();
+                  _counter.value++;
+                });
+              }),
+        )
+      ]),
+    );
+  }
+}
+
+class _TimerState extends State<TimerPage> {
+  late final Box<bool> boolBox;
+
+  // timer
+  void toggleSwitch(bool value) {
+    if (boolBox.getAt(1)! == false) {
+      setState(() {
+        boolBox.putAt(1, true);
+      });
+      // set dark theme
+    } else {
+      setState(() {
+        boolBox.putAt(1, false);
+      });
+      // set light theme
+    }
+  }
+
+  // ring
+  void toggleSwitch2(bool value) {
+    if (boolBox.getAt(2)! == false) {
+      setState(() {
+        boolBox.putAt(2, true);
+      });
+    } else {
+      setState(() {
+        boolBox.putAt(2, false);
+      });
+    }
+  }
+
+  // vibration
+  void toggleSwitch3(bool value) {
+    if (boolBox.getAt(3)! == false) {
+      setState(() {
+        boolBox.putAt(3, true);
+      });
+      // set dark theme
+    } else {
+      setState(() {
+        boolBox.putAt(3, false);
+      });
+      // set light theme
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    boolBox = Hive.box<bool>('boolBox');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: backColor,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          iconSize: 18,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        backgroundColor: headerColor,
+        title: const Text("Timer"),
+        titleTextStyle: const TextStyle(fontSize: 22),
       ),
+      body: Column(children: <Widget>[
+        SizedBox(
+          height: 88,
+          width: double.infinity,
+          child: TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.only(top: 10, bottom: 10),
+              child: Column(children: <Widget>[
+                Row(children: <Widget>[
+                  Expanded(
+                    child: Column(children: [
+                      const Align(
+                        alignment: Alignment(-.83, 0),
+                        child: Text("Timer"),
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: const Alignment(-.86, 0),
+                        child: boolBox.getAt(1)! == true
+                          ? const Text("On", style: TextStyle(color: Colors.grey))
+                          : const Text("Off", style: TextStyle(color: Colors.grey)),
+                      ),
+                    ]),
+                  ),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Switch(
+                        inactiveThumbColor: Colors.grey,
+                        inactiveTrackColor: widgetNavColor,
+                        activeColor: Colors.white,
+                        activeTrackColor: Colors.grey,
+                        value: boolBox.getAt(1)!,
+                        onChanged: toggleSwitch,
+                      ),
+                    ),
+                  ),
+                ]),
+              ]),
+            ),
+            onPressed: (() => toggleSwitch(false)),
+          ),
+        ),
+        boolBox.getAt(1)! ?
+        SizedBox(
+          height: 88,
+          width: double.infinity,
+          child: TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.only(top: 10, bottom: 10),
+              child: Column(children: <Widget>[
+                Row(children: <Widget>[
+                  Expanded(
+                    child: Column(children: [
+                      const Align(
+                        alignment: Alignment(-.86, 0),
+                        child: Text("Ring"),
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: const Alignment(-.85, 0),
+                        child: boolBox.getAt(2)! == true
+                          ? const Text("Enabled", style: TextStyle(color: Colors.grey))
+                          : const Text("Disabled", style: TextStyle(color: Colors.grey)),
+                      ),
+                    ]),
+                  ),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Switch(
+                        inactiveThumbColor: Colors.grey,
+                        inactiveTrackColor: widgetNavColor,
+                        activeColor: Colors.white,
+                        activeTrackColor: Colors.grey,
+                        value: boolBox.getAt(2)!,
+                        onChanged: toggleSwitch2,
+                      ),
+                    ),
+                  ),
+                ]),
+              ]),
+            ),
+            onPressed: (() => toggleSwitch2(false)),
+          ),
+        )
+        : const SizedBox(),
+        boolBox.getAt(1)! ?
+        SizedBox(
+          height: 88,
+          width: double.infinity,
+          child: TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.only(top: 10, bottom: 10),
+              child: Column(children: <Widget>[
+                Row(children: <Widget>[
+                  Expanded(
+                    child: Column(children: [
+                      const Align(
+                        alignment: Alignment(-.86, 0),
+                        child: Text("Vibration"),
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: const Alignment(-.87, 0),
+                        child: boolBox.getAt(3)! == true
+                          ? const Text("Enabled", style: TextStyle(color: Colors.grey))
+                          : const Text("Disabled", style: TextStyle(color: Colors.grey)),
+                      ),
+                    ]),
+                  ),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Switch(
+                        inactiveThumbColor: Colors.grey,
+                        inactiveTrackColor: widgetNavColor,
+                        activeColor: Colors.white,
+                        activeTrackColor: Colors.grey,
+                        value: boolBox.getAt(3)!,
+                        onChanged: toggleSwitch3,
+                      ),
+                    ),
+                  ),
+                ]),
+              ]),
+            ),
+            onPressed: (() => toggleSwitch3(false)),
+          ),
+        )
+        : const SizedBox(),
+
+      ]),
     );
   }
 }
@@ -2318,13 +2637,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
     ]);
   }
 
-  String buildNotifTime() {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return "$minutes:$seconds";
-  }
-
   void startTimer(Timer? timer) {
     timer?.cancel();
     duration = const Duration(seconds: 0);
@@ -2836,6 +3148,9 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                         textAlignVertical:
                                                             TextAlignVertical
                                                                 .bottom,
+                                                        textCapitalization:
+                                                            TextCapitalization
+                                                                .words,
                                                         decoration:
                                                             const InputDecoration(
                                                           contentPadding:
