@@ -19,7 +19,8 @@ void main() async {
   Hive
     ..registerAdapter(ExerciseAdapter())
     ..registerAdapter(WorkoutAdapter())
-    ..registerAdapter(IndivWorkoutAdapter());
+    ..registerAdapter(IndivWorkoutAdapter())
+    ..registerAdapter(TimerMapAdapter());
 
   await Hive.openBox<Exercise>('exercisesBox');
   await Hive.openBox<Workout>('workoutsBox');
@@ -27,8 +28,10 @@ void main() async {
   await Hive.openBox<double>('bodyWeightsBox');
   await Hive.openBox<String>('notesBox');
   await Hive.openBox<int>('counterBox');
-  await Hive.openBox<bool>('boolBox');
   // boolBox contains: theme, timer, ring, vibration
+  await Hive.openBox<bool>('boolBox');
+  await Hive.openBox<TimerMap>('successTimerBox');
+  await Hive.openBox<TimerMap>('failTimerBox');
 
   // on first time opening app, sets to default state
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -92,6 +95,17 @@ class Workout extends HiveObject {
   bool isInitialized = false; // used to fill the reps completed only once
 
   Workout(this.name); // constructor for name
+}
+
+// Hive doesn't work well with lists, so I'm making a custom class
+@HiveType(typeId: 3)
+class TimerMap extends HiveObject {
+  @HiveField(0)
+  int time;
+  @HiveField(1)
+  bool isChecked;
+
+  TimerMap(this.time, this.isChecked);
 }
 
 @HiveType(typeId: 0)
@@ -197,6 +211,15 @@ void defaultState() async {
   boolBox.add(true);
   boolBox.add(true);
 
+  Box<TimerMap> successTimerBox = Hive.box<TimerMap>('successTimerBox');
+  successTimerBox.deleteAll(successTimerBox.keys);
+  successTimerBox.add(TimerMap(90, true));
+  successTimerBox.add(TimerMap(180, true));
+
+  Box<TimerMap> failTimerBox = Hive.box<TimerMap>('failTimerBox');
+  failTimerBox.deleteAll(failTimerBox.keys);
+  failTimerBox.add(TimerMap(300, true));
+
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('resetToDefault', false);
 }
@@ -295,6 +318,15 @@ class TimerPage extends StatefulWidget {
   const TimerPage({Key? key}) : super(key: key);
   @override
   _TimerState createState() => _TimerState();
+  // creating State Object of MyWidget
+}
+
+class SetTimerPage extends StatefulWidget {
+  // a value of 0 corresponds to success timer, 1 to fail timer
+  final int index;
+  const SetTimerPage(this.index, {Key? key}) : super(key: key);
+  @override
+  _SetTimerState createState() => _SetTimerState();
   // creating State Object of MyWidget
 }
 
@@ -813,8 +845,10 @@ class _SettingsState extends State<Settings> {
                     Align(
                       alignment: const Alignment(-.96, 0),
                       child: boolBox.getAt(1)! == true
-                        ? const Text("On", style: TextStyle(color: Colors.grey))
-                        : const Text("Off", style: TextStyle(color: Colors.grey)),
+                          ? const Text("On",
+                              style: TextStyle(color: Colors.grey))
+                          : const Text("Off",
+                              style: TextStyle(color: Colors.grey)),
                     ),
                   ]),
                 ),
@@ -939,8 +973,10 @@ class _TimerState extends State<TimerPage> {
                       Align(
                         alignment: const Alignment(-.86, 0),
                         child: boolBox.getAt(1)! == true
-                          ? const Text("On", style: TextStyle(color: Colors.grey))
-                          : const Text("Off", style: TextStyle(color: Colors.grey)),
+                            ? const Text("On",
+                                style: TextStyle(color: Colors.grey))
+                            : const Text("Off",
+                                style: TextStyle(color: Colors.grey)),
                       ),
                     ]),
                   ),
@@ -963,102 +999,464 @@ class _TimerState extends State<TimerPage> {
             onPressed: (() => toggleSwitch(false)),
           ),
         ),
-        boolBox.getAt(1)! ?
-        SizedBox(
-          height: 88,
-          width: double.infinity,
-          child: TextButton(
-            style: TextButton.styleFrom(
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 16)),
-            child: Container(
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
-              child: Column(children: <Widget>[
-                Row(children: <Widget>[
-                  Expanded(
-                    child: Column(children: [
-                      const Align(
-                        alignment: Alignment(-.86, 0),
-                        child: Text("Ring"),
-                      ),
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: const Alignment(-.85, 0),
-                        child: boolBox.getAt(2)! == true
-                          ? const Text("Enabled", style: TextStyle(color: Colors.grey))
-                          : const Text("Disabled", style: TextStyle(color: Colors.grey)),
+        boolBox.getAt(1)!
+            ? SizedBox(
+                height: 88,
+                width: double.infinity,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                      primary: Colors.white,
+                      textStyle: const TextStyle(fontSize: 16)),
+                  child: Container(
+                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    child: Column(children: <Widget>[
+                      Row(children: <Widget>[
+                        Expanded(
+                          child: Column(children: [
+                            const Align(
+                              alignment: Alignment(-.86, 0),
+                              child: Text("Ring"),
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: const Alignment(-.85, 0),
+                              child: boolBox.getAt(2)! == true
+                                  ? const Text("Enabled",
+                                      style: TextStyle(color: Colors.grey))
+                                  : const Text("Disabled",
+                                      style: TextStyle(color: Colors.grey)),
+                            ),
+                          ]),
+                        ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Switch(
+                              inactiveThumbColor: Colors.grey,
+                              inactiveTrackColor: widgetNavColor,
+                              activeColor: Colors.white,
+                              activeTrackColor: Colors.grey,
+                              value: boolBox.getAt(2)!,
+                              onChanged: toggleSwitch2,
+                            ),
+                          ),
+                        ),
+                      ]),
+                    ]),
+                  ),
+                  onPressed: (() => toggleSwitch2(false)),
+                ),
+              )
+            : const SizedBox(),
+        boolBox.getAt(1)!
+            ? SizedBox(
+                height: 88,
+                width: double.infinity,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                      primary: Colors.white,
+                      textStyle: const TextStyle(fontSize: 16)),
+                  child: Container(
+                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    child: Column(children: <Widget>[
+                      Row(children: <Widget>[
+                        Expanded(
+                          child: Column(children: [
+                            const Align(
+                              alignment: Alignment(-.86, 0),
+                              child: Text("Vibration"),
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: const Alignment(-.87, 0),
+                              child: boolBox.getAt(3)! == true
+                                  ? const Text("Enabled",
+                                      style: TextStyle(color: Colors.grey))
+                                  : const Text("Disabled",
+                                      style: TextStyle(color: Colors.grey)),
+                            ),
+                          ]),
+                        ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Switch(
+                              inactiveThumbColor: Colors.grey,
+                              inactiveTrackColor: widgetNavColor,
+                              activeColor: Colors.white,
+                              activeTrackColor: Colors.grey,
+                              value: boolBox.getAt(3)!,
+                              onChanged: toggleSwitch3,
+                            ),
+                          ),
+                        ),
+                      ]),
+                    ]),
+                  ),
+                  onPressed: (() => toggleSwitch3(false)),
+                ),
+              )
+            : const SizedBox(),
+        boolBox.getAt(1)!
+            ? SizedBox(
+                height: 88,
+                width: double.infinity,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                      primary: Colors.white,
+                      textStyle: const TextStyle(fontSize: 16)),
+                  child: Container(
+                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    child: Column(children: <Widget>[
+                      Expanded(
+                        child: Column(children: [
+                          const Align(
+                            alignment: Alignment(-.95, 0),
+                            child: Text("Success Timer"),
+                          ),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: const Alignment(-.96, 0),
+                            child: const Text("filler"),
+                          ),
+                        ]),
                       ),
                     ]),
                   ),
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Switch(
-                        inactiveThumbColor: Colors.grey,
-                        inactiveTrackColor: widgetNavColor,
-                        activeColor: Colors.white,
-                        activeTrackColor: Colors.grey,
-                        value: boolBox.getAt(2)!,
-                        onChanged: toggleSwitch2,
-                      ),
-                    ),
-                  ),
-                ]),
-              ]),
-            ),
-            onPressed: (() => toggleSwitch2(false)),
-          ),
-        )
-        : const SizedBox(),
-        boolBox.getAt(1)! ?
-        SizedBox(
-          height: 88,
-          width: double.infinity,
-          child: TextButton(
-            style: TextButton.styleFrom(
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 16)),
-            child: Container(
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
-              child: Column(children: <Widget>[
-                Row(children: <Widget>[
-                  Expanded(
-                    child: Column(children: [
-                      const Align(
-                        alignment: Alignment(-.86, 0),
-                        child: Text("Vibration"),
-                      ),
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: const Alignment(-.87, 0),
-                        child: boolBox.getAt(3)! == true
-                          ? const Text("Enabled", style: TextStyle(color: Colors.grey))
-                          : const Text("Disabled", style: TextStyle(color: Colors.grey)),
+                  onPressed: () {
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(
+                            builder: (context) => const SetTimerPage(0)))
+                        .then((value) {
+                      setState(() {});
+                    });
+                  },
+                ),
+              )
+            : const SizedBox(),
+        boolBox.getAt(1)!
+            ? SizedBox(
+                height: 88,
+                width: double.infinity,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                      primary: Colors.white,
+                      textStyle: const TextStyle(fontSize: 16)),
+                  child: Container(
+                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    child: Column(children: <Widget>[
+                      Expanded(
+                        child: Column(children: [
+                          const Align(
+                            alignment: Alignment(-.95, 0),
+                            child: Text("Fail Timer"),
+                          ),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: const Alignment(-.96, 0),
+                            child: const Text("filler"),
+                          ),
+                        ]),
                       ),
                     ]),
                   ),
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Switch(
-                        inactiveThumbColor: Colors.grey,
-                        inactiveTrackColor: widgetNavColor,
-                        activeColor: Colors.white,
-                        activeTrackColor: Colors.grey,
-                        value: boolBox.getAt(3)!,
-                        onChanged: toggleSwitch3,
-                      ),
-                    ),
-                  ),
-                ]),
-              ]),
-            ),
-            onPressed: (() => toggleSwitch3(false)),
-          ),
-        )
-        : const SizedBox(),
-
+                  onPressed: () {
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(
+                            builder: (context) => const SetTimerPage(1)))
+                        .then((value) {
+                      setState(() {});
+                    });
+                  },
+                ),
+              )
+            : const SizedBox(),
       ]),
+    );
+  }
+}
+
+class _SetTimerState extends State<SetTimerPage> {
+  // a widget.index value of 0 corresponds to success timer, 1 to fail timer
+  List<Widget> mins = [
+    for (int i = 0; i < 11; i++) ListTile(title: Text(i.toString())),
+  ];
+  List<Widget> secs = [
+    for (int i = 0; i < 60; i++) ListTile(title: Text(i.toString())),
+  ];
+
+  int minutes = 0;
+  int seconds = 0;
+
+  late final Box<TimerMap> successTimerBox;
+  late final Box<TimerMap> failTimerBox;
+  List<int> times = [];
+
+  @override
+  void initState() {
+    super.initState();
+    successTimerBox = Hive.box<TimerMap>('successTimerBox');
+    failTimerBox = Hive.box<TimerMap>('failTimerBox');
+    if (widget.index == 0) {
+      for (int i = 0; i < successTimerBox.length; i++) {
+        times.add(successTimerBox.getAt(i)!.time);
+      }
+    } else {
+      for (int i = 0; i < failTimerBox.length; i++) {
+        times.add(failTimerBox.getAt(i)!.time);
+      }
+    }
+    times.sort();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: backColor,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          iconSize: 18,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        backgroundColor: headerColor,
+        title: widget.index == 0
+            ? const Text("Success Timer")
+            : const Text("Fail Timer"),
+        titleTextStyle: const TextStyle(fontSize: 22),
+      ),
+      body: ListView(children: <Widget>[
+        for (int index = 0; index < times.length; index++)
+          ListTile(
+            leading: Checkbox(
+              value: widget.index == 0
+                  ? successTimerBox.getAt(index)!.isChecked
+                  : failTimerBox.getAt(index)!.isChecked,
+              activeColor: redColor,
+              checkColor: Colors.black,
+              onChanged: (value) {
+                setState(() {
+                  if (widget.index == 0) {
+                    final tempTime =
+                        Hive.box<TimerMap>('successTimerBox').getAt(index);
+                    tempTime!.isChecked = value!;
+                    tempTime.save();
+                  } else {
+                    final tempTime =
+                        Hive.box<TimerMap>('failTimerBox').getAt(index);
+                    tempTime!.isChecked = value!;
+                    tempTime.save();
+                  }
+                });
+              },
+            ),
+            title: widget.index == 0
+                ? times[index] % 60 == 0
+                    ? Text("${(times[index] ~/ 60).toString()}min")
+                    : Text(
+                        "${(times[index] ~/ 60).toString()}min ${(times[index] % 60).toString()}s")
+                : times[index] % 60 == 0
+                    ? Text("${(times[index] ~/ 60).toString()}min")
+                    : Text(
+                        "${(times[index] ~/ 60).toString()}min ${(times[index] % 60).toString()}s"),
+            trailing: IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () {
+                setState(() {
+                  if (widget.index == 0) {
+                    for (int i = 0; i < successTimerBox.length; i++) {
+                      if (successTimerBox.getAt(i)!.time == times[index]) {
+                        successTimerBox.deleteAt(i);
+                      }
+                    }
+                    times.removeAt(index);
+                  } else {
+                    for (int i = 0; i < failTimerBox.length; i++) {
+                      if (failTimerBox.getAt(i)!.time == times[index]) {
+                        failTimerBox.deleteAt(i);
+                      }
+                    }
+                    times.removeAt(index);
+                  }
+                });
+              },
+            ),
+          ),
+      ]),
+      floatingActionButton: Align(
+        alignment: const Alignment(.93, 1), // custom alignment
+        child: SizedBox(
+          width: 130,
+          height: 50,
+          child: OutlinedButton(
+            child: const Text("Add Timer"),
+            style: OutlinedButton.styleFrom(
+              primary: Colors.white,
+              backgroundColor: redColor,
+              shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(50))),
+            ),
+            onPressed: () {
+              final _minController = FixedExtentScrollController();
+              final _secController = FixedExtentScrollController();
+              showDialog(
+                  context: context,
+                  builder: (context) => Dialog(
+                      insetPadding: const EdgeInsets.all(10),
+                      child: Container(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                widget.index == 0
+                                    ? const Text("Success Timer",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                        ))
+                                    : const Text("Fail Timer",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                        )),
+                                const SizedBox(height: 30),
+                                Flexible(
+                                    child: Row(children: <Widget>[
+                                  const SizedBox(width: 100),
+                                  SizedBox(
+                                      height: 120,
+                                      width: 70,
+                                      child: CupertinoPicker(
+                                        scrollController: _minController,
+                                        children: mins,
+                                        looping: true,
+                                        diameterRatio: 1.25,
+                                        selectionOverlay:
+                                            Column(children: <Widget>[
+                                          Container(
+                                              decoration: const BoxDecoration(
+                                                  border: Border(
+                                                      top: BorderSide(
+                                            color: Colors.white,
+                                            width: 2,
+                                          )))),
+                                          const SizedBox(height: 50),
+                                          Container(
+                                              decoration: const BoxDecoration(
+                                                  border: Border(
+                                                      top: BorderSide(
+                                            color: Colors.white,
+                                            width: 2,
+                                          ))))
+                                        ]),
+                                        itemExtent: 75,
+                                        onSelectedItemChanged: (index) => {
+                                          minutes = index,
+                                        },
+                                      )),
+                                  const SizedBox(
+                                    width: 40,
+                                    height: 40,
+                                    child: Align(
+                                      alignment: Alignment.topCenter,
+                                      child: Text("min",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                          )),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                      height: 120,
+                                      width: 70,
+                                      child: CupertinoPicker(
+                                        scrollController: _secController,
+                                        children: secs,
+                                        looping: true,
+                                        diameterRatio: 1.25,
+                                        selectionOverlay:
+                                            Column(children: <Widget>[
+                                          Container(
+                                              decoration: const BoxDecoration(
+                                                  border: Border(
+                                                      top: BorderSide(
+                                            color: Colors.white,
+                                            width: 2,
+                                          )))),
+                                          const SizedBox(height: 50),
+                                          Container(
+                                              decoration: const BoxDecoration(
+                                                  border: Border(
+                                                      top: BorderSide(
+                                            color: Colors.white,
+                                            width: 2,
+                                          ))))
+                                        ]),
+                                        itemExtent: 75,
+                                        onSelectedItemChanged: (index) => {
+                                          seconds = index,
+                                        },
+                                      )),
+                                  const SizedBox(
+                                    width: 40,
+                                    height: 40,
+                                    child: Align(
+                                      alignment: Alignment.topCenter,
+                                      child: Text("sec",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                          )),
+                                    ),
+                                  ),
+                                ])),
+                                const SizedBox(height: 30),
+                                Row(children: <Widget>[
+                                  const SizedBox(width: 187.4),
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      primary: redColor,
+                                      textStyle: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                      alignment: Alignment.center,
+                                    ),
+                                    child: const Text("Cancel"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  const SizedBox(width: 20),
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      primary: redColor,
+                                      textStyle: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                      alignment: Alignment.center,
+                                    ),
+                                    child: const Text("OK"),
+                                    onPressed: () {
+                                      setState(() {
+                                        times.add(minutes * 60 + seconds);
+                                        times.sort();
+                                        if (widget.index == 0) {
+                                          successTimerBox.add(TimerMap(
+                                              minutes * 60 + seconds, true));
+                                          Navigator.of(context).pop();
+                                          minutes = seconds = 0;
+                                        } else {
+                                          failTimerBox.add(TimerMap(
+                                              minutes * 60 + seconds, true));
+                                          Navigator.of(context).pop();
+                                          minutes = seconds = 0;
+                                        }
+                                      });
+                                    },
+                                  ),
+                                ]),
+                              ]))));
+            },
+          ),
+        ),
+      ),
     );
   }
 }
