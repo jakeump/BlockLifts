@@ -50,10 +50,10 @@ void main() async {
       'resource://drawable/notification_icon',
       [
         NotificationChannel(
-          channelGroupKey: 'timer_channel_group',
-          channelKey: 'timer_channel',
-          channelName: 'Timer notifications',
-          channelDescription: 'Notification channel workout in progress',
+          channelGroupKey: 'workout_channel_group',
+          channelKey: 'workout_channel',
+          channelName: 'Workout notifications',
+          channelDescription: 'Notifications during workout',
           defaultColor: Color(0xFF9D50DD),
           ledColor: Colors.white,
           enableVibration: false,
@@ -62,7 +62,8 @@ void main() async {
       // Channel groups are only visual and are not required
       channelGroups: [
         NotificationChannelGroup(
-            channelGroupkey: 'timer_channel_group', channelGroupName: 'Timer')
+            channelGroupkey: 'workout_channel_group',
+            channelGroupName: 'Workout')
       ],
       debug: true);
 
@@ -887,6 +888,11 @@ class _SettingsState extends State<Settings> {
 
 class _TimerState extends State<TimerPage> {
   late final Box<bool> boolBox;
+  late final Box<TimerMap> successTimerBox;
+  late final Box<TimerMap> failTimerBox;
+
+  String successTimes = '';
+  String failTimes = '';
 
   // timer
   void toggleSwitch(bool value) {
@@ -935,10 +941,46 @@ class _TimerState extends State<TimerPage> {
   void initState() {
     super.initState();
     boolBox = Hive.box<bool>('boolBox');
+    successTimerBox = Hive.box<TimerMap>('successTimerBox');
+    failTimerBox = Hive.box<TimerMap>('failTimerBox');
+  }
+
+  String addTimes(Box<TimerMap> input) {
+    String output = '';
+    List<int> times = [];
+    for (int i = 0; i < input.length; i++) {
+      if (input.getAt(i)!.isChecked == true) {
+        times.add(input.getAt(i)!.time);
+      }
+    }
+    times.sort();
+    for (int i = 0; i < times.length - 1; i++) {
+      if (times[i] % 60 == 0) {
+        output += (times[i] ~/ 60).toString() + 'min, ';
+      } else {
+        output += (times[i] ~/ 60).toString() +
+            'min ' +
+            (times[i] % 60).toString() +
+            's, ';
+      }
+    }
+    if (times.isNotEmpty) {
+      if (times[times.length - 1] % 60 == 0) {
+        output += (times[times.length - 1] ~/ 60).toString() + 'min';
+      } else {
+        output += (times[times.length - 1] ~/ 60).toString() +
+            'min ' +
+            (times[times.length - 1] % 60).toString() +
+            's';
+      }
+    }
+    return output;
   }
 
   @override
   Widget build(BuildContext context) {
+    successTimes = addTimes(successTimerBox);
+    failTimes = addTimes(failTimerBox);
     return Scaffold(
       backgroundColor: backColor,
       appBar: AppBar(
@@ -1116,8 +1158,9 @@ class _TimerState extends State<TimerPage> {
                           ),
                           const SizedBox(height: 8),
                           Align(
-                            alignment: const Alignment(-.96, 0),
-                            child: const Text("filler"),
+                            alignment: const Alignment(-.95, 0),
+                            child: Text(successTimes,
+                                style: const TextStyle(color: Colors.grey)),
                           ),
                         ]),
                       ),
@@ -1153,8 +1196,9 @@ class _TimerState extends State<TimerPage> {
                           ),
                           const SizedBox(height: 8),
                           Align(
-                            alignment: const Alignment(-.96, 0),
-                            child: const Text("filler"),
+                            alignment: const Alignment(-.97, 0),
+                            child: Text(failTimes,
+                                style: const TextStyle(color: Colors.grey)),
                           ),
                         ]),
                       ),
@@ -2643,7 +2687,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                         //simgple notification
                                                         id: 123,
                                                         channelKey:
-                                                            'timer_channel', //set configuration wuth key "basic"
+                                                            'workout_channel', //set configuration wuth key "basic"
                                                         //title: 'Timer - Rest 3 min',
                                                         body:
                                                             "${workoutsBox.getAt(widget.index)!.exercises[i].name} ${workoutsBox.getAt(widget.index)!.exercises[i].sets}x${workoutsBox.getAt(widget.index)!.exercises[i].weight} - Set ${j + 2}/${workoutsBox.getAt(widget.index)!.exercises[i].sets}",
