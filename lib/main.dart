@@ -51,12 +51,22 @@ void main() async {
       [
         NotificationChannel(
           channelGroupKey: 'workout_channel_group',
-          channelKey: 'workout_channel',
-          channelName: 'Workout notifications',
-          channelDescription: 'Notifications during workout',
+          channelKey: 'workout_status_channel',
+          channelName: 'Workout status notifications',
+          channelDescription: 'Notifications between sets',
           defaultColor: Color(0xFF9D50DD),
           ledColor: Colors.white,
           enableVibration: false,
+          importance: NotificationImportance.Default,
+        ),
+        NotificationChannel(
+          channelGroupKey: 'workout_channel_group',
+          channelKey: 'workout_timer_channel',
+          channelName: 'Workout timer notifications',
+          channelDescription: 'Timer notifications',
+          defaultColor: Color(0xFF9D50DD),
+          ledColor: Colors.white,
+          enableVibration: true,
         ),
       ],
       // Channel groups are only visual and are not required
@@ -65,7 +75,7 @@ void main() async {
             channelGroupkey: 'workout_channel_group',
             channelGroupName: 'Workout')
       ],
-      debug: true);
+  );
 
   runApp(const MyApp());
 }
@@ -235,8 +245,22 @@ double _setTempBodyWeight() {
 
 // if seconds is equal to any time in list of custom times, play sound
 void checkTime(int seconds) {
-  if (seconds == 2) {
-    playRemoteFile();
+  Box<TimerMap> successTimerBox = Hive.box<TimerMap>('successTimerBox');
+  Box<TimerMap> failTimerBox = Hive.box<TimerMap>('failTimerBox');
+
+  for (int i = 0; i < successTimerBox.length; i++) {
+    if (seconds == successTimerBox.getAt(i)!.time) {
+      if (successTimerBox.getAt(i)!.isChecked) {
+        playRemoteFile();
+      }
+    }
+  }
+  for (int i = 0; i < failTimerBox.length; i++) {
+    if (seconds == failTimerBox.getAt(i)!.time) {
+      if (failTimerBox.getAt(i)!.isChecked) {
+        playRemoteFile();
+      }
+    }
   }
 }
 
@@ -256,6 +280,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // use keepontop for these
     AwesomeNotifications().actionStream.listen((action) {
       if (action.buttonKeyPressed == "done") {
         print("Open button is pressed");
@@ -1158,8 +1183,10 @@ class _TimerState extends State<TimerPage> {
                           ),
                           const SizedBox(height: 8),
                           Align(
-                            alignment: const Alignment(-.95, 0),
+                            alignment: const Alignment(-.96, 0),
                             child: Text(successTimes,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(color: Colors.grey)),
                           ),
                         ]),
@@ -1198,6 +1225,8 @@ class _TimerState extends State<TimerPage> {
                           Align(
                             alignment: const Alignment(-.97, 0),
                             child: Text(failTimes,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(color: Colors.grey)),
                           ),
                         ]),
@@ -1253,6 +1282,15 @@ class _SetTimerState extends State<SetTimerPage> {
     times.sort();
   }
 
+  bool isChecked(Box<TimerMap> input, int index) {
+    for (int i = 0; i < input.length; i++) {
+      if (input.getAt(i)!.time == times[index]) {
+        return input.getAt(i)!.isChecked;
+      }
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1274,22 +1312,31 @@ class _SetTimerState extends State<SetTimerPage> {
           ListTile(
             leading: Checkbox(
               value: widget.index == 0
-                  ? successTimerBox.getAt(index)!.isChecked
-                  : failTimerBox.getAt(index)!.isChecked,
+                  ? isChecked(successTimerBox, index)
+                  : isChecked(failTimerBox, index),
               activeColor: redColor,
               checkColor: Colors.black,
               onChanged: (value) {
                 setState(() {
                   if (widget.index == 0) {
-                    final tempTime =
-                        Hive.box<TimerMap>('successTimerBox').getAt(index);
-                    tempTime!.isChecked = value!;
-                    tempTime.save();
-                  } else {
-                    final tempTime =
-                        Hive.box<TimerMap>('failTimerBox').getAt(index);
-                    tempTime!.isChecked = value!;
-                    tempTime.save();
+                    for (int idx = 0; idx < successTimerBox.length; idx++) {
+                      if (successTimerBox.getAt(idx)!.time == times[index]) {
+                        final tempTime =
+                          Hive.box<TimerMap>('successTimerBox').getAt(idx);
+                        tempTime!.isChecked = value!;
+                        tempTime.save();
+                      }
+                    }
+                  }
+                  else {
+                    for (int idx = 0; idx < failTimerBox.length; idx++) {
+                      if (failTimerBox.getAt(idx)!.time == times[index]) {
+                        final tempTime =
+                          Hive.box<TimerMap>('failTimerBox').getAt(idx);
+                        tempTime!.isChecked = value!;
+                        tempTime.save();
+                      }
+                    }
                   }
                 });
               },
@@ -1304,7 +1351,7 @@ class _SetTimerState extends State<SetTimerPage> {
                     : Text(
                         "${(times[index] ~/ 60).toString()}min ${(times[index] % 60).toString()}s"),
             trailing: IconButton(
-              icon: Icon(Icons.delete),
+              icon: const Icon(Icons.delete),
               onPressed: () {
                 setState(() {
                   if (widget.index == 0) {
@@ -1482,6 +1529,8 @@ class _SetTimerState extends State<SetTimerPage> {
                                         times.add(minutes * 60 + seconds);
                                         times.sort();
                                         if (widget.index == 0) {
+                                          // check for duplicate time in success timer box
+
                                           successTimerBox.add(TimerMap(
                                               minutes * 60 + seconds, true));
                                           Navigator.of(context).pop();
@@ -2657,7 +2706,17 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                         1;
                                                 tempWorkout.save();
                                               });
-                                            } else {
+                                              // last exercise, last rep, don't show timer
+                                            } else if (i == tempWorkout.exercises.length - 1
+                                              && j == tempWorkout.exercises[i].sets - 1) {
+                                                setState(() {
+                                                  AwesomeNotifications().cancelAll();
+                                                  showTimer = false;
+                                                  tempWorkout.exercises[i].repsCompleted[j] -= 1;
+                                                  tempWorkout.save();
+                                                });
+                                              }
+                                            else {
                                               // starts timer
                                               setState(() {
                                                 showTimer = true;
@@ -2683,16 +2742,34 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                     AwesomeNotifications()
                                                         .createNotification(
                                                       content:
-                                                          NotificationContent(
-                                                        //simgple notification
+                                                        NotificationContent(
+                                                        // workout status, no timer
                                                         id: 123,
-                                                        channelKey:
-                                                            'workout_channel', //set configuration wuth key "basic"
-                                                        //title: 'Timer - Rest 3 min',
-                                                        body:
-                                                            "${workoutsBox.getAt(widget.index)!.exercises[i].name} ${workoutsBox.getAt(widget.index)!.exercises[i].sets}x${workoutsBox.getAt(widget.index)!.exercises[i].weight} - Set ${j + 2}/${workoutsBox.getAt(widget.index)!.exercises[i].sets}",
-                                                        //buildNotifTime(),
-                                                        //'Squat 5x200lb - Set 2/5',
+                                                        channelKey: 'workout_status_channel',
+                                                        title: "Workout in Progress",
+                                                        body: j == workoutsBox.getAt(widget.index)!.exercises[i].sets - 1 ?
+                                                              workoutsBox.getAt(widget.index)!.exercises[i+1].weight % 1 == 0 ?
+                                                                "${workoutsBox.getAt(widget.index)!.exercises[i+1].
+                                                                name} ${workoutsBox.getAt(widget.index)!.exercises[i+1].
+                                                                sets}x${workoutsBox.getAt(widget.index)!.exercises[i+1].
+                                                                weight.toInt()} - Set 1/${workoutsBox.getAt(widget.index)!.
+                                                                exercises[i+1].sets}"
+                                                                : "${workoutsBox.getAt(widget.index)!.exercises[i+1].
+                                                                  name} ${workoutsBox.getAt(widget.index)!.exercises[i+1].
+                                                                  sets}x${workoutsBox.getAt(widget.index)!.exercises[i+1].
+                                                                  weight} - Set 1/${workoutsBox.getAt(widget.index)!.
+                                                                  exercises[i+1].sets}"
+                                                              : workoutsBox.getAt(widget.index)!.exercises[i].weight % 1 == 0 ?
+                                                                "${workoutsBox.getAt(widget.index)!.exercises[i].
+                                                                name} ${workoutsBox.getAt(widget.index)!.exercises[i].
+                                                                sets}x${workoutsBox.getAt(widget.index)!.exercises[i].
+                                                                weight.toInt()} - Set ${j + 2}/${workoutsBox.getAt(widget.
+                                                                index)!.exercises[i].sets}"
+                                                                : "${workoutsBox.getAt(widget.index)!.exercises[i].
+                                                                  name} ${workoutsBox.getAt(widget.index)!.exercises[i].
+                                                                  sets}x${workoutsBox.getAt(widget.index)!.exercises[i].
+                                                                  weight} - Set ${j + 2}/${workoutsBox.getAt(widget.
+                                                                  index)!.exercises[i].sets}",
                                                         payload: {
                                                           "name": "BlockLifts"
                                                         },
@@ -2705,20 +2782,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                             NotificationLayout
                                                                 .Default,
                                                       ),
-
-                                                      /*actionButtons: [
-                                                          NotificationActionButton(
-                                                            key: "done", 
-                                                            label: "Done",
-                                                            autoDismissible: false,
-                                                          ),
-
-                                                          NotificationActionButton(
-                                                            key: "failed", 
-                                                            label: "Failed",
-                                                            autoDismissible: false,
-                                                          )
-                                                      ]*/
                                                     );
                                                   }
                                                 });
