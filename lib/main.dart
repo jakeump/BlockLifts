@@ -323,45 +323,7 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
   }
 
   if (showNotification == true) {
-    //show notification
-    AwesomeNotifications().createNotification(
-        content: NotificationContent(
-          // workout status, no timer
-          id: 123,
-          channelKey: 'workout_channel',
-          title: "Workout in Progress",
-          body: setIdx ==
-                  workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets - 1
-              ? workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight %
-                          1 ==
-                      0
-                  ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight.toInt()}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
-                  : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
-              : workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight % 1 ==
-                      0
-                  ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight.toInt()}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}"
-                  : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}",
-          payload: {"name": "BlockLifts"},
-          autoDismissible: false,
-          locked: true,
-          largeIcon: 'resource://drawable/notification_icon',
-          roundedLargeIcon: true,
-          notificationLayout: NotificationLayout.Default,
-        ),
-        actionButtons: [
-          NotificationActionButton(
-            key: "done",
-            label: "Done",
-            autoDismissible: false,
-            buttonType: ActionButtonType.KeepOnTop,
-          ),
-          NotificationActionButton(
-            key: "failed",
-            label: "Failed",
-            autoDismissible: false,
-            buttonType: ActionButtonType.KeepOnTop,
-          )
-        ]);
+    createNotification(exIdx, setIdx);
   }
 
   // if last set, set to 0
@@ -435,6 +397,47 @@ void checkTime(int seconds) {
 void playRemoteFile() {
   AudioCache player = AudioCache();
   player.play("workout_alarm.mp3");
+}
+
+void createNotification(int exIdx, int setIdx) {
+  final workoutsBox = Hive.box<Workout>('workoutsBox');
+  AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        // workout status, no timer
+        id: 123,
+        channelKey: 'workout_channel',
+        title: duration.inSeconds.toString(), //"Workout in Progress",
+        body: setIdx ==
+                workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets - 1
+            ? workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight %
+                        1 ==
+                    0
+                ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight.toInt()}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
+                : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
+            : workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight % 1 == 0
+                ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight.toInt()}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}"
+                : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}",
+        payload: {"name": "BlockLifts"},
+        autoDismissible: false,
+        locked: true,
+        largeIcon: 'resource://drawable/notification_icon',
+        roundedLargeIcon: true,
+        notificationLayout: NotificationLayout.Default,
+      ),
+      actionButtons: [
+        NotificationActionButton(
+          key: "done",
+          label: "Done",
+          autoDismissible: false,
+          buttonType: ActionButtonType.KeepOnTop,
+        ),
+        NotificationActionButton(
+          key: "failed",
+          label: "Failed",
+          autoDismissible: false,
+          buttonType: ActionButtonType.KeepOnTop,
+        )
+      ]);
 }
 
 class MyApp extends StatelessWidget {
@@ -729,6 +732,10 @@ class _HomeState extends State<Home> {
       timer?.cancel();
     } else {
       duration = Duration(seconds: seconds);
+      // create notif every second, display time
+      if (showTimer == true) {
+        createNotification(exerciseIndex, setIndex);
+      }
       // checks every second if sound should be played
       if (showTimer) {
         checkTime(duration.inSeconds);
@@ -3256,17 +3263,27 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.end,
                                             children: [
-                                              failed ?
-                                                failureTimes.isEmpty ? const Text("No failure timer")
-                                                : failureTimes.last % 60 == 0 ?
-                                                  Text("Rest ${(failureTimes.last ~/ 60).toString()}min")
-                                                  : Text("Rest ${(failureTimes.last ~/ 60).toString()
-                                                        }min ${(failureTimes.last % 60).toString()}s")
-                                                : successTimes.isEmpty ? const Text("No success timer")
-                                                : successTimes.last % 60 == 0 ?
-                                                  Text("Rest ${(successTimes.last ~/ 60).toString()}min")
-                                                  : Text("Rest ${(successTimes.last ~/ 60).toString()
-                                                        }min ${(successTimes.last % 60).toString()}s"),
+                                              failed
+                                                  ? failureTimes.isEmpty
+                                                      ? const Text(
+                                                          "No failure timer")
+                                                      : failureTimes.last %
+                                                                  60 ==
+                                                              0
+                                                          ? Text(
+                                                              "Rest ${(failureTimes.last ~/ 60).toString()}min")
+                                                          : Text(
+                                                              "Rest ${(failureTimes.last ~/ 60).toString()}min ${(failureTimes.last % 60).toString()}s")
+                                                  : successTimes.isEmpty
+                                                      ? const Text(
+                                                          "No success timer")
+                                                      : successTimes.last %
+                                                                  60 ==
+                                                              0
+                                                          ? Text(
+                                                              "Rest ${(successTimes.last ~/ 60).toString()}min")
+                                                          : Text(
+                                                              "Rest ${(successTimes.last ~/ 60).toString()}min ${(successTimes.last % 60).toString()}s"),
                                               IconButton(
                                                   icon: const Icon(Icons.close),
                                                   onPressed: () => setState(
