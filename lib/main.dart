@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart' as pathprovider;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 
 part 'main.g.dart';
 
@@ -45,36 +46,27 @@ void main() async {
   }
 
   AwesomeNotifications().initialize(
-      // set the icon to null if you want to use the default app icon
-      // android->app->src->main->res->drawable
-      'resource://drawable/notification_icon',
-      [
-        NotificationChannel(
-          channelGroupKey: 'workout_channel_group',
-          channelKey: 'workout_status_channel',
-          channelName: 'Workout status notifications',
-          channelDescription: 'Notifications between sets',
-          defaultColor: Color(0xFF9D50DD),
-          ledColor: Colors.white,
-          enableVibration: false,
-          importance: NotificationImportance.Default,
-        ),
-        NotificationChannel(
-          channelGroupKey: 'workout_channel_group',
-          channelKey: 'workout_timer_channel',
-          channelName: 'Workout timer notifications',
-          channelDescription: 'Timer notifications',
-          defaultColor: Color(0xFF9D50DD),
-          ledColor: Colors.white,
-          enableVibration: true,
-        ),
-      ],
-      // Channel groups are only visual and are not required
-      channelGroups: [
-        NotificationChannelGroup(
-            channelGroupkey: 'workout_channel_group',
-            channelGroupName: 'Workout')
-      ],
+    // set the icon to null if you want to use the default app icon
+    // android->app->src->main->res->drawable
+    'resource://drawable/notification_icon',
+    [
+      NotificationChannel(
+        channelGroupKey: 'workout_channel_group',
+        channelKey: 'workout_channel',
+        channelName: 'Workout notifications',
+        channelDescription: 'Notifications during workout',
+        defaultColor: Color(0xFF9D50DD),
+        ledColor: Colors.white,
+        enableVibration: false,
+        playSound: false,
+        importance: NotificationImportance.Default,
+      ),
+    ],
+    // Channel groups are only visual and are not required
+    channelGroups: [
+      NotificationChannelGroup(
+          channelGroupkey: 'workout_channel_group', channelGroupName: 'Workout')
+    ],
   );
 
   runApp(const MyApp());
@@ -88,13 +80,20 @@ double tempBodyWeight = _setTempBodyWeight();
 Timer? timer;
 Duration duration = const Duration();
 bool showTimer = false;
+int workoutIndex = 0;
+int exerciseIndex = 0;
+int setIndex = 0;
 
 var headerColor = Colors.black;
 var backColor = Colors.black;
 var widgetNavColor = const Color.fromARGB(133, 65, 64, 64);
 var redColor = Colors.red;
 
+bool _canVibrate = true;
 ValueNotifier<int> _counter = ValueNotifier<int>(0); // to update list page
+ValueNotifier<int> _circleCounter = ValueNotifier<int>(0); // to update circles
+ValueNotifier<int> _timerCounter =
+    ValueNotifier<int>(0); // for timer on workout page
 
 @HiveType(typeId: 1)
 class Workout extends HiveObject {
@@ -235,6 +234,133 @@ void defaultState() async {
   prefs.setBool('resetToDefault', false);
 }
 
+void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool failed) {
+  final workoutsBox = Hive.box<Workout>('workoutsBox');
+  final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(workoutIndex);
+  final boolBox = Hive.box<bool>('boolBox');
+  bool showNotification = false;
+
+  void addTime(Timer? timer) {
+    const addSeconds = 0;
+    final seconds = duration.inSeconds + addSeconds;
+    if (seconds < 0) {
+      timer?.cancel();
+    } else {
+      duration = Duration(seconds: seconds);
+    }
+  }
+
+  void startTimer(Timer? timer) {
+    timer?.cancel();
+    duration = const Duration(seconds: 0);
+    timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
+  }
+
+  // failed button clicked from notification
+  if (failed) {
+    if (exIdx == tempWorkout!.exercises.length - 1 &&
+        setIdx == tempWorkout.exercises[exIdx].sets - 1) {
+      AwesomeNotifications().cancelAll();
+      showTimer = false;
+      tempWorkout.exercises[exIdx].repsCompleted[setIdx] -= 2;
+      tempWorkout.save();
+    } else {
+      // starts timer
+      if (boolBox.getAt(1)!) {
+        showTimer = true;
+      }
+      showNotification = true;
+      startTimer(timer);
+      tempWorkout.exercises[exIdx].repsCompleted[setIdx] -= 2;
+      tempWorkout.save();
+    }
+  }
+
+  else {
+    // loops around
+    if (tempWorkout!.exercises[exIdx].repsCompleted[setIdx] == 0) {
+      AwesomeNotifications().cancelAll();
+      showTimer = false;
+
+      tempWorkout.exercises[exIdx].repsCompleted[setIdx] =
+          tempWorkout.exercises[exIdx].reps + 1;
+      tempWorkout.save();
+      // last exercise, last rep, don't show timer
+    } else if (exIdx == tempWorkout.exercises.length - 1 &&
+        setIdx == tempWorkout.exercises[exIdx].sets - 1) {
+      AwesomeNotifications().cancelAll();
+      showTimer = false;
+      tempWorkout.exercises[exIdx].repsCompleted[setIdx] -= 1;
+      tempWorkout.save();
+    } else {
+      // starts timer
+      if (boolBox.getAt(1)!) {
+        showTimer = true;
+      }
+      showNotification = true;
+      startTimer(timer);
+      tempWorkout.exercises[exIdx].repsCompleted[setIdx] -= 1;
+      tempWorkout.save();
+    }
+  }
+
+  if (showNotification == true) {
+    //show notification
+    AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          // workout status, no timer
+          id: 123,
+          channelKey: 'workout_channel',
+          title: "Workout in Progress",
+          body: setIdx ==
+                  workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets - 1
+              ? workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight %
+                          1 ==
+                      0
+                  ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight.toInt()}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
+                  : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
+              : workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight %
+                          1 ==
+                      0
+                  ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight.toInt()}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}"
+                  : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}",
+          payload: {"name": "BlockLifts"},
+          autoDismissible: false,
+          locked: true,
+          largeIcon: 'resource://drawable/notification_icon',
+          roundedLargeIcon: true,
+          notificationLayout: NotificationLayout.Default,
+        ),
+        actionButtons: [
+          NotificationActionButton(
+            key: "done",
+            label: "Done",
+            autoDismissible: false,
+            buttonType: ActionButtonType.KeepOnTop,
+          ),
+          NotificationActionButton(
+            key: "failed",
+            label: "Failed",
+            autoDismissible: false,
+            buttonType: ActionButtonType.KeepOnTop,
+          )
+        ]);
+  }
+
+  // if last set, set to 0
+  if (setIdx == workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets - 1) {
+    setIndex = -1;
+    // if not last exercise
+    if (exIdx != workoutsBox.getAt(workoutIndex)!.exercises.length - 1) {
+      ++exerciseIndex;
+    }
+  } else {
+    ++setIndex;
+  }
+  _circleCounter.value++;
+  _timerCounter.value++;
+}
+
 double _setTempBodyWeight() {
   Box<double> bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
   bodyWeightsBox.isEmpty
@@ -247,18 +373,29 @@ double _setTempBodyWeight() {
 void checkTime(int seconds) {
   Box<TimerMap> successTimerBox = Hive.box<TimerMap>('successTimerBox');
   Box<TimerMap> failTimerBox = Hive.box<TimerMap>('failTimerBox');
+  Box<bool> boolBox = Hive.box<bool>('boolBox');
 
   for (int i = 0; i < successTimerBox.length; i++) {
     if (seconds == successTimerBox.getAt(i)!.time) {
       if (successTimerBox.getAt(i)!.isChecked) {
-        playRemoteFile();
+        if (_canVibrate && boolBox.getAt(3)!) {
+          Vibrate.vibrate();
+        }
+        if (boolBox.getAt(2)!) {
+          playRemoteFile();
+        }
       }
     }
   }
   for (int i = 0; i < failTimerBox.length; i++) {
     if (seconds == failTimerBox.getAt(i)!.time) {
       if (failTimerBox.getAt(i)!.isChecked) {
-        playRemoteFile();
+        if (_canVibrate && boolBox.getAt(3)!) {
+          Vibrate.vibrate();
+        }
+        if (boolBox.getAt(2)!) {
+          playRemoteFile();
+        }
       }
     }
   }
@@ -270,22 +407,16 @@ void playRemoteFile() {
   player.play("workout_alarm.mp3");
 }
 
-// when circle clicked, show notification "workout in progress, tap to resume"
-// when timer reaches certain point, cancel notification and create a new one,
-// this time one that vibrates. let the user know it's time to resume
-// and see if you can implement done and failed buttons
-
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // use keepontop for these
     AwesomeNotifications().actionStream.listen((action) {
       if (action.buttonKeyPressed == "done") {
-        print("Open button is pressed");
+        incrementCircles(workoutIndex, exerciseIndex, setIndex + 1, false);
       } else if (action.buttonKeyPressed == "failed") {
-        print("Delete button is pressed.");
+        incrementCircles(workoutIndex, exerciseIndex, setIndex + 1, true);
       }
     });
 
@@ -438,6 +569,57 @@ class PostWorkoutEditPage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   // home page
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+    AwesomeNotifications().isNotificationAllowed().then(
+      (isAllowed) {
+        if (!isAllowed) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Allow Notifications'),
+              content: const Text(
+                  'BlockLifts would like to send you notifications during workouts'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Don\'t Allow',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => AwesomeNotifications()
+                      .requestPermissionToSendNotifications()
+                      .then((_) => Navigator.pop(context)),
+                  child: const Text(
+                    'Allow',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Future<void> _init() async {
+    bool canVibrate = await Vibrate.canVibrate;
+    setState(() {
+      _canVibrate = canVibrate;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Widget> _pages = const <Widget>[
@@ -510,6 +692,7 @@ class _HomeState extends State<Home> {
   }
 
   void addTime(Timer? timer) {
+    _timerCounter.value++;
     const addSeconds = 1;
     final seconds = duration.inSeconds + addSeconds;
     if (seconds < 0) {
@@ -1322,17 +1505,16 @@ class _SetTimerState extends State<SetTimerPage> {
                     for (int idx = 0; idx < successTimerBox.length; idx++) {
                       if (successTimerBox.getAt(idx)!.time == times[index]) {
                         final tempTime =
-                          Hive.box<TimerMap>('successTimerBox').getAt(idx);
+                            Hive.box<TimerMap>('successTimerBox').getAt(idx);
                         tempTime!.isChecked = value!;
                         tempTime.save();
                       }
                     }
-                  }
-                  else {
+                  } else {
                     for (int idx = 0; idx < failTimerBox.length; idx++) {
                       if (failTimerBox.getAt(idx)!.time == times[index]) {
                         final tempTime =
-                          Hive.box<TimerMap>('failTimerBox').getAt(idx);
+                            Hive.box<TimerMap>('failTimerBox').getAt(idx);
                         tempTime!.isChecked = value!;
                         tempTime.save();
                       }
@@ -2335,6 +2517,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
   late final Box<String> notesBox;
   late final Box<int> counterBox;
   late final Box<Exercise> exercisesBox;
+  late final Box<bool> boolBox;
 
   @override
   void initState() {
@@ -2346,6 +2529,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
     bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
     notesBox = Hive.box<String>('notesBox');
     exercisesBox = Hive.box<Exercise>('exercisesBox');
+    boolBox = Hive.box<bool>('boolBox');
     timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
   }
 
@@ -2439,6 +2623,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
               ),
               child: const Text("Finish"),
               onPressed: () {
+                AwesomeNotifications().cancelAll();
                 widget.index == workoutsBox.length - 1
                     ? counterBox.putAt(0, 0)
                     : counterBox.putAt(
@@ -2524,7 +2709,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
         body: Container(
             padding: const EdgeInsets.all(0),
             constraints: const BoxConstraints(
-              maxHeight: 700,
+              maxHeight: 680,
             ),
             child: Column(children: <Widget>[
               Flexible(
@@ -2649,146 +2834,54 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                               .sets;
                                       j++)
                                     // circle, onTap decrement, loops back to rep number
-                                    SizedBox(
-                                      width: 82,
-                                      height: 50,
-                                      child: MaterialButton(
-                                          shape: const CircleBorder(
-                                              side: BorderSide(
-                                                  width: 1,
-                                                  style: BorderStyle.none)),
-                                          child: workoutsBox
-                                                      .getAt(widget.index)!
-                                                      .exercises[i]
-                                                      .repsCompleted[j] >
-                                                  workoutsBox
-                                                      .getAt(widget.index)!
-                                                      .exercises[i]
-                                                      .reps
-                                              ? Text(workoutsBox
-                                                  .getAt(widget.index)!
-                                                  .exercises[i]
-                                                  .reps
-                                                  .toString())
-                                              : Text(workoutsBox
-                                                  .getAt(widget.index)!
-                                                  .exercises[i]
-                                                  .repsCompleted[j]
-                                                  .toString()),
-                                          color: workoutsBox
-                                                      .getAt(widget.index)!
-                                                      .exercises[i]
-                                                      .repsCompleted[j] >
-                                                  workoutsBox
+                                    ValueListenableBuilder(
+                                        valueListenable: _circleCounter,
+                                        builder: (context, value, child) {
+                                          return SizedBox(
+                                            width: 82,
+                                            height: 50,
+                                            child: MaterialButton(
+                                              shape: const CircleBorder(
+                                                  side: BorderSide(
+                                                      width: 1,
+                                                      style: BorderStyle.none)),
+                                              child: workoutsBox
+                                                          .getAt(widget.index)!
+                                                          .exercises[i]
+                                                          .repsCompleted[j] >
+                                                      workoutsBox
+                                                          .getAt(widget.index)!
+                                                          .exercises[i]
+                                                          .reps
+                                                  ? Text(workoutsBox
                                                       .getAt(widget.index)!
                                                       .exercises[i]
                                                       .reps
-                                              ? const Color.fromARGB(
-                                                  255, 41, 41, 41)
-                                              : Colors.red,
-                                          textColor: Colors.white,
-                                          onPressed: () {
-                                            final tempWorkout =
-                                                Hive.box<Workout>('workoutsBox')
-                                                    .getAt(widget.index);
-                                            // loops around
-                                            if (tempWorkout!.exercises[i]
-                                                    .repsCompleted[j] ==
-                                                0) {
-                                              setState(() {
-                                                showTimer = false;
-                                                AwesomeNotifications()
-                                                    .cancelAll();
-                                                tempWorkout.exercises[i]
-                                                        .repsCompleted[j] =
-                                                    tempWorkout
-                                                            .exercises[i].reps +
-                                                        1;
-                                                tempWorkout.save();
-                                              });
-                                              // last exercise, last rep, don't show timer
-                                            } else if (i == tempWorkout.exercises.length - 1
-                                              && j == tempWorkout.exercises[i].sets - 1) {
-                                                setState(() {
-                                                  AwesomeNotifications().cancelAll();
-                                                  showTimer = false;
-                                                  tempWorkout.exercises[i].repsCompleted[j] -= 1;
-                                                  tempWorkout.save();
-                                                });
-                                              }
-                                            else {
-                                              // starts timer
-                                              setState(() {
-                                                showTimer = true;
-                                                startTimer(timer);
-                                                tempWorkout.exercises[i]
-                                                    .repsCompleted[j] -= 1;
-                                                tempWorkout.save();
-                                              });
-
-                                              if (showTimer == true) {
-                                                // function that adds two digits together and returns the sum
-
-                                                setState(() async {
-                                                  bool isallowed =
-                                                      await AwesomeNotifications()
-                                                          .isNotificationAllowed();
-                                                  if (!isallowed) {
-                                                    //no permission of local notification
-                                                    AwesomeNotifications()
-                                                        .requestPermissionToSendNotifications();
-                                                  } else {
-                                                    //show notification
-                                                    AwesomeNotifications()
-                                                        .createNotification(
-                                                      content:
-                                                        NotificationContent(
-                                                        // workout status, no timer
-                                                        id: 123,
-                                                        channelKey: 'workout_status_channel',
-                                                        title: "Workout in Progress",
-                                                        body: j == workoutsBox.getAt(widget.index)!.exercises[i].sets - 1 ?
-                                                              workoutsBox.getAt(widget.index)!.exercises[i+1].weight % 1 == 0 ?
-                                                                "${workoutsBox.getAt(widget.index)!.exercises[i+1].
-                                                                name} ${workoutsBox.getAt(widget.index)!.exercises[i+1].
-                                                                sets}x${workoutsBox.getAt(widget.index)!.exercises[i+1].
-                                                                weight.toInt()} - Set 1/${workoutsBox.getAt(widget.index)!.
-                                                                exercises[i+1].sets}"
-                                                                : "${workoutsBox.getAt(widget.index)!.exercises[i+1].
-                                                                  name} ${workoutsBox.getAt(widget.index)!.exercises[i+1].
-                                                                  sets}x${workoutsBox.getAt(widget.index)!.exercises[i+1].
-                                                                  weight} - Set 1/${workoutsBox.getAt(widget.index)!.
-                                                                  exercises[i+1].sets}"
-                                                              : workoutsBox.getAt(widget.index)!.exercises[i].weight % 1 == 0 ?
-                                                                "${workoutsBox.getAt(widget.index)!.exercises[i].
-                                                                name} ${workoutsBox.getAt(widget.index)!.exercises[i].
-                                                                sets}x${workoutsBox.getAt(widget.index)!.exercises[i].
-                                                                weight.toInt()} - Set ${j + 2}/${workoutsBox.getAt(widget.
-                                                                index)!.exercises[i].sets}"
-                                                                : "${workoutsBox.getAt(widget.index)!.exercises[i].
-                                                                  name} ${workoutsBox.getAt(widget.index)!.exercises[i].
-                                                                  sets}x${workoutsBox.getAt(widget.index)!.exercises[i].
-                                                                  weight} - Set ${j + 2}/${workoutsBox.getAt(widget.
-                                                                  index)!.exercises[i].sets}",
-                                                        payload: {
-                                                          "name": "BlockLifts"
-                                                        },
-                                                        autoDismissible: false,
-                                                        locked: true,
-                                                        largeIcon:
-                                                            'resource://drawable/notification_icon',
-                                                        roundedLargeIcon: true,
-                                                        notificationLayout:
-                                                            NotificationLayout
-                                                                .Default,
-                                                      ),
-                                                    );
-                                                  }
-                                                });
-                                              }
-                                            }
-                                          }),
-                                    ),
+                                                      .toString())
+                                                  : Text(workoutsBox
+                                                      .getAt(widget.index)!
+                                                      .exercises[i]
+                                                      .repsCompleted[j]
+                                                      .toString()),
+                                              color: workoutsBox
+                                                          .getAt(widget.index)!
+                                                          .exercises[i]
+                                                          .repsCompleted[j] >
+                                                      workoutsBox
+                                                          .getAt(widget.index)!
+                                                          .exercises[i]
+                                                          .reps
+                                                  ? const Color.fromARGB(
+                                                      255, 41, 41, 41)
+                                                  : Colors.red,
+                                              textColor: Colors.white,
+                                              onPressed: () {
+                                                incrementCircles(
+                                                    widget.index, i, j, false);
+                                              },
+                                            ),
+                                          );
+                                        })
                                 ]),
                               ]),
                         ),
@@ -3044,85 +3137,94 @@ class _WorkoutPageState extends State<WorkoutPage> {
                       ])),
             ])),
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-        floatingActionButton:
-            Column(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
-          showTimer
-              ? Container(
-                  width: double.infinity,
-                  height: 100,
-                  padding: const EdgeInsets.only(left: 25),
-                  child: Align(
-                      alignment: Alignment.center,
-                      child: Container(
-                          height: 80,
-                          width: double.infinity,
-                          child: Row(children: <Widget>[
-                            Flexible(
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                  buildTime(),
-                                ])),
-                            Flexible(
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Text("Rest please"),
-                                    IconButton(
-                                        icon: const Icon(Icons.close),
-                                        onPressed: () =>
-                                            setState(() => showTimer = false)),
-                                  ]),
+        floatingActionButton: ValueListenableBuilder(
+            valueListenable: _timerCounter,
+            builder: (context, value, child) {
+              return Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    showTimer
+                        ? Container(
+                            width: double.infinity,
+                            height: 100,
+                            padding: const EdgeInsets.only(left: 25),
+                            child: Align(
+                                alignment: Alignment.center,
+                                child: Container(
+                                    height: 80,
+                                    width: double.infinity,
+                                    child: Row(children: <Widget>[
+                                      Flexible(
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                            buildTime(),
+                                          ])),
+                                      Flexible(
+                                        child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            children: [
+                                              Text("Rest please"),
+                                              IconButton(
+                                                  icon: const Icon(Icons.close),
+                                                  onPressed: () => setState(
+                                                      () => showTimer = false)),
+                                            ]),
+                                      ),
+                                    ]),
+                                    decoration: BoxDecoration(
+                                      color: widgetNavColor,
+                                    ))))
+                        : Container(),
+                    Container(
+                        padding: const EdgeInsets.only(left: 25),
+                        child: Row(children: <Widget>[
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.bottomLeft,
+                              child: TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const WorkoutNotesPage()));
+                                  },
+                                  child: const Text("Note"),
+                                  style: TextButton.styleFrom(
+                                    primary: redColor,
+                                    textStyle: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                    alignment: Alignment.bottomCenter,
+                                  )),
                             ),
-                          ]),
-                          decoration: BoxDecoration(
-                            color: widgetNavColor,
-                          ))))
-              : Container(),
-          Container(
-              padding: const EdgeInsets.only(left: 25),
-              child: Row(children: <Widget>[
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: TextButton(
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const WorkoutNotesPage()));
-                        },
-                        child: const Text("Note"),
-                        style: TextButton.styleFrom(
-                          primary: redColor,
-                          textStyle:
-                              const TextStyle(fontWeight: FontWeight.bold),
-                          alignment: Alignment.bottomCenter,
-                        )),
-                  ),
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.bottomRight,
-                    child: TextButton(
-                        onPressed: () {
-                          Navigator.of(context)
-                              .push(MaterialPageRoute(
-                                  builder: (context) =>
-                                      EditWorkoutPage(widget.index)))
-                              .then((value) {
-                            setState(() {});
-                          });
-                        },
-                        child: const Text("Edit"),
-                        style: TextButton.styleFrom(
-                          primary: redColor,
-                          textStyle:
-                              const TextStyle(fontWeight: FontWeight.bold),
-                          alignment: Alignment.bottomCenter,
-                        )),
-                  ),
-                ),
-              ])),
-        ]));
+                          ),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.bottomRight,
+                              child: TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context)
+                                        .push(MaterialPageRoute(
+                                            builder: (context) =>
+                                                EditWorkoutPage(widget.index)))
+                                        .then((value) {
+                                      setState(() {});
+                                    });
+                                  },
+                                  child: const Text("Edit"),
+                                  style: TextButton.styleFrom(
+                                    primary: redColor,
+                                    textStyle: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                    alignment: Alignment.bottomCenter,
+                                  )),
+                            ),
+                          ),
+                        ])),
+                  ]);
+            }));
   }
 
   Widget buildTime() {
@@ -5076,7 +5178,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
         body: Container(
             padding: const EdgeInsets.all(0),
             constraints: const BoxConstraints(
-              maxHeight: 750,
+              maxHeight: 770,
             ),
             child: Column(children: <Widget>[
               Flexible(
