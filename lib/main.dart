@@ -61,6 +61,18 @@ void main() async {
         playSound: false,
         importance: NotificationImportance.Default,
       ),
+      /*NotificationChannel(
+        channelGroupKey: 'workout_channel_group',
+        channelKey: 'timer_channel',
+        channelName: 'Timer notifications',
+        channelDescription: 'Timer notifications',
+        defaultColor: Color(0xFF9D50DD),
+        ledColor: Colors.white,
+        enableVibration: true,
+        vibrationPattern: lowVibrationPattern,
+        playSound: false,
+        importance: NotificationImportance.Default,
+      ),*/
     ],
     // Channel groups are only visual and are not required
     channelGroups: [
@@ -83,6 +95,7 @@ bool showTimer = false;
 int workoutIndex = 0;
 int exerciseIndex = 0;
 int setIndex = 0;
+late bool failed;
 
 var headerColor = Colors.black;
 var backColor = Colors.black;
@@ -234,7 +247,7 @@ void defaultState() async {
   prefs.setBool('resetToDefault', false);
 }
 
-void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool failed) {
+void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
   final workoutsBox = Hive.box<Workout>('workoutsBox');
   final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(workoutIndex);
   final boolBox = Hive.box<bool>('boolBox');
@@ -257,7 +270,7 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool failed) {
   }
 
   // failed button clicked from notification
-  if (failed) {
+  if (fail) {
     if (exIdx == tempWorkout!.exercises.length - 1 &&
         setIdx == tempWorkout.exercises[exIdx].sets - 1) {
       AwesomeNotifications().cancelAll();
@@ -273,10 +286,9 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool failed) {
       startTimer(timer);
       tempWorkout.exercises[exIdx].repsCompleted[setIdx] -= 2;
       tempWorkout.save();
+      failed = true;
     }
-  }
-
-  else {
+  } else {
     // loops around
     if (tempWorkout!.exercises[exIdx].repsCompleted[setIdx] == 0) {
       AwesomeNotifications().cancelAll();
@@ -301,6 +313,12 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool failed) {
       startTimer(timer);
       tempWorkout.exercises[exIdx].repsCompleted[setIdx] -= 1;
       tempWorkout.save();
+      if (tempWorkout.exercises[exIdx].repsCompleted[setIdx] ==
+          tempWorkout.exercises[exIdx].reps) {
+        failed = false;
+      } else {
+        failed = true;
+      }
     }
   }
 
@@ -319,8 +337,7 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool failed) {
                       0
                   ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight.toInt()}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
                   : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
-              : workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight %
-                          1 ==
+              : workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight % 1 ==
                       0
                   ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight.toInt()}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}"
                   : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}",
@@ -375,14 +392,16 @@ void checkTime(int seconds) {
   Box<TimerMap> failTimerBox = Hive.box<TimerMap>('failTimerBox');
   Box<bool> boolBox = Hive.box<bool>('boolBox');
 
-  for (int i = 0; i < successTimerBox.length; i++) {
-    if (seconds == successTimerBox.getAt(i)!.time) {
-      if (successTimerBox.getAt(i)!.isChecked) {
-        if (_canVibrate && boolBox.getAt(3)!) {
-          Vibrate.vibrate();
-        }
-        if (boolBox.getAt(2)!) {
-          playRemoteFile();
+  if (!failed) {
+    for (int i = 0; i < successTimerBox.length; i++) {
+      if (seconds == successTimerBox.getAt(i)!.time) {
+        if (successTimerBox.getAt(i)!.isChecked) {
+          if (_canVibrate && boolBox.getAt(3)!) {
+            Vibrate.vibrate();
+          }
+          if (boolBox.getAt(2)!) {
+            playRemoteFile();
+          }
         }
       }
     }
@@ -391,6 +410,18 @@ void checkTime(int seconds) {
     if (seconds == failTimerBox.getAt(i)!.time) {
       if (failTimerBox.getAt(i)!.isChecked) {
         if (_canVibrate && boolBox.getAt(3)!) {
+          /*AwesomeNotifications().createNotification(
+              content: NotificationContent(
+            id: 1234,
+            channelKey: 'timer_channel',
+            title: "Timer",
+            payload: {"name": "BlockLifts"},
+            autoDismissible: true,
+            locked: false,
+            largeIcon: 'resource://drawable/notification_icon',
+            roundedLargeIcon: false,
+            notificationLayout: NotificationLayout.Default,
+          ));*/
           Vibrate.vibrate();
         }
         if (boolBox.getAt(2)!) {
@@ -401,7 +432,6 @@ void checkTime(int seconds) {
   }
 }
 
-//Call this function from an event
 void playRemoteFile() {
   AudioCache player = AudioCache();
   player.play("workout_alarm.mp3");
@@ -1707,21 +1737,60 @@ class _SetTimerState extends State<SetTimerPage> {
                                     ),
                                     child: const Text("OK"),
                                     onPressed: () {
+                                      bool duplicate = false;
                                       setState(() {
                                         times.add(minutes * 60 + seconds);
-                                        times.sort();
+
                                         if (widget.index == 0) {
                                           // check for duplicate time in success timer box
-
-                                          successTimerBox.add(TimerMap(
-                                              minutes * 60 + seconds, true));
-                                          Navigator.of(context).pop();
-                                          minutes = seconds = 0;
+                                          for (int i = 0;
+                                              i < successTimerBox.length;
+                                              i++) {
+                                            if (successTimerBox
+                                                    .getAt(i)!
+                                                    .time ==
+                                                times.last) {
+                                              duplicate = true;
+                                              times.removeLast();
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(const SnackBar(
+                                                content: Text(
+                                                    "Timer already exists"),
+                                                duration: Duration(seconds: 2),
+                                              ));
+                                            }
+                                          }
+                                          if (!duplicate) {
+                                            successTimerBox.add(TimerMap(
+                                                minutes * 60 + seconds, true));
+                                            times.sort();
+                                            Navigator.of(context).pop();
+                                            minutes = seconds = 0;
+                                          }
                                         } else {
-                                          failTimerBox.add(TimerMap(
-                                              minutes * 60 + seconds, true));
-                                          Navigator.of(context).pop();
-                                          minutes = seconds = 0;
+                                          // check for duplicate time in fail timer box
+                                          for (int i = 0;
+                                              i < failTimerBox.length;
+                                              i++) {
+                                            if (failTimerBox.getAt(i)!.time ==
+                                                times.last) {
+                                              duplicate = true;
+                                              times.removeLast();
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(const SnackBar(
+                                                content: Text(
+                                                    "Timer already exists"),
+                                                duration: Duration(seconds: 2),
+                                              ));
+                                            }
+                                          }
+                                          if (!duplicate) {
+                                            failTimerBox.add(TimerMap(
+                                                minutes * 60 + seconds, true));
+                                            Navigator.of(context).pop();
+                                            times.sort();
+                                            minutes = seconds = 0;
+                                          }
                                         }
                                       });
                                     },
@@ -2518,6 +2587,10 @@ class _WorkoutPageState extends State<WorkoutPage> {
   late final Box<int> counterBox;
   late final Box<Exercise> exercisesBox;
   late final Box<bool> boolBox;
+  late final Box<TimerMap> successTimerBox;
+  late final Box<TimerMap> failTimerBox;
+  final List<int> successTimes = [];
+  final List<int> failureTimes = [];
 
   @override
   void initState() {
@@ -2530,7 +2603,21 @@ class _WorkoutPageState extends State<WorkoutPage> {
     notesBox = Hive.box<String>('notesBox');
     exercisesBox = Hive.box<Exercise>('exercisesBox');
     boolBox = Hive.box<bool>('boolBox');
+    successTimerBox = Hive.box<TimerMap>('successTimerBox');
+    failTimerBox = Hive.box<TimerMap>('failTimerBox');
+    getTimes();
     timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
+  }
+
+  void getTimes() {
+    for (int i = 0; i < successTimerBox.length; i++) {
+      successTimes.add(successTimerBox.getAt(i)!.time);
+    }
+    for (int i = 0; i < failTimerBox.length; i++) {
+      failureTimes.add(failTimerBox.getAt(i)!.time);
+    }
+    successTimes.sort();
+    failureTimes.sort();
   }
 
   @override
@@ -2876,6 +2963,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                   : Colors.red,
                                               textColor: Colors.white,
                                               onPressed: () {
+                                                workoutIndex = widget.index;
+                                                exerciseIndex = i;
+                                                setIndex = j - 1;
                                                 incrementCircles(
                                                     widget.index, i, j, false);
                                               },
@@ -3166,7 +3256,17 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.end,
                                             children: [
-                                              Text("Rest please"),
+                                              failed ?
+                                                failureTimes.isEmpty ? const Text("No failure timer")
+                                                : failureTimes.last % 60 == 0 ?
+                                                  Text("Rest ${(failureTimes.last ~/ 60).toString()}min")
+                                                  : Text("Rest ${(failureTimes.last ~/ 60).toString()
+                                                        }min ${(failureTimes.last % 60).toString()}s")
+                                                : successTimes.isEmpty ? const Text("No success timer")
+                                                : successTimes.last % 60 == 0 ?
+                                                  Text("Rest ${(successTimes.last ~/ 60).toString()}min")
+                                                  : Text("Rest ${(successTimes.last ~/ 60).toString()
+                                                        }min ${(successTimes.last % 60).toString()}s"),
                                               IconButton(
                                                   icon: const Icon(Icons.close),
                                                   onPressed: () => setState(
