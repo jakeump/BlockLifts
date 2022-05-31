@@ -21,7 +21,8 @@ void main() async {
     ..registerAdapter(ExerciseAdapter())
     ..registerAdapter(WorkoutAdapter())
     ..registerAdapter(IndivWorkoutAdapter())
-    ..registerAdapter(TimerMapAdapter());
+    ..registerAdapter(TimerMapAdapter())
+    ..registerAdapter(PlateAdapter());
 
   await Hive.openBox<Exercise>('exercisesBox');
   await Hive.openBox<Workout>('workoutsBox');
@@ -33,6 +34,7 @@ void main() async {
   await Hive.openBox<bool>('boolBox');
   await Hive.openBox<TimerMap>('successTimerBox');
   await Hive.openBox<TimerMap>('failTimerBox');
+  await Hive.openBox<Plate>('platesBox');
 
   // on first time opening app, sets to default state
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -107,6 +109,8 @@ ValueNotifier<int> _counter = ValueNotifier<int>(0); // to update list page
 ValueNotifier<int> _circleCounter = ValueNotifier<int>(0); // to update circles
 ValueNotifier<int> _timerCounter =
     ValueNotifier<int>(0); // for timer on workout page
+ValueNotifier<int> _plateCounter =
+    ValueNotifier<int>(0); // refrehes plates list
 
 @HiveType(typeId: 1)
 class Workout extends HiveObject {
@@ -129,6 +133,16 @@ class TimerMap extends HiveObject {
   bool isChecked;
 
   TimerMap(this.time, this.isChecked);
+}
+
+@HiveType(typeId: 4)
+class Plate extends HiveObject {
+  @HiveField(0)
+  double weight;
+  @HiveField(1)
+  int number;
+
+  Plate(this.weight, this.number);
 }
 
 @HiveType(typeId: 0)
@@ -219,6 +233,14 @@ void defaultState() async {
   Box<double> bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
   bodyWeightsBox.deleteAll(bodyWeightsBox.keys);
   _setTempBodyWeight();
+
+  Box<Plate> platesBox = Hive.box<Plate>('platesBox');
+  platesBox.deleteAll(platesBox.keys);
+  platesBox.add(Plate(45, 8));
+  platesBox.add(Plate(25, 4));
+  platesBox.add(Plate(10, 4));
+  platesBox.add(Plate(5, 4));
+  platesBox.add(Plate(2.5, 4));
 
   Box<String> notesBox = Hive.box<String>('notesBox');
   notesBox.deleteAll(notesBox.keys);
@@ -401,12 +423,16 @@ void playRemoteFile() {
 
 void createNotification(int exIdx, int setIdx) {
   final workoutsBox = Hive.box<Workout>('workoutsBox');
+  String twoDigits(int n) => n.toString().padLeft(2, '0');
+  final minutes = twoDigits(duration.inMinutes.remainder(60));
+  final seconds = twoDigits(duration.inSeconds.remainder(60));
+
   AwesomeNotifications().createNotification(
       content: NotificationContent(
         // workout status, no timer
         id: 123,
         channelKey: 'workout_channel',
-        title: duration.inSeconds.toString(), //"Workout in Progress",
+        title: "$minutes:$seconds - Rest ",
         body: setIdx ==
                 workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets - 1
             ? workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight %
@@ -517,6 +543,13 @@ class SetTimerPage extends StatefulWidget {
   const SetTimerPage(this.index, {Key? key}) : super(key: key);
   @override
   _SetTimerState createState() => _SetTimerState();
+  // creating State Object of MyWidget
+}
+
+class PlatesPage extends StatefulWidget {
+  const PlatesPage({Key? key}) : super(key: key);
+  @override
+  _PlatesState createState() => _PlatesState();
   // creating State Object of MyWidget
 }
 
@@ -1008,6 +1041,8 @@ class _ProgressState extends State<Progress> {
 
 class _SettingsState extends State<Settings> {
   late final Box<bool> boolBox;
+  late final Box<Plate> platesBox;
+  String platesString = "";
 
   void toggleSwitch(bool value) {
     if (boolBox.getAt(0)! == false) {
@@ -1023,14 +1058,29 @@ class _SettingsState extends State<Settings> {
     }
   }
 
+  String platesToString() {
+    String output = '';
+    for (int i = 0; i < platesBox.length; ++i) {
+      output += platesBox.getAt(i)!.number.toString();
+      output += '×';
+      platesBox.getAt(i)!.weight % 1 == 0
+          ? output += platesBox.getAt(i)!.weight.toInt().toString()
+          : output += platesBox.getAt(i)!.weight.toString();
+      i == platesBox.length - 1 ? output += 'lb' : output += ' ⋅ ';
+    }
+    return output;
+  }
+
   @override
   void initState() {
     super.initState();
     boolBox = Hive.box<bool>('boolBox');
+    platesBox = Hive.box<Plate>('platesBox');
   }
 
   @override
   Widget build(BuildContext context) {
+    platesString = platesToString();
     return Scaffold(
       backgroundColor: backColor,
       appBar: AppBar(
@@ -1041,33 +1091,36 @@ class _SettingsState extends State<Settings> {
       ),
       body: Column(children: <Widget>[
         SizedBox(
-          height: 88,
+          height: 80,
           width: double.infinity,
           child: TextButton(
             style: TextButton.styleFrom(
                 primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
-            child: Row(children: <Widget>[
-              const Expanded(
-                child: Align(
-                  alignment: Alignment(-.83, 0),
-                  child: Text("Dark Mode"),
-                ),
-              ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Switch(
-                    inactiveThumbColor: Colors.grey,
-                    inactiveTrackColor: widgetNavColor,
-                    activeColor: Colors.white,
-                    activeTrackColor: Colors.grey,
-                    value: boolBox.getAt(0)!,
-                    onChanged: toggleSwitch,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: <Widget>[
+                const Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Dark Mode"),
                   ),
                 ),
-              ),
-            ]),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Switch(
+                      inactiveThumbColor: Colors.grey,
+                      inactiveTrackColor: widgetNavColor,
+                      activeColor: Colors.white,
+                      activeTrackColor: Colors.grey,
+                      value: boolBox.getAt(0)!,
+                      onChanged: toggleSwitch,
+                    ),
+                  ),
+                ),
+              ]),
+            ),
             onPressed: (() => toggleSwitch(false)),
           ),
         ),
@@ -1079,17 +1132,17 @@ class _SettingsState extends State<Settings> {
                 primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
             child: Container(
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
+              padding: const EdgeInsets.all(10),
               child: Row(children: <Widget>[
                 Expanded(
                   child: Column(children: [
                     const Align(
-                      alignment: Alignment(-.96, 0),
+                      alignment: Alignment.centerLeft,
                       child: Text("Timer"),
                     ),
                     const SizedBox(height: 8),
                     Align(
-                      alignment: const Alignment(-.96, 0),
+                      alignment: Alignment.centerLeft,
                       child: boolBox.getAt(1)! == true
                           ? const Text("On",
                               style: TextStyle(color: Colors.grey))
@@ -1111,14 +1164,55 @@ class _SettingsState extends State<Settings> {
           ),
         ),
         SizedBox(
+          height: 92,
+          width: double.infinity,
+          child: TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Column(children: [
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Plates"),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(platesString,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.grey)),
+                    ),
+                  ]),
+                ),
+              ]),
+            ),
+            onPressed: () {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(
+                      builder: (context) => const PlatesPage()))
+                  .then((value) {
+                setState(() {});
+              });
+            },
+          ),
+        ),
+        SizedBox(
           height: 80,
           width: double.infinity,
           child: TextButton(
               style: TextButton.styleFrom(
                   primary: Colors.red,
                   textStyle: const TextStyle(fontSize: 16)),
-              child: const Align(
-                  alignment: Alignment(-.95, 0), child: Text("Reset")),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                child: const Align(
+                    alignment: Alignment.centerLeft, child: Text("Reset")),
+              ),
               onPressed: () {
                 setState(() {
                   defaultState();
@@ -1247,18 +1341,18 @@ class _TimerState extends State<TimerPage> {
                 primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
             child: Container(
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
+              padding: const EdgeInsets.all(10),
               child: Column(children: <Widget>[
                 Row(children: <Widget>[
                   Expanded(
                     child: Column(children: [
                       const Align(
-                        alignment: Alignment(-.83, 0),
+                        alignment: Alignment.centerLeft,
                         child: Text("Timer"),
                       ),
                       const SizedBox(height: 8),
                       Align(
-                        alignment: const Alignment(-.86, 0),
+                        alignment: Alignment.centerLeft,
                         child: boolBox.getAt(1)! == true
                             ? const Text("On",
                                 style: TextStyle(color: Colors.grey))
@@ -1295,18 +1389,18 @@ class _TimerState extends State<TimerPage> {
                       primary: Colors.white,
                       textStyle: const TextStyle(fontSize: 16)),
                   child: Container(
-                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    padding: const EdgeInsets.all(10),
                     child: Column(children: <Widget>[
                       Row(children: <Widget>[
                         Expanded(
                           child: Column(children: [
                             const Align(
-                              alignment: Alignment(-.86, 0),
+                              alignment: Alignment.centerLeft,
                               child: Text("Ring"),
                             ),
                             const SizedBox(height: 8),
                             Align(
-                              alignment: const Alignment(-.85, 0),
+                              alignment: Alignment.centerLeft,
                               child: boolBox.getAt(2)! == true
                                   ? const Text("Enabled",
                                       style: TextStyle(color: Colors.grey))
@@ -1344,18 +1438,18 @@ class _TimerState extends State<TimerPage> {
                       primary: Colors.white,
                       textStyle: const TextStyle(fontSize: 16)),
                   child: Container(
-                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    padding: const EdgeInsets.all(10),
                     child: Column(children: <Widget>[
                       Row(children: <Widget>[
                         Expanded(
                           child: Column(children: [
                             const Align(
-                              alignment: Alignment(-.86, 0),
+                              alignment: Alignment.centerLeft,
                               child: Text("Vibration"),
                             ),
                             const SizedBox(height: 8),
                             Align(
-                              alignment: const Alignment(-.87, 0),
+                              alignment: Alignment.centerLeft,
                               child: boolBox.getAt(3)! == true
                                   ? const Text("Enabled",
                                       style: TextStyle(color: Colors.grey))
@@ -1393,17 +1487,17 @@ class _TimerState extends State<TimerPage> {
                       primary: Colors.white,
                       textStyle: const TextStyle(fontSize: 16)),
                   child: Container(
-                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    padding: const EdgeInsets.all(10),
                     child: Column(children: <Widget>[
                       Expanded(
                         child: Column(children: [
                           const Align(
-                            alignment: Alignment(-.95, 0),
+                            alignment: Alignment.centerLeft,
                             child: Text("Success Timer"),
                           ),
                           const SizedBox(height: 8),
                           Align(
-                            alignment: const Alignment(-.96, 0),
+                            alignment: Alignment.centerLeft,
                             child: Text(successTimes,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -1433,17 +1527,17 @@ class _TimerState extends State<TimerPage> {
                       primary: Colors.white,
                       textStyle: const TextStyle(fontSize: 16)),
                   child: Container(
-                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    padding: const EdgeInsets.all(10),
                     child: Column(children: <Widget>[
                       Expanded(
                         child: Column(children: [
                           const Align(
-                            alignment: Alignment(-.95, 0),
+                            alignment: Alignment.centerLeft,
                             child: Text("Fail Timer"),
                           ),
                           const SizedBox(height: 8),
                           Align(
-                            alignment: const Alignment(-.97, 0),
+                            alignment: Alignment.centerLeft,
                             child: Text(failTimes,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -1812,6 +1906,379 @@ class _SetTimerState extends State<SetTimerPage> {
   }
 }
 
+class _PlatesState extends State<PlatesPage> {
+  late final Box<Plate> platesBox;
+
+  List<int> nums = [for (int i = 0; i < 51; i++) i * 2];
+
+  @override
+  void initState() {
+    super.initState();
+    platesBox = Hive.box<Plate>('platesBox');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        backgroundColor: backColor,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios),
+            iconSize: 18,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          backgroundColor: headerColor,
+          title: const Text("Plates"),
+          titleTextStyle: const TextStyle(fontSize: 22),
+        ),
+        body: ValueListenableBuilder(
+            valueListenable: _plateCounter,
+            builder: (context, value, child) {
+              return ListView(children: <Widget>[
+                for (int i = 0; i < platesBox.length; i++)
+                  SizedBox(
+                    height: 88,
+                    width: double.infinity,
+                    child: TextButton(
+                        style: TextButton.styleFrom(
+                            primary: Colors.white,
+                            textStyle: const TextStyle(fontSize: 16)),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          child: Row(children: <Widget>[
+                            Expanded(
+                              child: Column(children: [
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: platesBox.getAt(i)!.weight % 1 == 0
+                                      ? Text(
+                                          "${platesBox.getAt(i)!.weight.toInt().toString()}lb")
+                                      : Text(
+                                          "${platesBox.getAt(i)!.weight.toString()}lb"),
+                                ),
+                                const SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                      "${platesBox.getAt(i)!.number} plates",
+                                      style:
+                                          const TextStyle(color: Colors.grey)),
+                                ),
+                              ]),
+                            ),
+                          ]),
+                        ),
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) => plateSelector(i));
+                        }),
+                  )
+              ]);
+            }),
+        floatingActionButton: Align(
+            alignment: const Alignment(.93, 1), // custom alignment
+            child: SizedBox(
+              width: 100,
+              height: 50,
+              child: OutlinedButton(
+                  child: const Text("Add"),
+                  style: OutlinedButton.styleFrom(
+                    primary: Colors.white,
+                    backgroundColor: redColor,
+                    shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(50))),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                        context: context, builder: (context) => addPlate());
+                  }),
+            )));
+  }
+
+  Widget plateSelector(int i) {
+    int tempNumber = platesBox.getAt(i)!.number;
+    return StatefulBuilder(builder: (context, _setState) {
+      return Dialog(
+          insetPadding: const EdgeInsets.all(10),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(0, 10, 10, 10),
+            child: Column(children: <Widget>[
+              Container(
+                padding: const EdgeInsets.all(20),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: platesBox.getAt(i)!.weight % 1 == 0
+                      ? Text(
+                          "${platesBox.getAt(i)!.weight.toInt().toString()}lb Plates",
+                          style: const TextStyle(fontSize: 18))
+                      : Text(
+                          "${platesBox.getAt(i)!.weight.toString()}lb Plates",
+                          style: const TextStyle(fontSize: 18)),
+                ),
+              ),
+              Flexible(
+                  child: ListView(children: <Widget>[
+                for (var j in nums)
+                  RadioListTile<int>(
+                      title: Text(j.toString(),
+                          style: const TextStyle(fontSize: 15)),
+                      activeColor: redColor,
+                      dense: true,
+                      value: j,
+                      groupValue: tempNumber,
+                      onChanged: (value) {
+                        _setState(() {
+                          tempNumber = value!;
+                        });
+                      }),
+              ])),
+              Row(children: <Widget>[
+                Expanded(
+                  child: TextButton(
+                      child: const Text("Delete"),
+                      style: TextButton.styleFrom(
+                        primary: redColor,
+                        textStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        alignment: Alignment.center,
+                      ),
+                      onPressed: () {
+                        platesBox.deleteAt(i);
+                        _plateCounter.value++;
+                        Navigator.of(context).pop();
+                      }),
+                ),
+                const Expanded(child: Text("")),
+                Expanded(
+                  child: TextButton(
+                      child: const Text("Cancel"),
+                      style: TextButton.styleFrom(
+                        primary: redColor,
+                        textStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        alignment: Alignment.center,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      }),
+                ),
+                Expanded(
+                  child: TextButton(
+                      child: const Text("OK"),
+                      style: TextButton.styleFrom(
+                        primary: redColor,
+                        textStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        alignment: Alignment.center,
+                      ),
+                      onPressed: () {
+                        final tempPlate =
+                            Hive.box<Plate>('platesBox').getAt(i)!;
+                        tempPlate.number = tempNumber;
+                        tempPlate.save();
+                        _plateCounter.value++;
+                        Navigator.of(context).pop();
+                      }),
+                ),
+              ]),
+            ]),
+          ));
+    });
+  }
+
+  Widget addPlate() {
+    final _myController = TextEditingController();
+    _myController.text = "10";
+    Box<Plate> platesBox = Hive.box<Plate>('platesBox');
+
+    return Dialog(
+      insetPadding: const EdgeInsets.all(10),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Text("Add New Plate",
+                  style: TextStyle(
+                    fontSize: 18,
+                  )),
+              const Text("Plate weight in LB",
+                  style: TextStyle(
+                    fontSize: 14,
+                  )),
+              const SizedBox(height: 10),
+              TextField(
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter(RegExp(r'[0-9.]'), allow: true)
+                ],
+                controller: _myController,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+                textAlignVertical: TextAlignVertical.bottom,
+                decoration: const InputDecoration(
+                  contentPadding: EdgeInsets.only(bottom: 10),
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
+              ),
+              Divider(
+                color: Colors.white.withOpacity(.7),
+                height: 2,
+                thickness: 2,
+              ),
+              const SizedBox(height: 40),
+              Row(
+                children: <Widget>[
+                  SizedBox(
+                    width: 170,
+                    height: 50,
+                    child: OutlinedButton(
+                      child: const Text("-5lb"),
+                      style: OutlinedButton.styleFrom(
+                        primary: Colors.white,
+                        backgroundColor: Colors.black,
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(5))),
+                      ),
+                      onPressed: () {
+                        // subtracts 5lb from text box
+                        double tempText = double.parse(_myController.text);
+                        if (tempText % 1 == 0) {
+                          setState(() {
+                            if (tempText <= 5) {
+                              _myController.text = "0";
+                            } else {
+                              tempText -= 5;
+                              _myController.text = tempText.toInt().toString();
+                            }
+                            _myController.selection = TextSelection.collapsed(
+                                offset: _myController.text.length);
+                          });
+                        } else {
+                          setState(() {
+                            if (tempText <= 5) {
+                              _myController.text = "0";
+                            } else {
+                              tempText -= 5;
+                              _myController.text = tempText.toString();
+                            }
+                            _myController.selection = TextSelection.collapsed(
+                                offset: _myController.text.length);
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                      width: 170,
+                      height: 50,
+                      child: OutlinedButton(
+                        child: const Text("+5lb"),
+                        style: OutlinedButton.styleFrom(
+                          primary: Colors.white,
+                          backgroundColor: Colors.black,
+                          shape: const RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(5))),
+                        ),
+                        onPressed: () {
+                          // subtracts 5lb from text box
+                          double tempText = double.parse(_myController.text);
+                          if (tempText % 1 == 0) {
+                            setState(() {
+                              tempText += 5;
+                              _myController.text = tempText.toInt().toString();
+                              _myController.selection = TextSelection.collapsed(
+                                  offset: _myController.text.length);
+                            });
+                          } else {
+                            setState(() {
+                              tempText += 5;
+                              _myController.text = tempText.toString();
+                              _myController.selection = TextSelection.collapsed(
+                                  offset: _myController.text.length);
+                            });
+                          }
+                        },
+                      ))
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(children: <Widget>[
+                const SizedBox(width: 187.4),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    primary: redColor,
+                    textStyle: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                    alignment: Alignment.center,
+                  ),
+                  child: const Text("Cancel"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(width: 20),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    primary: redColor,
+                    textStyle: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                    alignment: Alignment.center,
+                  ),
+                  child: const Text("OK"),
+                  onPressed: () {
+                    // can't add to middle of hive box, so copy box, insert,
+                    // clear box, and fill box
+                    final List<Plate> platesList = platesBox.values.toList();
+                    double weight = double.parse(_myController.text);
+                    int i = 0;
+                    while (i < platesBox.length && 
+                        weight < platesBox.getAt(i)!.weight) {
+                      i++;
+                    }
+                    if (i == platesBox.length) {
+                      if (platesBox.getAt(i-1)!.weight == weight) {
+                        final tempPlate = Hive.box<Plate>
+                          ('platesBox').getAt(i-1)!;
+                        tempPlate.number += 2;
+                        tempPlate.save();
+                      }
+                      else {
+                        platesList.add(Plate(weight, 2));
+                      }
+                    }
+                    else {
+                      if (platesBox.getAt(i)!.weight == weight) {
+                        final tempPlate = Hive.box<Plate>
+                          ('platesBox').getAt(i)!;
+                        tempPlate.number += 2;
+                        tempPlate.save();
+                      }
+                      else {
+                        platesList.insert(i, Plate(weight, 2));
+                      }
+                    }
+
+                    platesBox.deleteAll(platesBox.keys);
+
+                    for (var plate in platesList) {
+                      platesBox.add(plate);
+                    }
+                    _plateCounter.value++;
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ]),
+            ]),
+      ),
+    );
+  }
+}
+
 class _ListState extends State<ListPage> {
   late final Box<String> notesBox;
   late final Box<IndivWorkout> indivWorkoutsBox;
@@ -2006,12 +2473,12 @@ class _ListState extends State<ListPage> {
                                                                             .getAt(i)!
                                                                             .repsCompleted[j][k] ==
                                                                         indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
-                                                                    ? Text("0 ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
+                                                                    ? Text("0 ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
                                                                         style: const TextStyle(
                                                                           fontSize:
                                                                               16,
                                                                         ))
-                                                                    : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
+                                                                    : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
                                                                         style: const TextStyle(
                                                                           fontSize:
                                                                               16,
@@ -2515,6 +2982,7 @@ class _EditState extends State<Edit> {
                                   controller: _myController,
                                   autofocus: true,
                                   keyboardType: TextInputType.text,
+                                  textCapitalization: TextCapitalization.words,
                                   textAlignVertical: TextAlignVertical.bottom,
                                   decoration: const InputDecoration(
                                     contentPadding: EdgeInsets.only(bottom: 10),
@@ -2801,7 +3269,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
           ],
         ),
         body: Container(
-            padding: const EdgeInsets.all(0),
+            padding: const EdgeInsets.all(10),
             constraints: const BoxConstraints(
               maxHeight: 680,
             ),
@@ -2820,7 +3288,10 @@ class _WorkoutPageState extends State<WorkoutPage> {
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                  "  ${workoutsBox.getAt(widget.index)!.exercises[i].name}",
+                                  workoutsBox
+                                      .getAt(widget.index)!
+                                      .exercises[i]
+                                      .name,
                                   style: const TextStyle(
                                     fontSize: 17,
                                   )),
@@ -2932,7 +3403,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                         valueListenable: _circleCounter,
                                         builder: (context, value, child) {
                                           return SizedBox(
-                                            width: 82,
+                                            width: 78,
                                             height: 50,
                                             child: MaterialButton(
                                               shape: const CircleBorder(
@@ -2986,7 +3457,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                       ]),
                   ])),
               Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.only(top: 20, bottom: 10),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
@@ -5293,7 +5764,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
           ],
         ),
         body: Container(
-            padding: const EdgeInsets.all(0),
+            padding: const EdgeInsets.all(10),
             constraints: const BoxConstraints(
               maxHeight: 770,
             ),
@@ -5316,7 +5787,9 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                  "  ${indivWorkoutsBox.getAt(widget.index)!.exercisesCompleted[i]}",
+                                  indivWorkoutsBox
+                                      .getAt(widget.index)!
+                                      .exercisesCompleted[i],
                                   style: const TextStyle(
                                     fontSize: 17,
                                   )),
@@ -5386,7 +5859,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                       j++)
                                     // circle, onTap decrement, loops back to rep number
                                     SizedBox(
-                                      width: 82,
+                                      width: 78,
                                       height: 50,
                                       child: MaterialButton(
                                         shape: const CircleBorder(
