@@ -237,6 +237,7 @@ void defaultState() async {
   Box<Plate> platesBox = Hive.box<Plate>('platesBox');
   platesBox.deleteAll(platesBox.keys);
   platesBox.add(Plate(45, 8));
+  platesBox.add(Plate(35, 4));
   platesBox.add(Plate(25, 4));
   platesBox.add(Plate(10, 4));
   platesBox.add(Plate(5, 4));
@@ -2236,29 +2237,26 @@ class _PlatesState extends State<PlatesPage> {
                     final List<Plate> platesList = platesBox.values.toList();
                     double weight = double.parse(_myController.text);
                     int i = 0;
-                    while (i < platesBox.length && 
+                    while (i < platesBox.length &&
                         weight < platesBox.getAt(i)!.weight) {
                       i++;
                     }
                     if (i == platesBox.length) {
-                      if (platesBox.getAt(i-1)!.weight == weight) {
-                        final tempPlate = Hive.box<Plate>
-                          ('platesBox').getAt(i-1)!;
+                      if (platesBox.getAt(i - 1)!.weight == weight) {
+                        final tempPlate =
+                            Hive.box<Plate>('platesBox').getAt(i - 1)!;
                         tempPlate.number += 2;
                         tempPlate.save();
-                      }
-                      else {
+                      } else {
                         platesList.add(Plate(weight, 2));
                       }
-                    }
-                    else {
+                    } else {
                       if (platesBox.getAt(i)!.weight == weight) {
-                        final tempPlate = Hive.box<Plate>
-                          ('platesBox').getAt(i)!;
+                        final tempPlate =
+                            Hive.box<Plate>('platesBox').getAt(i)!;
                         tempPlate.number += 2;
                         tempPlate.save();
-                      }
-                      else {
+                      } else {
                         platesList.insert(i, Plate(weight, 2));
                       }
                     }
@@ -4657,12 +4655,14 @@ class _EditExercisePageState extends State<EditExercisePage> {
   final _myController2 = TextEditingController();
   late final Box<Exercise> exercisesBox;
   late final Box<Workout> workoutsBox;
+  late final Box<Plate> platesBox;
 
   @override
   void initState() {
     super.initState();
     exercisesBox = Hive.box<Exercise>('exercisesBox');
     workoutsBox = Hive.box<Workout>('workoutsBox');
+    platesBox = Hive.box<Plate>('platesBox');
   }
 
   @override
@@ -4984,13 +4984,14 @@ class _EditExercisePageState extends State<EditExercisePage> {
               );
             },
             child: Container(
+                padding: const EdgeInsets.only(left: 20),
                 color: Colors.black,
                 height: 80,
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Align(
-                        alignment: Alignment(-.88, 0),
+                        alignment: Alignment.centerLeft,
                         child: Text(
                           "Exercise Weight",
                           style: TextStyle(
@@ -5001,7 +5002,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                       // if no decimals needed
                       if (exercisesBox.getAt(widget.index)!.weight % 1 == 0)
                         Align(
-                          alignment: const Alignment(-.91, 0),
+                          alignment: Alignment.centerLeft,
                           child: Text(
                             "${exercisesBox.getAt(widget.index)!.weight.toInt().toString()}lb",
                             style: const TextStyle(
@@ -5245,13 +5246,14 @@ class _EditExercisePageState extends State<EditExercisePage> {
               );
             },
             child: Container(
+                padding: const EdgeInsets.only(left: 20),
                 color: Colors.black,
                 height: 80,
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Align(
-                        alignment: Alignment(-.88, 0),
+                        alignment: Alignment.centerLeft,
                         child: Text(
                           "Bar Weight",
                           style: TextStyle(
@@ -5262,7 +5264,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                       // if no decimals needed
                       if (exercisesBox.getAt(widget.index)!.barWeight % 1 == 0)
                         Align(
-                          alignment: const Alignment(-.91, 0),
+                          alignment: Alignment.centerLeft,
                           child: Text(
                             "${exercisesBox.getAt(widget.index)!.barWeight.toInt().toString()}lb",
                             style: const TextStyle(
@@ -5272,7 +5274,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                         ),
                       if (exercisesBox.getAt(widget.index)!.barWeight % 1 != 0)
                         Align(
-                          alignment: const Alignment(-.91, 0),
+                          alignment: Alignment.centerLeft,
                           child: Text(
                             "${exercisesBox.getAt(widget.index)!.barWeight.toString()}lb",
                             style: const TextStyle(
@@ -5299,7 +5301,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          const Text("Sets x Reps",
+                          const Text("Sets × Reps",
                               style: TextStyle(
                                 fontSize: 18,
                               )),
@@ -5486,146 +5488,206 @@ class _EditExercisePageState extends State<EditExercisePage> {
               );
             },
             child: Container(
+                padding: const EdgeInsets.only(left: 20),
                 color: Colors.black,
                 height: 80,
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Align(
-                        alignment: Alignment(-.88, 0),
+                        alignment: Alignment.centerLeft,
                         child: Text(
-                          "Sets x Reps",
+                          "Sets × Reps",
                           style: TextStyle(
                             fontSize: 18,
                           ),
                         ),
                       ),
                       Align(
-                        alignment: const Alignment(-.91, 0),
+                        alignment: Alignment.centerLeft,
                         child: Text(
-                          "${exercisesBox.getAt(widget.index)!.sets.toString()}x${exercisesBox.getAt(widget.index)!.reps.toString()}",
+                          "${exercisesBox.getAt(widget.index)!.sets.toString()}×${exercisesBox.getAt(widget.index)!.reps.toString()}",
                           style: const TextStyle(
                             fontSize: 16,
                           ),
                         ),
                       ),
                     ]))),
+        const SizedBox(height: 10),
+        // plate calculator
+        GestureDetector(
+            child: Container(
+          height: 80,
+          padding: const EdgeInsets.only(left: 20),
+          child: Column(children: <Widget>[
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text("Plate Calculator",
+                  style: TextStyle(
+                    fontSize: 18,
+                  )),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                plateCalculator(),
+                style: const TextStyle(
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ]),
+        )),
         const SizedBox(height: 5),
-        SizedBox(
-          height: 55,
-          width: double.infinity,
-          child: TextButton(
-            style: TextButton.styleFrom(
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 16),
-                alignment: const Alignment(-.9, 0)),
-            child: const Text("Change Exercise Name"),
-            onPressed: () {
-              setState(() =>
-                  _myController.text = exercisesBox.getAt(widget.index)!.name);
-              showDialog(
-                  context: context,
-                  builder: (context) => Dialog(
-                        insetPadding: const EdgeInsets.all(10),
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                const Text("Exercise Name",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                    )),
-                                const SizedBox(height: 10),
-                                TextField(
-                                  controller: _myController,
-                                  autofocus: true,
-                                  keyboardType: TextInputType.text,
-                                  textAlignVertical: TextAlignVertical.bottom,
-                                  decoration: const InputDecoration(
-                                    contentPadding: EdgeInsets.only(bottom: 10),
-                                    enabledBorder: InputBorder.none,
-                                    focusedBorder: InputBorder.none,
-                                  ),
-                                ),
-                                Divider(
-                                  color: Colors.white.withOpacity(.7),
-                                  height: 2,
-                                  thickness: 2,
-                                ),
-                                const SizedBox(height: 40),
-                                Row(children: <Widget>[
-                                  const SizedBox(width: 187.4),
-                                  TextButton(
-                                    style: TextButton.styleFrom(
-                                      primary: redColor,
-                                      textStyle: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                      alignment: Alignment.center,
-                                    ),
-                                    child: const Text("Cancel"),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  const SizedBox(width: 20),
-                                  TextButton(
-                                    style: TextButton.styleFrom(
-                                      primary: redColor,
-                                      textStyle: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                      alignment: Alignment.center,
-                                    ),
-                                    child: const Text("OK"),
-                                    onPressed: () {
-                                      setState(() {
-                                        String oldName = exercisesBox
-                                            .getAt(widget.index)!
-                                            .name;
-
-                                        final tempEx =
-                                            Hive.box<Exercise>('exercisesBox')
-                                                .getAt(widget.index);
-                                        tempEx!.name = _myController.text;
-                                        tempEx.save();
-
-                                        // despite Workout class containing list of Exercises,
-                                        // updating Exercise in exercisesBox does not update
-                                        // the list of exercises in each workout, so we must
-                                        // loop through all workouts and update accordingly
-                                        for (int i = 0;
-                                            i < workoutsBox.length;
-                                            i++) {
-                                          final tempWorkout =
-                                              Hive.box<Workout>('workoutsBox')
-                                                  .getAt(i);
-                                          for (int j = 0;
-                                              j < tempWorkout!.exercises.length;
-                                              j++) {
-                                            if (tempWorkout.exercises[j].name ==
-                                                oldName) {
-                                              tempWorkout.exercises[j].name =
-                                                  _myController.text;
-                                            }
-                                            tempWorkout.save();
-                                          }
-                                        }
-                                      });
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ]),
-                              ]),
-                        ),
-                      ));
-            },
+        GestureDetector(
+          child: Container(
+            padding: const EdgeInsets.only(left: 20),
+            height: 55,
+            child: const Align(
+              alignment: Alignment.centerLeft,
+              child:
+                  Text("Change Exercise Name", style: TextStyle(fontSize: 16)),
+            ),
           ),
+          onTap: () {
+            setState(() =>
+                _myController.text = exercisesBox.getAt(widget.index)!.name);
+            showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                      insetPadding: const EdgeInsets.all(10),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              const Text("Exercise Name",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                  )),
+                              const SizedBox(height: 10),
+                              TextField(
+                                controller: _myController,
+                                autofocus: true,
+                                keyboardType: TextInputType.text,
+                                textAlignVertical: TextAlignVertical.bottom,
+                                decoration: const InputDecoration(
+                                  contentPadding: EdgeInsets.only(bottom: 10),
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                ),
+                              ),
+                              Divider(
+                                color: Colors.white.withOpacity(.7),
+                                height: 2,
+                                thickness: 2,
+                              ),
+                              const SizedBox(height: 40),
+                              Row(children: <Widget>[
+                                const SizedBox(width: 187.4),
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    primary: redColor,
+                                    textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                    alignment: Alignment.center,
+                                  ),
+                                  child: const Text("Cancel"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                const SizedBox(width: 20),
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    primary: redColor,
+                                    textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                    alignment: Alignment.center,
+                                  ),
+                                  child: const Text("OK"),
+                                  onPressed: () {
+                                    setState(() {
+                                      String oldName = exercisesBox
+                                          .getAt(widget.index)!
+                                          .name;
+
+                                      final tempEx =
+                                          Hive.box<Exercise>('exercisesBox')
+                                              .getAt(widget.index);
+                                      tempEx!.name = _myController.text;
+                                      tempEx.save();
+
+                                      // despite Workout class containing list of Exercises,
+                                      // updating Exercise in exercisesBox does not update
+                                      // the list of exercises in each workout, so we must
+                                      // loop through all workouts and update accordingly
+                                      for (int i = 0;
+                                          i < workoutsBox.length;
+                                          i++) {
+                                        final tempWorkout =
+                                            Hive.box<Workout>('workoutsBox')
+                                                .getAt(i);
+                                        for (int j = 0;
+                                            j < tempWorkout!.exercises.length;
+                                            j++) {
+                                          if (tempWorkout.exercises[j].name ==
+                                              oldName) {
+                                            tempWorkout.exercises[j].name =
+                                                _myController.text;
+                                          }
+                                          tempWorkout.save();
+                                        }
+                                      }
+                                    });
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ]),
+                            ]),
+                      ),
+                    ));
+          },
         ),
       ]),
     );
+  }
+
+  String plateCalculator() {
+    String output = "";
+    // weight per side
+    double weight = (exercisesBox.getAt(widget.index)!.weight -
+            exercisesBox.getAt(widget.index)!.barWeight) /
+        2;
+
+    for (int i = 0; i < platesBox.length; i++) {
+      int numPlates = weight ~/ platesBox.getAt(i)!.weight;
+      if (numPlates > (platesBox.getAt(i)!.number / 2)) {
+        numPlates = platesBox.getAt(i)!.number ~/ 2;
+      }
+      if (numPlates > 0) {
+        output += numPlates.toInt().toString();
+        output += '×';
+        platesBox.getAt(i)!.weight % 1 == 0
+            ? output += platesBox.getAt(i)!.weight.toInt().toString()
+            : output += platesBox.getAt(i)!.weight.toString();
+        output += ' ⋅ ';
+        weight -= numPlates * platesBox.getAt(i)!.weight;
+      }
+    }
+    if (weight != 0) {
+      return "Weight cannot be made with your plates";
+    }
+    else if (output.isEmpty) {
+      return "No plates needed";
+    }
+    // gets rid of dot at end
+    else {
+      return output.substring(0, output.length - 3);
+    }
   }
 }
 
