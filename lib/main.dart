@@ -964,7 +964,7 @@ class _HomeState extends State<Home> {
                                 child: Align(
                                     alignment: Alignment.centerRight,
                                     child: Text(
-                                        "${workoutsBox.getAt(i)!.exercises[j].sets}x${workoutsBox.getAt(i)!.exercises[j].reps} ${workoutsBox.getAt(i)!.exercises[j].weight ~/ 1}lb",
+                                        "${workoutsBox.getAt(i)!.exercises[j].sets}×${workoutsBox.getAt(i)!.exercises[j].reps} ${workoutsBox.getAt(i)!.exercises[j].weight ~/ 1}lb",
                                         style: const TextStyle(
                                           fontSize: 17,
                                         ))))
@@ -973,7 +973,7 @@ class _HomeState extends State<Home> {
                                 child: Align(
                                     alignment: Alignment.centerRight,
                                     child: Text(
-                                        "${workoutsBox.getAt(i)!.exercises[j].sets}x${workoutsBox.getAt(i)!.exercises[j].reps} ${workoutsBox.getAt(i)!.exercises[j].weight.toString()}lb",
+                                        "${workoutsBox.getAt(i)!.exercises[j].sets}×${workoutsBox.getAt(i)!.exercises[j].reps} ${workoutsBox.getAt(i)!.exercises[j].weight.toString()}lb",
                                         style: const TextStyle(fontSize: 17)))),
                         ]),
                         Divider(
@@ -3045,19 +3045,37 @@ class _EditState extends State<Edit> {
                                       ),
                                       child: const Text("OK"),
                                       onPressed: () {
-                                        workoutsBox
-                                            .add(Workout(_myController.text));
-                                        _myController.text = "";
-                                        Navigator.of(context).pop();
-                                        Navigator.of(context)
-                                            .push(MaterialPageRoute(
-                                                builder: (context) =>
-                                                    EditWorkoutPage(
-                                                        workoutsBox.length -
-                                                            1)))
-                                            .then((value) {
-                                          setState(() {});
-                                        });
+                                        bool duplicate = false;
+                                        for (var i in workoutsBox.values) {
+                                          if (i.name == _myController.text) {
+                                            duplicate = true;
+                                          }
+                                        }
+                                        if (duplicate == false) {
+                                          workoutsBox
+                                              .add(Workout(_myController.text));
+                                          _myController.text = "";
+                                          Navigator.of(context).pop();
+                                          Navigator.of(context)
+                                              .push(MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EditWorkoutPage(
+                                                          workoutsBox.length -
+                                                              1)))
+                                              .then((value) {
+                                            setState(() {});
+                                          });
+                                        }
+                                        else {
+                                          _myController.text = "";
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(const SnackBar(
+                                            content: Text(
+                                                "Workout already exists"),
+                                            duration: Duration(seconds: 2),
+                                          ));
+                                          Navigator.of(context).pop();
+                                        }
                                       }),
                                 ]),
                               ]))));
@@ -3416,7 +3434,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                   alignment:
                                                       Alignment.centerRight,
                                                   child: Text(
-                                                      "${workoutsBox.getAt(widget.index)!.exercises[i].sets}x${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight ~/ 1}lb",
+                                                      "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight ~/ 1}lb",
                                                       style: const TextStyle(
                                                         fontSize: 17,
                                                       ))))
@@ -3426,7 +3444,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                   alignment:
                                                       Alignment.centerRight,
                                                   child: Text(
-                                                      "${workoutsBox.getAt(widget.index)!.exercises[i].sets}x${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight.toString()}lb",
+                                                      "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight.toString()}lb",
                                                       style: const TextStyle(
                                                           fontSize: 17)))),
                                         SizedBox(
@@ -5998,8 +6016,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                   alignment: Alignment.centerLeft,
                                   child: exercisesBox
                                               .getAt(widget.index)!
-                                              .incrementFrequency ==
-                                          1
+                                              .incrementFrequency == 1
                                       ? const Text("Every Time",
                                           style: TextStyle(
                                               fontSize: 16, color: Colors.grey))
@@ -6073,7 +6090,6 @@ class _IncrementsPageState extends State<IncrementsPage> {
 
   Widget incrementSelector() {
     final _myController = TextEditingController();
-    final workoutsBox = Hive.box<Workout>("workoutsBox");
 
     exercisesBox.getAt(widget.index)!.increment % 1 == 0
         ? _myController.text =
@@ -6237,8 +6253,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
   Widget frequencySelector() {
     final _controller = FixedExtentScrollController(
         initialItem: exercisesBox.getAt(widget.index)!.incrementFrequency - 1);
-    final workoutsBox = Hive.box<Workout>('workoutsBox');
-    int freq = 0;
+    int freq = exercisesBox.getAt(widget.index)!.incrementFrequency;
 
     List<Widget> freqs = [
       for (int i = 1; i < 11; i++) ListTile(title: Text(i.toString())),
@@ -6345,7 +6360,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                   .getAt(widget.index);
                           tempExercise!.incrementFrequency = freq;
                           tempExercise.save();
-                          
+
                           _incrementsCounter.value++;
                           Navigator.of(context).pop();
                         });
@@ -6458,17 +6473,6 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
               ),
               child: const Text("Save"),
               onPressed: () {
-                /*String name = workoutsBox[widget.index].name;
-              String date = "date";
-              List<String> exercisesCompleted = [];
-              List<double> weights = [];
-              List<int> repsPlanned = [];
-              List<int> setsPlanned = [];
-              List<List<int>> repsCompleted = [];
-              for (int i = 0;
-                  i < workoutsBox[widget.index].exercises.length;
-                  i++) {}
-              */
                 // save any weight, rep, set, name changes
                 // don't need to save reps because going back reverts it
                 // only change body weight on save
@@ -6539,7 +6543,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                   alignment:
                                                       Alignment.centerRight,
                                                   child: Text(
-                                                      "${indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]}x${indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]} ${indivWorkoutsBox.getAt(widget.index)!.weights[i] ~/ 1}lb",
+                                                      "${indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]}×${indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]} ${indivWorkoutsBox.getAt(widget.index)!.weights[i] ~/ 1}lb",
                                                       style: const TextStyle(
                                                         fontSize: 17,
                                                       ))))
@@ -6549,7 +6553,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                   alignment:
                                                       Alignment.centerRight,
                                                   child: Text(
-                                                      "${indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]}x${indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]} ${indivWorkoutsBox.getAt(widget.index)!.weights[i].toString()}lb",
+                                                      "${indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]}×${indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]} ${indivWorkoutsBox.getAt(widget.index)!.weights[i].toString()}lb",
                                                       style: const TextStyle(
                                                           fontSize: 17)))),
                                         SizedBox(
