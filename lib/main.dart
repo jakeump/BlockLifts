@@ -111,6 +111,7 @@ ValueNotifier<int> _timerCounter =
     ValueNotifier<int>(0); // for timer on workout page
 ValueNotifier<int> _plateCounter =
     ValueNotifier<int>(0); // refrehes plates list
+ValueNotifier<int> _incrementsCounter = ValueNotifier<int>(0); // for increments
 
 @HiveType(typeId: 1)
 class Workout extends HiveObject {
@@ -163,8 +164,16 @@ class Exercise extends HiveObject {
   @HiveField(6)
   List<int> repsCompleted = [];
   @HiveField(7)
-  int failed =
-      0; // EACH TIME FAILED, ADD ONE TO EXERCISE. IF EXERCISE HAS X NUMBER OF FAILURES IN A ROW, DECREASE WEIGHT
+  int failed = 0;
+  @HiveField(8)
+  bool overload = true;
+  @HiveField(9)
+  bool deload = true;
+  @HiveField(10)
+  int incrementFrequency = 1;
+  @HiveField(11)
+  int success = 0;
+
   Exercise(this.name);
 }
 
@@ -204,6 +213,7 @@ void defaultState() async {
   Exercise deadlift = Exercise("Deadlift");
   deadlift.sets = 1;
   deadlift.reps = 1;
+  deadlift.increment = 10;
 
   defaultA.exercises.add(squat);
   defaultB.exercises.add(squat);
@@ -619,6 +629,15 @@ class EditExercisePage extends StatefulWidget {
   const EditExercisePage(this.index, {Key? key}) : super(key: key);
   @override
   _EditExercisePageState createState() => _EditExercisePageState();
+  // creating State Object of MyWidget
+}
+
+class IncrementsPage extends StatefulWidget {
+  final int index;
+
+  const IncrementsPage(this.index, {Key? key}) : super(key: key);
+  @override
+  _IncrementsPageState createState() => _IncrementsPageState();
   // creating State Object of MyWidget
 }
 
@@ -1725,93 +1744,99 @@ class _SetTimerState extends State<SetTimerPage> {
                                         )),
                                 const SizedBox(height: 30),
                                 Flexible(
-                                    child: Row(children: <Widget>[
-                                  const SizedBox(width: 100),
-                                  SizedBox(
-                                      height: 120,
-                                      width: 70,
-                                      child: CupertinoPicker(
-                                        scrollController: _minController,
-                                        children: mins,
-                                        looping: true,
-                                        diameterRatio: 1.25,
-                                        selectionOverlay:
-                                            Column(children: <Widget>[
-                                          Container(
-                                              decoration: const BoxDecoration(
-                                                  border: Border(
-                                                      top: BorderSide(
-                                            color: Colors.white,
-                                            width: 2,
-                                          )))),
-                                          const SizedBox(height: 50),
-                                          Container(
-                                              decoration: const BoxDecoration(
-                                                  border: Border(
-                                                      top: BorderSide(
-                                            color: Colors.white,
-                                            width: 2,
-                                          ))))
-                                        ]),
-                                        itemExtent: 75,
-                                        onSelectedItemChanged: (index) => {
-                                          minutes = index,
-                                        },
-                                      )),
-                                  const SizedBox(
-                                    width: 40,
-                                    height: 40,
-                                    child: Align(
-                                      alignment: Alignment.topCenter,
-                                      child: Text("min",
-                                          style: TextStyle(
-                                            fontSize: 14,
+                                    child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: <Widget>[
+                                      SizedBox(
+                                          height: 120,
+                                          width: 70,
+                                          child: CupertinoPicker(
+                                            scrollController: _minController,
+                                            children: mins,
+                                            looping: true,
+                                            diameterRatio: 1.25,
+                                            selectionOverlay:
+                                                Column(children: <Widget>[
+                                              Container(
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                          border: Border(
+                                                              top: BorderSide(
+                                                color: Colors.white,
+                                                width: 2,
+                                              )))),
+                                              const SizedBox(height: 50),
+                                              Container(
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                          border: Border(
+                                                              top: BorderSide(
+                                                color: Colors.white,
+                                                width: 2,
+                                              ))))
+                                            ]),
+                                            itemExtent: 75,
+                                            onSelectedItemChanged: (index) => {
+                                              minutes = index,
+                                            },
                                           )),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                      height: 120,
-                                      width: 70,
-                                      child: CupertinoPicker(
-                                        scrollController: _secController,
-                                        children: secs,
-                                        looping: true,
-                                        diameterRatio: 1.25,
-                                        selectionOverlay:
-                                            Column(children: <Widget>[
-                                          Container(
-                                              decoration: const BoxDecoration(
-                                                  border: Border(
-                                                      top: BorderSide(
-                                            color: Colors.white,
-                                            width: 2,
-                                          )))),
-                                          const SizedBox(height: 50),
-                                          Container(
-                                              decoration: const BoxDecoration(
-                                                  border: Border(
-                                                      top: BorderSide(
-                                            color: Colors.white,
-                                            width: 2,
-                                          ))))
-                                        ]),
-                                        itemExtent: 75,
-                                        onSelectedItemChanged: (index) => {
-                                          seconds = index,
-                                        },
-                                      )),
-                                  const SizedBox(
-                                    width: 40,
-                                    height: 40,
-                                    child: Align(
-                                      alignment: Alignment.topCenter,
-                                      child: Text("sec",
-                                          style: TextStyle(
-                                            fontSize: 14,
+                                      const SizedBox(
+                                        width: 40,
+                                        height: 40,
+                                        child: Align(
+                                          alignment: Alignment.topCenter,
+                                          child: Text("min",
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                              )),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                          height: 120,
+                                          width: 70,
+                                          child: CupertinoPicker(
+                                            scrollController: _secController,
+                                            children: secs,
+                                            looping: true,
+                                            diameterRatio: 1.25,
+                                            selectionOverlay:
+                                                Column(children: <Widget>[
+                                              Container(
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                          border: Border(
+                                                              top: BorderSide(
+                                                color: Colors.white,
+                                                width: 2,
+                                              )))),
+                                              const SizedBox(height: 50),
+                                              Container(
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                          border: Border(
+                                                              top: BorderSide(
+                                                color: Colors.white,
+                                                width: 2,
+                                              ))))
+                                            ]),
+                                            itemExtent: 75,
+                                            onSelectedItemChanged: (index) => {
+                                              seconds = index,
+                                            },
                                           )),
-                                    ),
-                                  ),
-                                ])),
+                                      const SizedBox(
+                                        width: 40,
+                                        height: 40,
+                                        child: Align(
+                                          alignment: Alignment.topCenter,
+                                          child: Text("sec",
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                              )),
+                                        ),
+                                      ),
+                                    ])),
                                 const SizedBox(height: 30),
                                 Row(children: <Widget>[
                                   const SizedBox(width: 187.4),
@@ -3201,9 +3226,12 @@ class _WorkoutPageState extends State<WorkoutPage> {
                 List<int> repsPlanned = [];
                 List<int> setsPlanned = [];
                 List<List<int>> repsCompleted = [];
+
                 for (int i = 0;
                     i < workoutsBox.getAt(widget.index)!.exercises.length;
                     i++) {
+                  bool exerciseFailed = false;
+
                   exercisesCompleted
                       .add(workoutsBox.getAt(widget.index)!.exercises[i].name);
                   weights.add(
@@ -3225,14 +3253,72 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
                   final tempWorkout =
                       Hive.box<Workout>('workoutsBox').getAt(widget.index);
+
+                  if (tempWorkout!.exercises[i].repsCompleted[0] !=
+                      tempWorkout.exercises[i].reps) {
+                    exerciseFailed = true;
+                  }
                   for (int j = 1;
-                      j < tempWorkout!.exercises[i].repsCompleted.length;
+                      j < tempWorkout.exercises[i].repsCompleted.length;
                       j++) {
                     repsCompleted[i]
                         .add(tempWorkout.exercises[i].repsCompleted[j]);
+
+                    if (tempWorkout.exercises[i].repsCompleted[j] !=
+                        tempWorkout.exercises[i].reps) {
+                      exerciseFailed = true;
+                    }
                   }
 
                   tempWorkout.exercises[i].repsCompleted.clear();
+                  String name = tempWorkout.exercises[i].name;
+                  tempWorkout.save();
+
+                  if (exerciseFailed == true) {
+                    // loop through every workout, look for exercises
+                    // matching name, increment failure counter
+                    for (int i = 0; i < workoutsBox.length; i++) {
+                      final tempWorkout =
+                          Hive.box<Workout>('workoutsBox').getAt(i);
+                      for (int j = 0; j < tempWorkout!.exercises.length; j++) {
+                        if (tempWorkout.exercises[j].name == name) {
+                          tempWorkout.exercises[j].success = 0;
+                          tempWorkout.exercises[j].failed += 1;
+                          tempWorkout.save();
+                        }
+                      }
+                    }
+                  }
+                  // increment for all exercises with the same name
+                  // if success count matches increment frequency
+                  // and overload is on
+                  else if (exerciseFailed == false) {
+                    // increments for all and resets success counter
+                    if (tempWorkout.exercises[i].overload &&
+                        tempWorkout.exercises[i].success + 1 >=
+                            tempWorkout.exercises[i].incrementFrequency) {
+                      for (int i = 0; i < exercisesBox.length; i++) {
+                        if (exercisesBox.getAt(i)!.name == name) {
+                          exercisesBox.getAt(i)!.weight +=
+                              exercisesBox.getAt(i)!.increment;
+                          exercisesBox.getAt(i)!.success = 0;
+                          exercisesBox.getAt(i)!.failed = 0;
+                          exercisesBox.getAt(i)!.save();
+                        }
+                      }
+                    }
+                    // increments success counter, but does not add weight because
+                    // not at frequency to increment yet
+                    else {
+                      for (int i = 0; i < exercisesBox.length; i++) {
+                        if (exercisesBox.getAt(i)!.name == name) {
+                          exercisesBox.getAt(i)!.success += 1;
+                          exercisesBox.getAt(i)!.failed = 0;
+                          exercisesBox.getAt(i)!.save();
+                        }
+                      }
+                    }
+                  }
                 }
 
                 indivWorkoutsBox.add(IndivWorkout(
@@ -3514,125 +3600,140 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                         const SizedBox(
                                                             height: 30),
                                                         Flexible(
-                                                            child:
-                                                                Row(children: <
+                                                            child: Row(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .center,
+                                                                children: <
                                                                     Widget>[
-                                                          const SizedBox(
-                                                              width: 100),
-                                                          SizedBox(
-                                                              height: 120,
-                                                              width: 70,
-                                                              child:
-                                                                  CupertinoPicker(
-                                                                scrollController:
-                                                                    _intController,
-                                                                children: nums,
-                                                                looping: true,
-                                                                diameterRatio:
-                                                                    1.25,
-                                                                selectionOverlay:
-                                                                    Column(children: <
-                                                                        Widget>[
-                                                                  Container(
-                                                                      decoration: const BoxDecoration(
-                                                                          border: Border(
-                                                                              top: BorderSide(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    width: 2,
-                                                                  )))),
-                                                                  const SizedBox(
-                                                                      height:
-                                                                          50),
-                                                                  Container(
-                                                                      decoration: const BoxDecoration(
-                                                                          border: Border(
-                                                                              top: BorderSide(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    width: 2,
-                                                                  ))))
-                                                                ]),
-                                                                itemExtent: 75,
-                                                                onSelectedItemChanged:
-                                                                    (index) => {
-                                                                  scrollBodyWeightInt =
-                                                                      index +
-                                                                          50,
-                                                                },
-                                                              )),
-                                                          const SizedBox(
-                                                            width: 20,
-                                                            height: 45,
-                                                            child: Align(
-                                                              alignment:
-                                                                  Alignment
-                                                                      .topCenter,
-                                                              child: Text(".",
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontSize:
-                                                                        17,
+                                                              SizedBox(
+                                                                  height: 120,
+                                                                  width: 70,
+                                                                  child:
+                                                                      CupertinoPicker(
+                                                                    scrollController:
+                                                                        _intController,
+                                                                    children:
+                                                                        nums,
+                                                                    looping:
+                                                                        true,
+                                                                    diameterRatio:
+                                                                        1.25,
+                                                                    selectionOverlay:
+                                                                        Column(children: <
+                                                                            Widget>[
+                                                                      Container(
+                                                                          decoration: const BoxDecoration(
+                                                                              border: Border(
+                                                                                  top: BorderSide(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        width:
+                                                                            2,
+                                                                      )))),
+                                                                      const SizedBox(
+                                                                          height:
+                                                                              50),
+                                                                      Container(
+                                                                          decoration: const BoxDecoration(
+                                                                              border: Border(
+                                                                                  top: BorderSide(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        width:
+                                                                            2,
+                                                                      ))))
+                                                                    ]),
+                                                                    itemExtent:
+                                                                        75,
+                                                                    onSelectedItemChanged:
+                                                                        (index) =>
+                                                                            {
+                                                                      scrollBodyWeightInt =
+                                                                          index +
+                                                                              50,
+                                                                    },
                                                                   )),
-                                                            ),
-                                                          ),
-                                                          SizedBox(
-                                                              height: 120,
-                                                              width: 70,
-                                                              child:
-                                                                  CupertinoPicker(
-                                                                scrollController:
-                                                                    _decController,
-                                                                children: decs,
-                                                                looping: true,
-                                                                diameterRatio:
-                                                                    1.25,
-                                                                selectionOverlay:
-                                                                    Column(children: <
-                                                                        Widget>[
-                                                                  Container(
-                                                                      decoration: const BoxDecoration(
-                                                                          border: Border(
-                                                                              top: BorderSide(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    width: 2,
-                                                                  )))),
-                                                                  const SizedBox(
-                                                                      height:
-                                                                          50),
-                                                                  Container(
-                                                                      decoration: const BoxDecoration(
-                                                                          border: Border(
-                                                                              top: BorderSide(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    width: 2,
-                                                                  ))))
-                                                                ]),
-                                                                itemExtent: 75,
-                                                                onSelectedItemChanged:
-                                                                    (index) => {
-                                                                  scrollBodyWeightDec =
-                                                                      index,
-                                                                },
-                                                              )),
-                                                          const SizedBox(
-                                                            width: 20,
-                                                            height: 40,
-                                                            child: Align(
-                                                              alignment:
-                                                                  Alignment
-                                                                      .topCenter,
-                                                              child: Text("lb",
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontSize:
-                                                                        14,
+                                                              const SizedBox(
+                                                                width: 20,
+                                                                height: 45,
+                                                                child: Align(
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .topCenter,
+                                                                  child: Text(
+                                                                      ".",
+                                                                      style:
+                                                                          TextStyle(
+                                                                        fontSize:
+                                                                            17,
+                                                                      )),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                  height: 120,
+                                                                  width: 70,
+                                                                  child:
+                                                                      CupertinoPicker(
+                                                                    scrollController:
+                                                                        _decController,
+                                                                    children:
+                                                                        decs,
+                                                                    looping:
+                                                                        true,
+                                                                    diameterRatio:
+                                                                        1.25,
+                                                                    selectionOverlay:
+                                                                        Column(children: <
+                                                                            Widget>[
+                                                                      Container(
+                                                                          decoration: const BoxDecoration(
+                                                                              border: Border(
+                                                                                  top: BorderSide(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        width:
+                                                                            2,
+                                                                      )))),
+                                                                      const SizedBox(
+                                                                          height:
+                                                                              50),
+                                                                      Container(
+                                                                          decoration: const BoxDecoration(
+                                                                              border: Border(
+                                                                                  top: BorderSide(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        width:
+                                                                            2,
+                                                                      ))))
+                                                                    ]),
+                                                                    itemExtent:
+                                                                        75,
+                                                                    onSelectedItemChanged:
+                                                                        (index) =>
+                                                                            {
+                                                                      scrollBodyWeightDec =
+                                                                          index,
+                                                                    },
                                                                   )),
-                                                            ),
-                                                          ),
-                                                        ])),
+                                                              const SizedBox(
+                                                                width: 20,
+                                                                height: 40,
+                                                                child: Align(
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .topCenter,
+                                                                  child: Text(
+                                                                      "lb",
+                                                                      style:
+                                                                          TextStyle(
+                                                                        fontSize:
+                                                                            14,
+                                                                      )),
+                                                                ),
+                                                              ),
+                                                            ])),
                                                         const SizedBox(
                                                             height: 30),
                                                         Row(children: <Widget>[
@@ -5007,16 +5108,18 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             "${exercisesBox.getAt(widget.index)!.weight.toInt().toString()}lb",
                             style: const TextStyle(
                               fontSize: 16,
+                              color: Colors.grey,
                             ),
                           ),
                         ),
                       if (exercisesBox.getAt(widget.index)!.weight % 1 != 0)
                         Align(
-                          alignment: const Alignment(-.91, 0),
+                          alignment: Alignment.centerLeft,
                           child: Text(
                             "${exercisesBox.getAt(widget.index)!.weight.toString()}lb",
                             style: const TextStyle(
                               fontSize: 16,
+                              color: Colors.grey,
                             ),
                           ),
                         ),
@@ -5269,6 +5372,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             "${exercisesBox.getAt(widget.index)!.barWeight.toInt().toString()}lb",
                             style: const TextStyle(
                               fontSize: 16,
+                              color: Colors.grey,
                             ),
                           ),
                         ),
@@ -5279,10 +5383,50 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             "${exercisesBox.getAt(widget.index)!.barWeight.toString()}lb",
                             style: const TextStyle(
                               fontSize: 16,
+                              color: Colors.grey,
                             ),
                           ),
                         ),
                     ]))),
+        GestureDetector(
+          child: Container(
+            padding: const EdgeInsets.only(left: 20),
+            color: Colors.black,
+            height: 80,
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Increments",
+                  style: TextStyle(
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: exercisesBox.getAt(widget.index)!.increment % 1 == 0
+                    ? Text(
+                        "${exercisesBox.getAt(widget.index)!.increment.toInt().toString()}lb",
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.grey))
+                    : Text(
+                        "${exercisesBox.getAt(widget.index)!.increment.toString()}lb",
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.grey)),
+              ),
+            ]),
+          ),
+          onTap: () {
+            Navigator.of(context)
+                .push(MaterialPageRoute(
+                    builder: (context) => IncrementsPage(widget.index)))
+                .then((value) {
+              setState(() {});
+            });
+          },
+        ),
         // sets x reps
         GestureDetector(
             onTap: () {
@@ -5509,6 +5653,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                           "${exercisesBox.getAt(widget.index)!.sets.toString()}×${exercisesBox.getAt(widget.index)!.reps.toString()}",
                           style: const TextStyle(
                             fontSize: 16,
+                            color: Colors.grey,
                           ),
                         ),
                       ),
@@ -5533,6 +5678,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                 plateCalculator(),
                 style: const TextStyle(
                   fontSize: 16,
+                  color: Colors.grey,
                 ),
               ),
             ),
@@ -5680,14 +5826,533 @@ class _EditExercisePageState extends State<EditExercisePage> {
     }
     if (weight != 0) {
       return "Weight cannot be made with your plates";
-    }
-    else if (output.isEmpty) {
+    } else if (output.isEmpty) {
       return "No plates needed";
     }
     // gets rid of dot at end
     else {
       return output.substring(0, output.length - 3);
     }
+  }
+}
+
+class _IncrementsPageState extends State<IncrementsPage> {
+  late final Box<Exercise> exercisesBox;
+
+  @override
+  void initState() {
+    super.initState();
+    exercisesBox = Hive.box<Exercise>('exercisesBox');
+  }
+
+  void toggleSwitch(bool value) {
+    final tempExercise = Hive.box<Exercise>('exercisesBox').getAt(widget.index);
+    if (tempExercise!.overload == false) {
+      setState(() {
+        tempExercise.overload = true;
+        tempExercise.save();
+      });
+    } else {
+      setState(() {
+        tempExercise.overload = false;
+        tempExercise.save();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: backColor,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          iconSize: 18,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        backgroundColor: headerColor,
+        title: const Text("Increments"),
+        titleTextStyle: const TextStyle(fontSize: 22),
+      ),
+      body: Column(children: <Widget>[
+        SizedBox(
+          height: 91,
+          width: double.infinity,
+          child: TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Column(children: <Widget>[
+                Row(children: <Widget>[
+                  Expanded(
+                    flex: 4,
+                    child: Column(children: const [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("Progressive Overload",
+                            style: TextStyle(fontSize: 18)),
+                      ),
+                      SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("Add weight if all sets successful",
+                            style: TextStyle(fontSize: 16, color: Colors.grey)),
+                      ),
+                    ]),
+                  ),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Switch(
+                        inactiveThumbColor: Colors.grey,
+                        inactiveTrackColor: widgetNavColor,
+                        activeColor: Colors.white,
+                        activeTrackColor: Colors.grey,
+                        value: exercisesBox.getAt(widget.index)!.overload,
+                        onChanged: toggleSwitch,
+                      ),
+                    ),
+                  ),
+                ]),
+              ]),
+            ),
+            onPressed: (() => toggleSwitch(false)),
+          ),
+        ),
+        exercisesBox.getAt(widget.index)!.overload
+            ? SizedBox(
+                height: 91,
+                width: double.infinity,
+                child: ValueListenableBuilder(
+                    valueListenable: _incrementsCounter,
+                    builder: (context, value, child) {
+                      return TextButton(
+                          style: TextButton.styleFrom(
+                              primary: Colors.white,
+                              textStyle: const TextStyle(fontSize: 16)),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            child: Row(children: <Widget>[
+                              Expanded(
+                                child: Column(children: [
+                                  const Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("Increments",
+                                        style: TextStyle(fontSize: 18)),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: exercisesBox
+                                                    .getAt(widget.index)!
+                                                    .increment %
+                                                1 ==
+                                            0
+                                        ? Text(
+                                            "${exercisesBox.getAt(widget.index)!.increment.toInt().toString()}lb",
+                                            style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.grey))
+                                        : Text(
+                                            "${exercisesBox.getAt(widget.index)!.increment.toString()}lb",
+                                            style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.grey)),
+                                  ),
+                                ]),
+                              ),
+                            ]),
+                          ),
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (context) => incrementSelector());
+                          });
+                    }))
+            : const SizedBox(),
+        exercisesBox.getAt(widget.index)!.overload
+            ? SizedBox(
+                height: 91,
+                width: double.infinity,
+                child: ValueListenableBuilder(
+                    valueListenable: _incrementsCounter,
+                    builder: (context, value, child) {
+                      return TextButton(
+                        style: TextButton.styleFrom(
+                            primary: Colors.white,
+                            textStyle: const TextStyle(fontSize: 16)),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          child: Row(children: <Widget>[
+                            Expanded(
+                              child: Column(children: [
+                                const Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text("Frequency",
+                                      style: TextStyle(fontSize: 18)),
+                                ),
+                                const SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: exercisesBox
+                                              .getAt(widget.index)!
+                                              .incrementFrequency ==
+                                          1
+                                      ? const Text("Every Time",
+                                          style: TextStyle(
+                                              fontSize: 16, color: Colors.grey))
+                                      : Text(
+                                          "Every ${exercisesBox.getAt(widget.index)!.incrementFrequency.toString()} Times",
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey)),
+                                ),
+                              ]),
+                            ),
+                          ]),
+                        ),
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) => frequencySelector());
+                        },
+                      );
+                    }),
+              )
+            : const SizedBox(),
+        exercisesBox.getAt(widget.index)!.overload
+            ? Container(
+                height: 100,
+                padding: const EdgeInsets.all(10),
+                width: double.infinity,
+                child: ValueListenableBuilder(
+                    valueListenable: _incrementsCounter,
+                    builder: (context, value, child) {
+                      return Container(
+                        padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
+                        decoration: BoxDecoration(
+                          color: widgetNavColor,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: exercisesBox.getAt(widget.index)!.increment %
+                                    1 ==
+                                0
+                            ? exercisesBox
+                                        .getAt(widget.index)!
+                                        .incrementFrequency ==
+                                    1
+                                ? Text(
+                                    "Weight increases by ${exercisesBox.getAt(widget.index)!.increment.toInt()}lb in total if you completed all sets on this exercise the last time.",
+                                    style: const TextStyle(
+                                        fontSize: 14, color: Colors.grey))
+                                : Text(
+                                    "Weight increases by ${exercisesBox.getAt(widget.index)!.increment.toInt()}lb in total if you completed all sets on this exercise the last ${exercisesBox.getAt(widget.index)!.incrementFrequency} times.",
+                                    style: const TextStyle(
+                                        fontSize: 14, color: Colors.grey))
+                            : exercisesBox
+                                        .getAt(widget.index)!
+                                        .incrementFrequency ==
+                                    1
+                                ? Text(
+                                    "Weight increases by ${exercisesBox.getAt(widget.index)!.increment}lb in total if you completed all sets on this exercise the last time.",
+                                    style: const TextStyle(
+                                        fontSize: 14, color: Colors.grey))
+                                : Text(
+                                    "Weight increases by ${exercisesBox.getAt(widget.index)!.increment}lb in total if you completed all sets on this exercise the last ${exercisesBox.getAt(widget.index)!.incrementFrequency} times.",
+                                    style: const TextStyle(
+                                        fontSize: 14, color: Colors.grey)),
+                      );
+                    }),
+              )
+            : const SizedBox(),
+      ]),
+    );
+  }
+
+  Widget incrementSelector() {
+    final _myController = TextEditingController();
+    final workoutsBox = Hive.box<Workout>("workoutsBox");
+
+    exercisesBox.getAt(widget.index)!.increment % 1 == 0
+        ? _myController.text =
+            exercisesBox.getAt(widget.index)!.increment.toInt().toString()
+        : _myController.text =
+            exercisesBox.getAt(widget.index)!.increment.toString();
+    return Dialog(
+      insetPadding: const EdgeInsets.all(10),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Text("Increments",
+                  style: TextStyle(
+                    fontSize: 18,
+                  )),
+              const Text("Weight added each increment",
+                  style: TextStyle(
+                    fontSize: 14,
+                  )),
+              const SizedBox(height: 10),
+              TextField(
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter(RegExp(r'[0-9.]'), allow: true)
+                ],
+                controller: _myController,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+                textAlignVertical: TextAlignVertical.bottom,
+                decoration: const InputDecoration(
+                  contentPadding: EdgeInsets.only(bottom: 10),
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
+              ),
+              Divider(
+                color: Colors.white.withOpacity(.7),
+                height: 2,
+                thickness: 2,
+              ),
+              const SizedBox(height: 40),
+              Row(
+                children: <Widget>[
+                  SizedBox(
+                    width: 170,
+                    height: 50,
+                    child: OutlinedButton(
+                      child: const Text("-5lb"),
+                      style: OutlinedButton.styleFrom(
+                        primary: Colors.white,
+                        backgroundColor: Colors.black,
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(5))),
+                      ),
+                      onPressed: () {
+                        // subtracts 5lb from text box
+                        double tempText = double.parse(_myController.text);
+                        if (tempText % 1 == 0) {
+                          setState(() {
+                            if (tempText <= 5) {
+                              _myController.text = "0";
+                            } else {
+                              tempText -= 5;
+                              _myController.text = tempText.toInt().toString();
+                            }
+                            _myController.selection = TextSelection.collapsed(
+                                offset: _myController.text.length);
+                          });
+                        } else {
+                          setState(() {
+                            if (tempText <= 5) {
+                              _myController.text = "0";
+                            } else {
+                              tempText -= 5;
+                              _myController.text = tempText.toString();
+                            }
+                            _myController.selection = TextSelection.collapsed(
+                                offset: _myController.text.length);
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                      width: 170,
+                      height: 50,
+                      child: OutlinedButton(
+                        child: const Text("+5lb"),
+                        style: OutlinedButton.styleFrom(
+                          primary: Colors.white,
+                          backgroundColor: Colors.black,
+                          shape: const RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(5))),
+                        ),
+                        onPressed: () {
+                          // subtracts 5lb from text box
+                          double tempText = double.parse(_myController.text);
+                          if (tempText % 1 == 0) {
+                            setState(() {
+                              tempText += 5;
+                              _myController.text = tempText.toInt().toString();
+                              _myController.selection = TextSelection.collapsed(
+                                  offset: _myController.text.length);
+                            });
+                          } else {
+                            setState(() {
+                              tempText += 5;
+                              _myController.text = tempText.toString();
+                              _myController.selection = TextSelection.collapsed(
+                                  offset: _myController.text.length);
+                            });
+                          }
+                        },
+                      ))
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(children: <Widget>[
+                const SizedBox(width: 187.4),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    primary: redColor,
+                    textStyle: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                    alignment: Alignment.center,
+                  ),
+                  child: const Text("Cancel"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(width: 20),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    primary: redColor,
+                    textStyle: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                    alignment: Alignment.center,
+                  ),
+                  child: const Text("OK"),
+                  onPressed: () {
+                    final tempExercise =
+                        Hive.box<Exercise>('exercisesBox').getAt(widget.index);
+                    tempExercise!.increment = double.parse(_myController.text);
+                    tempExercise.save();
+
+                    _incrementsCounter.value++;
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ]),
+            ]),
+      ),
+    );
+  }
+
+  Widget frequencySelector() {
+    final _controller = FixedExtentScrollController(
+        initialItem: exercisesBox.getAt(widget.index)!.incrementFrequency - 1);
+    final workoutsBox = Hive.box<Workout>('workoutsBox');
+    int freq = 0;
+
+    List<Widget> freqs = [
+      for (int i = 1; i < 11; i++) ListTile(title: Text(i.toString())),
+    ];
+
+    return Dialog(
+        insetPadding: const EdgeInsets.all(10),
+        child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text("Frequency",
+                      style: TextStyle(
+                        fontSize: 18,
+                      )),
+                  const SizedBox(height: 30),
+                  Flexible(
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                        const SizedBox(
+                          width: 60,
+                          height: 40,
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: Text("Every",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                )),
+                          ),
+                        ),
+                        SizedBox(
+                            height: 120,
+                            width: 60,
+                            child: CupertinoPicker(
+                              scrollController: _controller,
+                              children: freqs,
+                              looping: true,
+                              diameterRatio: 1.25,
+                              selectionOverlay: Column(children: <Widget>[
+                                Container(
+                                    decoration: const BoxDecoration(
+                                        border: Border(
+                                            top: BorderSide(
+                                  color: Colors.white,
+                                  width: 2,
+                                )))),
+                                const SizedBox(height: 50),
+                                Container(
+                                    decoration: const BoxDecoration(
+                                        border: Border(
+                                            top: BorderSide(
+                                  color: Colors.white,
+                                  width: 2,
+                                ))))
+                              ]),
+                              itemExtent: 75,
+                              onSelectedItemChanged: (index) => {
+                                freq = index + 1,
+                              },
+                            )),
+                        const SizedBox(
+                          width: 60,
+                          height: 40,
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: Text("times",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                )),
+                          ),
+                        ),
+                      ])),
+                  const SizedBox(height: 30),
+                  Row(children: <Widget>[
+                    const SizedBox(width: 187.4),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        primary: redColor,
+                        textStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        alignment: Alignment.center,
+                      ),
+                      child: const Text("Cancel"),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    const SizedBox(width: 20),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        primary: redColor,
+                        textStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        alignment: Alignment.center,
+                      ),
+                      child: const Text("OK"),
+                      onPressed: () {
+                        setState(() {
+                          final tempExercise =
+                              Hive.box<Exercise>('exercisesBox')
+                                  .getAt(widget.index);
+                          tempExercise!.incrementFrequency = freq;
+                          tempExercise.save();
+                          
+                          _incrementsCounter.value++;
+                          Navigator.of(context).pop();
+                        });
+                      },
+                    ),
+                  ]),
+                ])));
   }
 }
 
@@ -6037,125 +6702,140 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                         const SizedBox(
                                                             height: 30),
                                                         Flexible(
-                                                            child:
-                                                                Row(children: <
+                                                            child: Row(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .center,
+                                                                children: <
                                                                     Widget>[
-                                                          const SizedBox(
-                                                              width: 100),
-                                                          SizedBox(
-                                                              height: 120,
-                                                              width: 70,
-                                                              child:
-                                                                  CupertinoPicker(
-                                                                scrollController:
-                                                                    _intController,
-                                                                children: nums,
-                                                                looping: true,
-                                                                diameterRatio:
-                                                                    1.25,
-                                                                selectionOverlay:
-                                                                    Column(children: <
-                                                                        Widget>[
-                                                                  Container(
-                                                                      decoration: const BoxDecoration(
-                                                                          border: Border(
-                                                                              top: BorderSide(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    width: 2,
-                                                                  )))),
-                                                                  const SizedBox(
-                                                                      height:
-                                                                          50),
-                                                                  Container(
-                                                                      decoration: const BoxDecoration(
-                                                                          border: Border(
-                                                                              top: BorderSide(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    width: 2,
-                                                                  ))))
-                                                                ]),
-                                                                itemExtent: 75,
-                                                                onSelectedItemChanged:
-                                                                    (index) => {
-                                                                  scrollBodyWeightInt =
-                                                                      index +
-                                                                          50,
-                                                                },
-                                                              )),
-                                                          const SizedBox(
-                                                            width: 20,
-                                                            height: 45,
-                                                            child: Align(
-                                                              alignment:
-                                                                  Alignment
-                                                                      .topCenter,
-                                                              child: Text(".",
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontSize:
-                                                                        17,
+                                                              SizedBox(
+                                                                  height: 120,
+                                                                  width: 70,
+                                                                  child:
+                                                                      CupertinoPicker(
+                                                                    scrollController:
+                                                                        _intController,
+                                                                    children:
+                                                                        nums,
+                                                                    looping:
+                                                                        true,
+                                                                    diameterRatio:
+                                                                        1.25,
+                                                                    selectionOverlay:
+                                                                        Column(children: <
+                                                                            Widget>[
+                                                                      Container(
+                                                                          decoration: const BoxDecoration(
+                                                                              border: Border(
+                                                                                  top: BorderSide(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        width:
+                                                                            2,
+                                                                      )))),
+                                                                      const SizedBox(
+                                                                          height:
+                                                                              50),
+                                                                      Container(
+                                                                          decoration: const BoxDecoration(
+                                                                              border: Border(
+                                                                                  top: BorderSide(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        width:
+                                                                            2,
+                                                                      ))))
+                                                                    ]),
+                                                                    itemExtent:
+                                                                        75,
+                                                                    onSelectedItemChanged:
+                                                                        (index) =>
+                                                                            {
+                                                                      scrollBodyWeightInt =
+                                                                          index +
+                                                                              50,
+                                                                    },
                                                                   )),
-                                                            ),
-                                                          ),
-                                                          SizedBox(
-                                                              height: 120,
-                                                              width: 70,
-                                                              child:
-                                                                  CupertinoPicker(
-                                                                scrollController:
-                                                                    _decController,
-                                                                children: decs,
-                                                                looping: true,
-                                                                diameterRatio:
-                                                                    1.25,
-                                                                selectionOverlay:
-                                                                    Column(children: <
-                                                                        Widget>[
-                                                                  Container(
-                                                                      decoration: const BoxDecoration(
-                                                                          border: Border(
-                                                                              top: BorderSide(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    width: 2,
-                                                                  )))),
-                                                                  const SizedBox(
-                                                                      height:
-                                                                          50),
-                                                                  Container(
-                                                                      decoration: const BoxDecoration(
-                                                                          border: Border(
-                                                                              top: BorderSide(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    width: 2,
-                                                                  ))))
-                                                                ]),
-                                                                itemExtent: 75,
-                                                                onSelectedItemChanged:
-                                                                    (index) => {
-                                                                  scrollBodyWeightDec =
-                                                                      index,
-                                                                },
-                                                              )),
-                                                          const SizedBox(
-                                                            width: 20,
-                                                            height: 40,
-                                                            child: Align(
-                                                              alignment:
-                                                                  Alignment
-                                                                      .topCenter,
-                                                              child: Text("lb",
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontSize:
-                                                                        14,
+                                                              const SizedBox(
+                                                                width: 20,
+                                                                height: 45,
+                                                                child: Align(
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .topCenter,
+                                                                  child: Text(
+                                                                      ".",
+                                                                      style:
+                                                                          TextStyle(
+                                                                        fontSize:
+                                                                            17,
+                                                                      )),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                  height: 120,
+                                                                  width: 70,
+                                                                  child:
+                                                                      CupertinoPicker(
+                                                                    scrollController:
+                                                                        _decController,
+                                                                    children:
+                                                                        decs,
+                                                                    looping:
+                                                                        true,
+                                                                    diameterRatio:
+                                                                        1.25,
+                                                                    selectionOverlay:
+                                                                        Column(children: <
+                                                                            Widget>[
+                                                                      Container(
+                                                                          decoration: const BoxDecoration(
+                                                                              border: Border(
+                                                                                  top: BorderSide(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        width:
+                                                                            2,
+                                                                      )))),
+                                                                      const SizedBox(
+                                                                          height:
+                                                                              50),
+                                                                      Container(
+                                                                          decoration: const BoxDecoration(
+                                                                              border: Border(
+                                                                                  top: BorderSide(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        width:
+                                                                            2,
+                                                                      ))))
+                                                                    ]),
+                                                                    itemExtent:
+                                                                        75,
+                                                                    onSelectedItemChanged:
+                                                                        (index) =>
+                                                                            {
+                                                                      scrollBodyWeightDec =
+                                                                          index,
+                                                                    },
                                                                   )),
-                                                            ),
-                                                          ),
-                                                        ])),
+                                                              const SizedBox(
+                                                                width: 20,
+                                                                height: 40,
+                                                                child: Align(
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .topCenter,
+                                                                  child: Text(
+                                                                      "lb",
+                                                                      style:
+                                                                          TextStyle(
+                                                                        fontSize:
+                                                                            14,
+                                                                      )),
+                                                                ),
+                                                              ),
+                                                            ])),
                                                         const SizedBox(
                                                             height: 30),
                                                         Row(children: <Widget>[

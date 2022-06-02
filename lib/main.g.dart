@@ -139,13 +139,17 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
       ..sets = fields[4] as int
       ..reps = fields[5] as int
       ..repsCompleted = (fields[6] as List).cast<int>()
-      ..failed = fields[7] as int;
+      ..failed = fields[7] as int
+      ..overload = fields[8] as bool
+      ..deload = fields[9] as bool
+      ..incrementFrequency = fields[10] as int
+      ..success = fields[11] as int;
   }
 
   @override
   void write(BinaryWriter writer, Exercise obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -161,7 +165,15 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
       ..writeByte(6)
       ..write(obj.repsCompleted)
       ..writeByte(7)
-      ..write(obj.failed);
+      ..write(obj.failed)
+      ..writeByte(8)
+      ..write(obj.overload)
+      ..writeByte(9)
+      ..write(obj.deload)
+      ..writeByte(10)
+      ..write(obj.incrementFrequency)
+      ..writeByte(11)
+      ..write(obj.success);
   }
 
   @override
