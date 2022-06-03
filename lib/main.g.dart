@@ -145,13 +145,14 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
       ..incrementFrequency = fields[10] as int
       ..success = fields[11] as int
       ..deloadFrequency = fields[12] as int
-      ..deloadPercent = fields[13] as int;
+      ..deloadPercent = fields[13] as int
+      ..note = fields[14] as String;
   }
 
   @override
   void write(BinaryWriter writer, Exercise obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -179,7 +180,9 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
       ..writeByte(12)
       ..write(obj.deloadFrequency)
       ..writeByte(13)
-      ..write(obj.deloadPercent);
+      ..write(obj.deloadPercent)
+      ..writeByte(14)
+      ..write(obj.note);
   }
 
   @override
@@ -212,13 +215,14 @@ class IndivWorkoutAdapter extends TypeAdapter<IndivWorkout> {
       (fields[5] as List).cast<int>(),
       (fields[6] as List).cast<int>(),
       (fields[7] as List).map((dynamic e) => (e as List).cast<int>()).toList(),
+      fields[8] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, IndivWorkout obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -234,7 +238,9 @@ class IndivWorkoutAdapter extends TypeAdapter<IndivWorkout> {
       ..writeByte(6)
       ..write(obj.setsPlanned)
       ..writeByte(7)
-      ..write(obj.repsCompleted);
+      ..write(obj.repsCompleted)
+      ..writeByte(8)
+      ..write(obj.note);
   }
 
   @override

@@ -28,13 +28,13 @@ void main() async {
   await Hive.openBox<Workout>('workoutsBox');
   await Hive.openBox<IndivWorkout>('indivWorkoutsBox');
   await Hive.openBox<double>('bodyWeightsBox');
-  await Hive.openBox<String>('notesBox');
   await Hive.openBox<int>('counterBox');
   // boolBox contains: theme, timer, ring, vibration, deload
   await Hive.openBox<bool>('boolBox');
   await Hive.openBox<TimerMap>('successTimerBox');
   await Hive.openBox<TimerMap>('failTimerBox');
   await Hive.openBox<Plate>('platesBox');
+  await Hive.openBox<String>('tempNoteBox');
 
   // on first time opening app, sets to default state
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -86,7 +86,6 @@ void main() async {
   runApp(const MyApp());
 }
 
-String tempNote = "";
 String postWorkoutTempNote = "";
 
 double tempBodyWeight = _setTempBodyWeight();
@@ -177,6 +176,8 @@ class Exercise extends HiveObject {
   int deloadFrequency = 3;
   @HiveField(13)
   int deloadPercent = 10;
+  @HiveField(14)
+  String note = "";
 
   Exercise(this.name);
 }
@@ -200,10 +201,19 @@ class IndivWorkout extends HiveObject {
   List<int> setsPlanned;
   @HiveField(7)
   List<List<int>> repsCompleted;
+  @HiveField(8)
+  String note;
 
-  IndivWorkout(this.name, this.date, this.sortableDate, 
-    this.exercisesCompleted, this.weights, this.repsPlanned, 
-    this.setsPlanned, this.repsCompleted);
+  IndivWorkout(
+      this.name,
+      this.date,
+      this.sortableDate,
+      this.exercisesCompleted,
+      this.weights,
+      this.repsPlanned,
+      this.setsPlanned,
+      this.repsCompleted,
+      this.note);
 }
 
 Exercise customxyz = Exercise("Custom Exercise");
@@ -260,9 +270,6 @@ void defaultState() async {
   platesBox.add(Plate(5, 4));
   platesBox.add(Plate(2.5, 4));
 
-  Box<String> notesBox = Hive.box<String>('notesBox');
-  notesBox.deleteAll(notesBox.keys);
-
   Box<int> counterBox = Hive.box<int>('counterBox');
   counterBox.deleteAll(counterBox.keys);
   counterBox.add(0);
@@ -282,6 +289,10 @@ void defaultState() async {
   Box<TimerMap> failTimerBox = Hive.box<TimerMap>('failTimerBox');
   failTimerBox.deleteAll(failTimerBox.keys);
   failTimerBox.add(TimerMap(300, true));
+
+  Box<String> tempNoteBox = Hive.box<String>('tempNoteBox');
+  tempNoteBox.deleteAll(tempNoteBox.keys);
+  tempNoteBox.add("");
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('resetToDefault', false);
@@ -2312,14 +2323,12 @@ class _PlatesState extends State<PlatesPage> {
 }
 
 class _ListState extends State<ListPage> {
-  late final Box<String> notesBox;
   late final Box<IndivWorkout> indivWorkoutsBox;
 
   @override
   void initState() {
     super.initState();
     indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
-    notesBox = Hive.box<String>('notesBox');
   }
 
   @override
@@ -2366,7 +2375,8 @@ class _ListState extends State<ListPage> {
                                       .repsCompleted[j][k]);
                                 }
                               }
-                              postWorkoutTempNote = notesBox.getAt(i)!;
+                              postWorkoutTempNote =
+                                  indivWorkoutsBox.getAt(i)!.note;
                               Navigator.of(context)
                                   .push(MaterialPageRoute(
                                       builder: (context) => PostWorkoutEditPage(
@@ -2564,13 +2574,11 @@ class _CalendarState extends State<CalendarPage> {
 }
 
 class _NotesState extends State<NotesPage> {
-  late final Box<String> notesBox;
   late final Box<IndivWorkout> indivWorkoutsBox;
 
   @override
   void initState() {
     super.initState();
-    notesBox = Hive.box<String>('notesBox');
     indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
   }
 
@@ -2588,7 +2596,8 @@ class _NotesState extends State<NotesPage> {
                   shrinkWrap: true,
                   children: <Widget>[
                     for (int i = indivWorkoutsBox.length - 1; i >= 0; i--)
-                      if (notesBox.getAt(i) != "") // doesn't show empty notes
+                      if (indivWorkoutsBox.getAt(i)!.note !=
+                          "") // doesn't show empty notes
                         Column(children: <Widget>[
                           GestureDetector(
                               onTap: () {
@@ -2619,7 +2628,8 @@ class _NotesState extends State<NotesPage> {
                                         .repsCompleted[j][k]);
                                   }
                                 }
-                                postWorkoutTempNote = notesBox.getAt(i)!;
+                                postWorkoutTempNote =
+                                    indivWorkoutsBox.getAt(i)!.note;
                                 Navigator.of(context)
                                     .push(MaterialPageRoute(
                                         builder: (context) =>
@@ -2674,7 +2684,10 @@ class _NotesState extends State<NotesPage> {
                                               color: Colors.transparent),
                                           Align(
                                               alignment: Alignment.centerLeft,
-                                              child: Text(notesBox.getAt(i)!,
+                                              child: Text(
+                                                  indivWorkoutsBox
+                                                      .getAt(i)!
+                                                      .note,
                                                   style: const TextStyle(
                                                     fontSize: 16,
                                                   ))),
@@ -2688,11 +2701,13 @@ class _NotesState extends State<NotesPage> {
 }
 
 class _WorkoutNotesState extends State<WorkoutNotesPage> {
+  late final Box<String> tempNoteBox;
   final _myController = TextEditingController();
 
   @override
   void initState() {
-    _myController.text = tempNote; //default text
+    tempNoteBox = Hive.box<String>('tempNoteBox');
+    _myController.text = tempNoteBox.getAt(0)!; //default text
     super.initState();
   }
 
@@ -2727,7 +2742,7 @@ class _WorkoutNotesState extends State<WorkoutNotesPage> {
               focusNode: FocusNode(),
               controller: _myController,
               onChanged: (val) {
-                tempNote = _myController.text;
+                tempNoteBox.putAt(0, _myController.text);
               },
             )));
   }
@@ -3107,13 +3122,13 @@ class _WorkoutPageState extends State<WorkoutPage> {
   late final List<Workout> workoutsList;
   late final Box<IndivWorkout> indivWorkoutsBox;
   late final Box<double> bodyWeightsBox;
-  late final Box<String> notesBox;
   late final Box<int> counterBox;
   late final Box<Exercise> exercisesBox;
   late final Box<bool> boolBox;
   late final Box<TimerMap> successTimerBox;
   late final Box<TimerMap> failTimerBox;
   late final Box<Plate> platesBox;
+  late final Box<String> tempNoteBox;
   final List<int> successTimes = [];
   final List<int> failureTimes = [];
 
@@ -3125,12 +3140,12 @@ class _WorkoutPageState extends State<WorkoutPage> {
     counterBox = Hive.box<int>('counterBox');
     indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
     bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
-    notesBox = Hive.box<String>('notesBox');
     exercisesBox = Hive.box<Exercise>('exercisesBox');
     boolBox = Hive.box<bool>('boolBox');
     successTimerBox = Hive.box<TimerMap>('successTimerBox');
     failTimerBox = Hive.box<TimerMap>('failTimerBox');
     platesBox = Hive.box<Plate>('platesBox');
+    tempNoteBox = Hive.box<String>('tempNoteBox');
     getTimes();
     timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
   }
@@ -3361,10 +3376,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
                   if (exerciseFailed == true) {
                     // deloads
-                    print(exercisesBox.getAt(exIdx)!.deload);
-                    print(exercisesBox.getAt(exIdx)!.failed);
-                    print(exercisesBox.getAt(exIdx)!.deloadFrequency);
-
                     if (exercisesBox.getAt(exIdx)!.deload &&
                         exercisesBox.getAt(exIdx)!.failed + 1 >=
                             exercisesBox.getAt(exIdx)!.deloadFrequency) {
@@ -3443,10 +3454,10 @@ class _WorkoutPageState extends State<WorkoutPage> {
                     weights,
                     repsPlanned,
                     setsPlanned,
-                    repsCompleted));
+                    repsCompleted,
+                    tempNoteBox.getAt(0)!));
 
-                notesBox.add(tempNote);
-                tempNote = ""; // clears note for next workout
+                tempNoteBox.putAt(0, ""); // clears note for next workout
 
                 bodyWeightsBox.add(tempBodyWeight);
 
@@ -6898,14 +6909,12 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
 
   late final Box<IndivWorkout> indivWorkoutsBox;
   late final Box<double> bodyWeightsBox;
-  late final Box<String> notesBox;
 
   @override
   void initState() {
     super.initState();
     indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
     bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
-    notesBox = Hive.box<String>('notesBox');
     dateinput.text = indivWorkoutsBox.getAt(widget.index)!.date.substring(5);
     dateChange = indivWorkoutsBox.getAt(widget.index)!.date;
     originalDate = indivWorkoutsBox.getAt(widget.index)!.date;
@@ -6987,16 +6996,16 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
               onPressed: () {
                 bodyWeightsBox.putAt(widget.index, postTempBodyWeight);
 
-                notesBox.putAt(widget.index, postWorkoutTempNote);
+                final tempIndiv = Hive.box<IndivWorkout>('indivWorkoutsBox')
+                    .getAt(widget.index);
+
+                tempIndiv!.note = postWorkoutTempNote;
 
                 postWorkoutTempNote = "";
 
                 if (originalDate != dateChange) {
-                  final tempIndiv = Hive.box<IndivWorkout>('indivWorkoutsBox')
-                      .getAt(widget.index);
-                  tempIndiv!.date = dateChange;
+                  tempIndiv.date = dateChange;
                   tempIndiv.sortableDate = sortableDateChange;
-                  tempIndiv.save();
 
                   List<IndivWorkout> copyIndivs = [];
                   // again, no deep copies. workaround
@@ -7013,7 +7022,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                     indivWorkoutsBox.add(copyIndivs[i]);
                   }
                 }
-
+                tempIndiv.save();
                 Navigator.of(context).pop();
               },
             ),
@@ -7462,7 +7471,6 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                       onPressed: () {
                         indivWorkoutsBox.deleteAt(widget.index);
                         bodyWeightsBox.deleteAt(widget.index);
-                        notesBox.deleteAt(widget.index);
                         Navigator.of(context).pop();
                       },
                       child: const Text("Delete"),
