@@ -30,7 +30,7 @@ void main() async {
   await Hive.openBox<double>('bodyWeightsBox');
   await Hive.openBox<String>('notesBox');
   await Hive.openBox<int>('counterBox');
-  // boolBox contains: theme, timer, ring, vibration
+  // boolBox contains: theme, timer, ring, vibration, deload
   await Hive.openBox<bool>('boolBox');
   await Hive.openBox<TimerMap>('successTimerBox');
   await Hive.openBox<TimerMap>('failTimerBox');
@@ -173,6 +173,10 @@ class Exercise extends HiveObject {
   int incrementFrequency = 1;
   @HiveField(11)
   int success = 0;
+  @HiveField(12)
+  int deloadFrequency = 3;
+  @HiveField(13)
+  int deloadPercent = 10;
 
   Exercise(this.name);
 }
@@ -767,6 +771,7 @@ class _HomePageState extends State<HomePage> {
 class _HomeState extends State<Home> {
   late final Box<Workout> workoutsBox;
   late final Box<int> counterBox;
+  late final Box<bool> boolBox;
   late dynamic counter;
 
   @override
@@ -774,6 +779,7 @@ class _HomeState extends State<Home> {
     super.initState();
     workoutsBox = Hive.box<Workout>('workoutsBox');
     counterBox = Hive.box<int>('counterBox');
+    boolBox = Hive.box<bool>('boolBox');
     timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
   }
 
@@ -3065,13 +3071,12 @@ class _EditState extends State<Edit> {
                                               .then((value) {
                                             setState(() {});
                                           });
-                                        }
-                                        else {
+                                        } else {
                                           _myController.text = "";
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(const SnackBar(
-                                            content: Text(
-                                                "Workout already exists"),
+                                            content:
+                                                Text("Workout already exists"),
                                             duration: Duration(seconds: 2),
                                           ));
                                           Navigator.of(context).pop();
@@ -3105,6 +3110,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
   late final Box<bool> boolBox;
   late final Box<TimerMap> successTimerBox;
   late final Box<TimerMap> failTimerBox;
+  late final Box<Plate> platesBox;
   final List<int> successTimes = [];
   final List<int> failureTimes = [];
 
@@ -3121,6 +3127,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
     boolBox = Hive.box<bool>('boolBox');
     successTimerBox = Hive.box<TimerMap>('successTimerBox');
     failTimerBox = Hive.box<TimerMap>('failTimerBox');
+    platesBox = Hive.box<Plate>('platesBox');
     getTimes();
     timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
   }
@@ -3134,6 +3141,55 @@ class _WorkoutPageState extends State<WorkoutPage> {
     }
     successTimes.sort();
     failureTimes.sort();
+  }
+
+  void decrementWeight(int j) {
+    double deloadMultiplier =
+        0.01 * (100 - exercisesBox.getAt(j)!.deloadPercent);
+
+    if (exercisesBox.getAt(j)!.weight * deloadMultiplier <=
+        exercisesBox.getAt(j)!.barWeight) {
+      exercisesBox.getAt(j)!.weight = exercisesBox.getAt(j)!.barWeight;
+      exercisesBox.getAt(j)!.save();
+    } else {
+      exercisesBox.getAt(j)!.weight *= deloadMultiplier;
+      // subtracts a little weight until weight can be formed
+      // the weight subtracted is the difference to the smallest plate
+      while (!plateCalculator(exercisesBox.getAt(j))) {
+        if (exercisesBox.getAt(j)!.weight %
+                platesBox.getAt(platesBox.length - 1)!.weight !=
+            0) {
+          exercisesBox.getAt(j)!.weight -= exercisesBox.getAt(j)!.weight %
+              platesBox.getAt(platesBox.length - 1)!.weight;
+        } else {
+          exercisesBox.getAt(j)!.weight -= 0.00001;
+        }
+      }
+      exercisesBox.getAt(j)!.save();
+    }
+  }
+
+  // returns if weight can be formed
+  // used in decrement weight function to ensure weight
+  // will be able to be formed
+  bool plateCalculator(Exercise? exercise) {
+    // weight per side
+    double weight = (exercise!.weight - exercise.barWeight) / 2;
+
+    for (int i = 0; i < platesBox.length; i++) {
+      int numPlates = weight ~/ platesBox.getAt(i)!.weight;
+      if (numPlates > (platesBox.getAt(i)!.number / 2)) {
+        numPlates = platesBox.getAt(i)!.number ~/ 2;
+      }
+      if (numPlates > 0) {
+        weight -= numPlates * platesBox.getAt(i)!.weight;
+      }
+    }
+    if (weight != 0) {
+      return false;
+    } else {
+      return true;
+    }
   }
 
   @override
@@ -3292,19 +3348,51 @@ class _WorkoutPageState extends State<WorkoutPage> {
                   String name = tempWorkout.exercises[i].name;
                   tempWorkout.save();
 
+                  int exIdx = 0;
+                  for (int i = 0; i < exercisesBox.length; i++) {
+                    if (exercisesBox.getAt(i)!.name == name) {
+                      exIdx = i;
+                    }
+                  }
+
                   if (exerciseFailed == true) {
-                    // loop through every workout, look for exercises
-                    // matching name, increment failure counter
-                    for (int i = 0; i < workoutsBox.length; i++) {
-                      final tempWorkout =
-                          Hive.box<Workout>('workoutsBox').getAt(i);
-                      for (int j = 0; j < tempWorkout!.exercises.length; j++) {
-                        if (tempWorkout.exercises[j].name == name) {
-                          tempWorkout.exercises[j].success = 0;
-                          tempWorkout.exercises[j].failed += 1;
+                    // deloads
+                    print(exercisesBox.getAt(exIdx)!.deload);
+                    print(exercisesBox.getAt(exIdx)!.failed);
+                    print(exercisesBox.getAt(exIdx)!.deloadFrequency);
+
+                    if (exercisesBox.getAt(exIdx)!.deload &&
+                        exercisesBox.getAt(exIdx)!.failed + 1 >=
+                            exercisesBox.getAt(exIdx)!.deloadFrequency) {
+                      exercisesBox.getAt(exIdx)!.failed = 0;
+                      exercisesBox.getAt(exIdx)!.success = 0;
+                      decrementWeight(exIdx);
+                      exercisesBox.getAt(exIdx)!.save();
+
+                      // because of how Hive works, we also have to 
+                      // go through each individual workout
+                      // inefficient, but I can't find a better way
+                      for (int i = 0; i < workoutsBox.length; i++) {
+                        final tempWorkout =
+                            Hive.box<Workout>('workoutsBox')
+                                .getAt(i);
+                        for (int j = 0;
+                            j < tempWorkout!.exercises.length;
+                            j++) {
+                          if (tempWorkout.exercises[j].name ==
+                              name) {
+                            tempWorkout.exercises[j].weight =
+                                exercisesBox.getAt(exIdx)!.weight;
+                          }
                           tempWorkout.save();
                         }
-                      }
+                      }                    
+                    }
+                    // increments failure counter, not yet at deload
+                    else {
+                      exercisesBox.getAt(exIdx)!.success = 0;
+                      exercisesBox.getAt(exIdx)!.failed += 1;
+                      exercisesBox.getAt(exIdx)!.save();
                     }
                   }
                   // increment for all exercises with the same name
@@ -3312,29 +3400,37 @@ class _WorkoutPageState extends State<WorkoutPage> {
                   // and overload is on
                   else if (exerciseFailed == false) {
                     // increments for all and resets success counter
-                    if (tempWorkout.exercises[i].overload &&
-                        tempWorkout.exercises[i].success + 1 >=
-                            tempWorkout.exercises[i].incrementFrequency) {
-                      for (int i = 0; i < exercisesBox.length; i++) {
-                        if (exercisesBox.getAt(i)!.name == name) {
-                          exercisesBox.getAt(i)!.weight +=
-                              exercisesBox.getAt(i)!.increment;
-                          exercisesBox.getAt(i)!.success = 0;
-                          exercisesBox.getAt(i)!.failed = 0;
-                          exercisesBox.getAt(i)!.save();
+                    if (exercisesBox.getAt(exIdx)!.overload &&
+                        exercisesBox.getAt(exIdx)!.success + 1 >=
+                            exercisesBox.getAt(exIdx)!.incrementFrequency) {
+                      exercisesBox.getAt(exIdx)!.weight +=
+                          exercisesBox.getAt(exIdx)!.increment;
+                      exercisesBox.getAt(exIdx)!.success = 0;
+                      exercisesBox.getAt(exIdx)!.failed = 0;
+                      exercisesBox.getAt(exIdx)!.save();
+
+                      for (int i = 0; i < workoutsBox.length; i++) {
+                        final tempWorkout =
+                            Hive.box<Workout>('workoutsBox')
+                                .getAt(i);
+                        for (int j = 0;
+                            j < tempWorkout!.exercises.length;
+                            j++) {
+                          if (tempWorkout.exercises[j].name ==
+                              name) {
+                            tempWorkout.exercises[j].weight =
+                                exercisesBox.getAt(exIdx)!.weight;
+                          }
+                          tempWorkout.save();
                         }
-                      }
+                      }                       
                     }
                     // increments success counter, but does not add weight because
                     // not at frequency to increment yet
                     else {
-                      for (int i = 0; i < exercisesBox.length; i++) {
-                        if (exercisesBox.getAt(i)!.name == name) {
-                          exercisesBox.getAt(i)!.success += 1;
-                          exercisesBox.getAt(i)!.failed = 0;
-                          exercisesBox.getAt(i)!.save();
-                        }
-                      }
+                      exercisesBox.getAt(exIdx)!.success += 1;
+                      exercisesBox.getAt(exIdx)!.failed = 0;
+                      exercisesBox.getAt(exIdx)!.save();
                     }
                   }
                 }
@@ -5878,6 +5974,21 @@ class _IncrementsPageState extends State<IncrementsPage> {
     }
   }
 
+  void toggleSwitch2(bool value) {
+    final tempExercise = Hive.box<Exercise>('exercisesBox').getAt(widget.index);
+    if (tempExercise!.deload == false) {
+      setState(() {
+        tempExercise.deload = true;
+        tempExercise.save();
+      });
+    } else {
+      setState(() {
+        tempExercise.deload = false;
+        tempExercise.save();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -5892,7 +6003,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
         title: const Text("Increments"),
         titleTextStyle: const TextStyle(fontSize: 22),
       ),
-      body: Column(children: <Widget>[
+      body: ListView(children: <Widget>[
         SizedBox(
           height: 91,
           width: double.infinity,
@@ -5901,7 +6012,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                 primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
             child: Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
               child: Column(children: <Widget>[
                 Row(children: <Widget>[
                   Expanded(
@@ -5941,7 +6052,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
         ),
         exercisesBox.getAt(widget.index)!.overload
             ? SizedBox(
-                height: 91,
+                height: 80,
                 width: double.infinity,
                 child: ValueListenableBuilder(
                     valueListenable: _incrementsCounter,
@@ -5951,7 +6062,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                               primary: Colors.white,
                               textStyle: const TextStyle(fontSize: 16)),
                           child: Container(
-                            padding: const EdgeInsets.all(10),
+                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                             child: Row(children: <Widget>[
                               Expanded(
                                 child: Column(children: [
@@ -5992,7 +6103,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
             : const SizedBox(),
         exercisesBox.getAt(widget.index)!.overload
             ? SizedBox(
-                height: 91,
+                height: 80,
                 width: double.infinity,
                 child: ValueListenableBuilder(
                     valueListenable: _incrementsCounter,
@@ -6002,7 +6113,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                             primary: Colors.white,
                             textStyle: const TextStyle(fontSize: 16)),
                         child: Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                           child: Row(children: <Widget>[
                             Expanded(
                               child: Column(children: [
@@ -6016,7 +6127,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                   alignment: Alignment.centerLeft,
                                   child: exercisesBox
                                               .getAt(widget.index)!
-                                              .incrementFrequency == 1
+                                              .incrementFrequency ==
+                                          1
                                       ? const Text("Every Time",
                                           style: TextStyle(
                                               fontSize: 16, color: Colors.grey))
@@ -6041,8 +6153,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
             : const SizedBox(),
         exercisesBox.getAt(widget.index)!.overload
             ? Container(
-                height: 100,
-                padding: const EdgeInsets.all(10),
+                height: 82,
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                 width: double.infinity,
                 child: ValueListenableBuilder(
                     valueListenable: _incrementsCounter,
@@ -6080,6 +6192,171 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                     "Weight increases by ${exercisesBox.getAt(widget.index)!.increment}lb in total if you completed all sets on this exercise the last ${exercisesBox.getAt(widget.index)!.incrementFrequency} times.",
                                     style: const TextStyle(
                                         fontSize: 14, color: Colors.grey)),
+                      );
+                    }),
+              )
+            : const SizedBox(),
+        SizedBox(
+          height: 91,
+          width: double.infinity,
+          child: TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+              child: Column(children: <Widget>[
+                Row(children: <Widget>[
+                  Expanded(
+                    flex: 4,
+                    child: Column(children: const [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("Deload", style: TextStyle(fontSize: 18)),
+                      ),
+                      SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("Decrease weight if failed sets",
+                            style: TextStyle(fontSize: 16, color: Colors.grey)),
+                      ),
+                    ]),
+                  ),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Switch(
+                        inactiveThumbColor: Colors.grey,
+                        inactiveTrackColor: widgetNavColor,
+                        activeColor: Colors.white,
+                        activeTrackColor: Colors.grey,
+                        value: exercisesBox.getAt(widget.index)!.deload,
+                        onChanged: toggleSwitch2,
+                      ),
+                    ),
+                  ),
+                ]),
+              ]),
+            ),
+            onPressed: (() => toggleSwitch2(false)),
+          ),
+        ),
+        exercisesBox.getAt(widget.index)!.deload
+            ? SizedBox(
+                height: 80,
+                width: double.infinity,
+                child: ValueListenableBuilder(
+                    valueListenable: _incrementsCounter,
+                    builder: (context, value, child) {
+                      return TextButton(
+                          style: TextButton.styleFrom(
+                              primary: Colors.white,
+                              textStyle: const TextStyle(fontSize: 16)),
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                            child: Row(children: <Widget>[
+                              Expanded(
+                                child: Column(children: [
+                                  const Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("Percentage",
+                                        style: TextStyle(fontSize: 18)),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                        "${exercisesBox.getAt(widget.index)!.deloadPercent.toString()}%",
+                                        style: const TextStyle(
+                                            fontSize: 16, color: Colors.grey)),
+                                  ),
+                                ]),
+                              ),
+                            ]),
+                          ),
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (context) => percentageSelector());
+                          });
+                    }))
+            : const SizedBox(),
+        exercisesBox.getAt(widget.index)!.deload
+            ? SizedBox(
+                height: 80,
+                width: double.infinity,
+                child: ValueListenableBuilder(
+                    valueListenable: _incrementsCounter,
+                    builder: (context, value, child) {
+                      return TextButton(
+                        style: TextButton.styleFrom(
+                            primary: Colors.white,
+                            textStyle: const TextStyle(fontSize: 16)),
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                          child: Row(children: <Widget>[
+                            Expanded(
+                              child: Column(children: [
+                                const Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text("Frequency",
+                                      style: TextStyle(fontSize: 18)),
+                                ),
+                                const SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: exercisesBox
+                                              .getAt(widget.index)!
+                                              .deloadFrequency ==
+                                          1
+                                      ? const Text("Every Time",
+                                          style: TextStyle(
+                                              fontSize: 16, color: Colors.grey))
+                                      : Text(
+                                          "Every ${exercisesBox.getAt(widget.index)!.deloadFrequency.toString()} Times",
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey)),
+                                ),
+                              ]),
+                            ),
+                          ]),
+                        ),
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) => deloadFrequencySelector());
+                        },
+                      );
+                    }),
+              )
+            : const SizedBox(),
+        exercisesBox.getAt(widget.index)!.deload
+            ? Container(
+                height: 82,
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                width: double.infinity,
+                child: ValueListenableBuilder(
+                    valueListenable: _incrementsCounter,
+                    builder: (context, value, child) {
+                      return Container(
+                        padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
+                        decoration: BoxDecoration(
+                          color: widgetNavColor,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: exercisesBox
+                                    .getAt(widget.index)!
+                                    .deloadFrequency ==
+                                1
+                            ? Text(
+                                "Weight decreases by ${exercisesBox.getAt(widget.index)!.deloadPercent}% if you failed to complete all sets on this exercise the last time.",
+                                style: const TextStyle(
+                                    fontSize: 14, color: Colors.grey))
+                            : Text(
+                                "Weight decreases by ${exercisesBox.getAt(widget.index)!.deloadPercent}% if you failed to complete all sets on this exercise the last ${exercisesBox.getAt(widget.index)!.deloadFrequency} times.",
+                                style: const TextStyle(
+                                    fontSize: 14, color: Colors.grey)),
                       );
                     }),
               )
@@ -6359,6 +6636,235 @@ class _IncrementsPageState extends State<IncrementsPage> {
                               Hive.box<Exercise>('exercisesBox')
                                   .getAt(widget.index);
                           tempExercise!.incrementFrequency = freq;
+                          tempExercise.save();
+
+                          _incrementsCounter.value++;
+                          Navigator.of(context).pop();
+                        });
+                      },
+                    ),
+                  ]),
+                ])));
+  }
+
+  Widget percentageSelector() {
+    final _controller = FixedExtentScrollController(
+        initialItem: exercisesBox.getAt(widget.index)!.deloadPercent - 1);
+    int percent = exercisesBox.getAt(widget.index)!.deloadPercent;
+
+    List<Widget> percentages = [
+      for (int i = 1; i < 100; i++) ListTile(title: Text(i.toString())),
+    ];
+
+    return Dialog(
+        insetPadding: const EdgeInsets.all(10),
+        child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text("Percentage",
+                      style: TextStyle(
+                        fontSize: 18,
+                      )),
+                  const SizedBox(height: 30),
+                  Flexible(
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                        SizedBox(
+                            height: 120,
+                            width: 60,
+                            child: CupertinoPicker(
+                              scrollController: _controller,
+                              children: percentages,
+                              looping: true,
+                              diameterRatio: 1.25,
+                              selectionOverlay: Column(children: <Widget>[
+                                Container(
+                                    decoration: const BoxDecoration(
+                                        border: Border(
+                                            top: BorderSide(
+                                  color: Colors.white,
+                                  width: 2,
+                                )))),
+                                const SizedBox(height: 50),
+                                Container(
+                                    decoration: const BoxDecoration(
+                                        border: Border(
+                                            top: BorderSide(
+                                  color: Colors.white,
+                                  width: 2,
+                                ))))
+                              ]),
+                              itemExtent: 75,
+                              onSelectedItemChanged: (index) => {
+                                percent = index + 1,
+                              },
+                            )),
+                        const SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: Text("%",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                )),
+                          ),
+                        ),
+                      ])),
+                  const SizedBox(height: 30),
+                  Row(children: <Widget>[
+                    const SizedBox(width: 187.4),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        primary: redColor,
+                        textStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        alignment: Alignment.center,
+                      ),
+                      child: const Text("Cancel"),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    const SizedBox(width: 20),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        primary: redColor,
+                        textStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        alignment: Alignment.center,
+                      ),
+                      child: const Text("OK"),
+                      onPressed: () {
+                        setState(() {
+                          final tempExercise =
+                              Hive.box<Exercise>('exercisesBox')
+                                  .getAt(widget.index);
+                          tempExercise!.deloadPercent = percent;
+                          tempExercise.save();
+
+                          _incrementsCounter.value++;
+                          Navigator.of(context).pop();
+                        });
+                      },
+                    ),
+                  ]),
+                ])));
+  }
+
+  Widget deloadFrequencySelector() {
+    final _controller = FixedExtentScrollController(
+        initialItem: exercisesBox.getAt(widget.index)!.deloadFrequency - 1);
+    int freq = exercisesBox.getAt(widget.index)!.deloadFrequency;
+
+    List<Widget> freqs = [
+      for (int i = 1; i < 11; i++) ListTile(title: Text(i.toString())),
+    ];
+
+    return Dialog(
+        insetPadding: const EdgeInsets.all(10),
+        child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text("Frequency",
+                      style: TextStyle(
+                        fontSize: 18,
+                      )),
+                  const SizedBox(height: 30),
+                  Flexible(
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                        const SizedBox(
+                          width: 60,
+                          height: 40,
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: Text("Every",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                )),
+                          ),
+                        ),
+                        SizedBox(
+                            height: 120,
+                            width: 60,
+                            child: CupertinoPicker(
+                              scrollController: _controller,
+                              children: freqs,
+                              looping: true,
+                              diameterRatio: 1.25,
+                              selectionOverlay: Column(children: <Widget>[
+                                Container(
+                                    decoration: const BoxDecoration(
+                                        border: Border(
+                                            top: BorderSide(
+                                  color: Colors.white,
+                                  width: 2,
+                                )))),
+                                const SizedBox(height: 50),
+                                Container(
+                                    decoration: const BoxDecoration(
+                                        border: Border(
+                                            top: BorderSide(
+                                  color: Colors.white,
+                                  width: 2,
+                                ))))
+                              ]),
+                              itemExtent: 75,
+                              onSelectedItemChanged: (index) => {
+                                freq = index + 1,
+                              },
+                            )),
+                        const SizedBox(
+                          width: 60,
+                          height: 40,
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: Text("times",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                )),
+                          ),
+                        ),
+                      ])),
+                  const SizedBox(height: 30),
+                  Row(children: <Widget>[
+                    const SizedBox(width: 187.4),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        primary: redColor,
+                        textStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        alignment: Alignment.center,
+                      ),
+                      child: const Text("Cancel"),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    const SizedBox(width: 20),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        primary: redColor,
+                        textStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        alignment: Alignment.center,
+                      ),
+                      child: const Text("OK"),
+                      onPressed: () {
+                        setState(() {
+                          final tempExercise =
+                              Hive.box<Exercise>('exercisesBox')
+                                  .getAt(widget.index);
+                          tempExercise!.deloadFrequency = freq;
                           tempExercise.save();
 
                           _incrementsCounter.value++;

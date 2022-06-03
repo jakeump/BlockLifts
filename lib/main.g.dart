@@ -143,13 +143,15 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
       ..overload = fields[8] as bool
       ..deload = fields[9] as bool
       ..incrementFrequency = fields[10] as int
-      ..success = fields[11] as int;
+      ..success = fields[11] as int
+      ..deloadFrequency = fields[12] as int
+      ..deloadPercent = fields[13] as int;
   }
 
   @override
   void write(BinaryWriter writer, Exercise obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -173,7 +175,11 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
       ..writeByte(10)
       ..write(obj.incrementFrequency)
       ..writeByte(11)
-      ..write(obj.success);
+      ..write(obj.success)
+      ..writeByte(12)
+      ..write(obj.deloadFrequency)
+      ..writeByte(13)
+      ..write(obj.deloadPercent);
   }
 
   @override
