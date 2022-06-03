@@ -216,13 +216,14 @@ class IndivWorkoutAdapter extends TypeAdapter<IndivWorkout> {
       (fields[6] as List).cast<int>(),
       (fields[7] as List).map((dynamic e) => (e as List).cast<int>()).toList(),
       fields[8] as String,
+      fields[9] as double,
     );
   }
 
   @override
   void write(BinaryWriter writer, IndivWorkout obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -240,7 +241,9 @@ class IndivWorkoutAdapter extends TypeAdapter<IndivWorkout> {
       ..writeByte(7)
       ..write(obj.repsCompleted)
       ..writeByte(8)
-      ..write(obj.note);
+      ..write(obj.note)
+      ..writeByte(9)
+      ..write(obj.bodyWeight);
   }
 
   @override

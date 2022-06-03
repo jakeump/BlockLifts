@@ -27,7 +27,6 @@ void main() async {
   await Hive.openBox<Exercise>('exercisesBox');
   await Hive.openBox<Workout>('workoutsBox');
   await Hive.openBox<IndivWorkout>('indivWorkoutsBox');
-  await Hive.openBox<double>('bodyWeightsBox');
   await Hive.openBox<int>('counterBox');
   // boolBox contains: theme, timer, ring, vibration, deload
   await Hive.openBox<bool>('boolBox');
@@ -35,15 +34,14 @@ void main() async {
   await Hive.openBox<TimerMap>('failTimerBox');
   await Hive.openBox<Plate>('platesBox');
   await Hive.openBox<String>('tempNoteBox');
+  await Hive.openBox<double>('tempBodyWeightBox');
 
   // on first time opening app, sets to default state
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool? resetToDefault = prefs.getBool('resetToDefault');
 
-  // if (not first time opening app)
-  if (resetToDefault != null && !resetToDefault) {
-    _setTempBodyWeight();
-  } else {
+  // if first time opening app
+  if (resetToDefault == null || resetToDefault) {
     defaultState();
   }
 
@@ -87,8 +85,6 @@ void main() async {
 }
 
 String postWorkoutTempNote = "";
-
-double tempBodyWeight = _setTempBodyWeight();
 
 Timer? timer;
 Duration duration = const Duration();
@@ -203,6 +199,8 @@ class IndivWorkout extends HiveObject {
   List<List<int>> repsCompleted;
   @HiveField(8)
   String note;
+  @HiveField(9)
+  double bodyWeight;
 
   IndivWorkout(
       this.name,
@@ -213,7 +211,8 @@ class IndivWorkout extends HiveObject {
       this.repsPlanned,
       this.setsPlanned,
       this.repsCompleted,
-      this.note);
+      this.note,
+      this.bodyWeight);
 }
 
 Exercise customxyz = Exercise("Custom Exercise");
@@ -257,9 +256,9 @@ void defaultState() async {
       Hive.box<IndivWorkout>('indivWorkoutsBox');
   indivWorkoutsBox.deleteAll(indivWorkoutsBox.keys);
 
-  Box<double> bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
-  bodyWeightsBox.deleteAll(bodyWeightsBox.keys);
-  _setTempBodyWeight();
+  Box<double> tempBodyWeightBox = Hive.box<double>('tempBodyWeightBox');
+  tempBodyWeightBox.deleteAll(tempBodyWeightBox.keys);
+  tempBodyWeightBox.add(150);
 
   Box<Plate> platesBox = Hive.box<Plate>('platesBox');
   platesBox.deleteAll(platesBox.keys);
@@ -389,14 +388,6 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
   }
   _circleCounter.value++;
   _timerCounter.value++;
-}
-
-double _setTempBodyWeight() {
-  Box<double> bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
-  bodyWeightsBox.isEmpty
-      ? tempBodyWeight = 150
-      : tempBodyWeight = bodyWeightsBox.getAt(bodyWeightsBox.length - 1)!;
-  return tempBodyWeight;
 }
 
 // if seconds is equal to any time in list of custom times, play sound
@@ -941,7 +932,7 @@ class _HomeState extends State<Home> {
             });
           },
           child: Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
                 border: i == counter
                     ? Border.all(color: Colors.red)
@@ -958,10 +949,10 @@ class _HomeState extends State<Home> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontSize: 17,
+                          fontSize: 17, color: Colors.grey,
                         )),
                   ),
-                  const Divider(height: 20, color: Colors.transparent),
+                  const Divider(height: 15, color: Colors.transparent),
                   Column(children: [
                     for (int j = 0;
                         j < workoutsBox.getAt(i)!.exercises.length;
@@ -1001,7 +992,7 @@ class _HomeState extends State<Home> {
                             height:
                                 j != workoutsBox.getAt(i)!.exercises.length - 1
                                     ? 25
-                                    : 10,
+                                    : 0,
                             color: Colors.transparent),
                       ])
                   ]),
@@ -3121,7 +3112,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
   late final Box<Workout> workoutsBox;
   late final List<Workout> workoutsList;
   late final Box<IndivWorkout> indivWorkoutsBox;
-  late final Box<double> bodyWeightsBox;
   late final Box<int> counterBox;
   late final Box<Exercise> exercisesBox;
   late final Box<bool> boolBox;
@@ -3129,6 +3119,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
   late final Box<TimerMap> failTimerBox;
   late final Box<Plate> platesBox;
   late final Box<String> tempNoteBox;
+  late final Box<double> tempBodyWeightBox;
   final List<int> successTimes = [];
   final List<int> failureTimes = [];
 
@@ -3139,13 +3130,13 @@ class _WorkoutPageState extends State<WorkoutPage> {
     workoutsList = workoutsBox.values.toList();
     counterBox = Hive.box<int>('counterBox');
     indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
-    bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
     exercisesBox = Hive.box<Exercise>('exercisesBox');
     boolBox = Hive.box<bool>('boolBox');
     successTimerBox = Hive.box<TimerMap>('successTimerBox');
     failTimerBox = Hive.box<TimerMap>('failTimerBox');
     platesBox = Hive.box<Plate>('platesBox');
     tempNoteBox = Hive.box<String>('tempNoteBox');
+    tempBodyWeightBox = Hive.box<double>('tempBodyWeightBox');
     getTimes();
     timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
   }
@@ -3455,11 +3446,10 @@ class _WorkoutPageState extends State<WorkoutPage> {
                     repsPlanned,
                     setsPlanned,
                     repsCompleted,
-                    tempNoteBox.getAt(0)!));
+                    tempNoteBox.getAt(0)!,
+                    tempBodyWeightBox.getAt(0)!));
 
                 tempNoteBox.putAt(0, ""); // clears note for next workout
-
-                bodyWeightsBox.add(tempBodyWeight);
 
                 _counter.value++;
 
@@ -3687,21 +3677,28 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                       final _intController =
                                           FixedExtentScrollController(
                                               initialItem:
-                                                  tempBodyWeight ~/ 1 - 50);
+                                                  tempBodyWeightBox.getAt(0)! ~/
+                                                          1 -
+                                                      50);
                                       // annoying floating point precision: 100.6 - 100 = 0.599
                                       // the +0.05 is a way around it
                                       final _decController =
                                           FixedExtentScrollController(
-                                              initialItem: (tempBodyWeight -
-                                                      (tempBodyWeight ~/ 1) +
-                                                      0.05) *
-                                                  10 ~/
-                                                  1);
+                                              initialItem:
+                                                  (tempBodyWeightBox.getAt(0)! -
+                                                          (tempBodyWeightBox
+                                                                  .getAt(0)! ~/
+                                                              1) +
+                                                          0.05) *
+                                                      10 ~/
+                                                      1);
                                       int scrollBodyWeightInt =
-                                          tempBodyWeight ~/ 1;
+                                          tempBodyWeightBox.getAt(0)! ~/ 1;
                                       int scrollBodyWeightDec =
-                                          (tempBodyWeight -
-                                                  (tempBodyWeight ~/ 1)) *
+                                          (tempBodyWeightBox.getAt(0)! -
+                                                  (tempBodyWeightBox
+                                                          .getAt(0)! ~/
+                                                      1)) *
                                               10 ~/
                                               1;
                                       showDialog(
@@ -3904,12 +3901,12 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                             child: const Text(
                                                                 "OK"),
                                                             onPressed: () {
-                                                              setState(
-                                                                () => tempBodyWeight =
-                                                                    scrollBodyWeightInt +
-                                                                        0.1 *
-                                                                            scrollBodyWeightDec,
-                                                              );
+                                                              tempBodyWeightBox.putAt(
+                                                                  0,
+                                                                  scrollBodyWeightInt +
+                                                                      0.1 *
+                                                                          scrollBodyWeightDec);
+                                                              setState(() {});
                                                               Navigator.of(
                                                                       context)
                                                                   .pop();
@@ -3921,7 +3918,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                     child: Align(
                                         alignment: Alignment.centerRight,
                                         child: Text(
-                                            "${tempBodyWeight.toString()}lb",
+                                            "${tempBodyWeightBox.getAt(0)!.toString()}lb",
                                             style: TextStyle(
                                               fontSize: 17,
                                               color: redColor,
@@ -6908,17 +6905,15 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
   String sortableDateChange = "";
 
   late final Box<IndivWorkout> indivWorkoutsBox;
-  late final Box<double> bodyWeightsBox;
 
   @override
   void initState() {
     super.initState();
     indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
-    bodyWeightsBox = Hive.box<double>('bodyWeightsBox');
     dateinput.text = indivWorkoutsBox.getAt(widget.index)!.date.substring(5);
     dateChange = indivWorkoutsBox.getAt(widget.index)!.date;
     originalDate = indivWorkoutsBox.getAt(widget.index)!.date;
-    postTempBodyWeight = bodyWeightsBox.getAt(widget.index)!;
+    postTempBodyWeight = indivWorkoutsBox.getAt(widget.index)!.bodyWeight;
     // yet again roundabout way of making a copy
     for (int i = 0;
         i < indivWorkoutsBox.getAt(widget.index)!.setsPlanned.length;
@@ -6994,12 +6989,12 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
               ),
               child: const Text("Save"),
               onPressed: () {
-                bodyWeightsBox.putAt(widget.index, postTempBodyWeight);
 
                 final tempIndiv = Hive.box<IndivWorkout>('indivWorkoutsBox')
                     .getAt(widget.index);
 
                 tempIndiv!.note = postWorkoutTempNote;
+                tempIndiv.bodyWeight = postTempBodyWeight;
 
                 postWorkoutTempNote = "";
 
@@ -7470,7 +7465,6 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   child: TextButton(
                       onPressed: () {
                         indivWorkoutsBox.deleteAt(widget.index);
-                        bodyWeightsBox.deleteAt(widget.index);
                         Navigator.of(context).pop();
                       },
                       child: const Text("Delete"),
