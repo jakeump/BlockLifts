@@ -189,18 +189,21 @@ class IndivWorkout extends HiveObject {
   @HiveField(1)
   String date;
   @HiveField(2)
-  List<String> exercisesCompleted;
+  String sortableDate;
   @HiveField(3)
-  List<double> weights;
+  List<String> exercisesCompleted;
   @HiveField(4)
-  List<int> repsPlanned;
+  List<double> weights;
   @HiveField(5)
-  List<int> setsPlanned;
+  List<int> repsPlanned;
   @HiveField(6)
+  List<int> setsPlanned;
+  @HiveField(7)
   List<List<int>> repsCompleted;
 
-  IndivWorkout(this.name, this.date, this.exercisesCompleted, this.weights,
-      this.repsPlanned, this.setsPlanned, this.repsCompleted);
+  IndivWorkout(this.name, this.date, this.sortableDate, 
+    this.exercisesCompleted, this.weights, this.repsPlanned, 
+    this.setsPlanned, this.repsCompleted);
 }
 
 Exercise customxyz = Exercise("Custom Exercise");
@@ -3295,6 +3298,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                 String name = workoutsBox.getAt(widget.index)!.name;
                 var now = DateTime.now();
                 String date = DateFormat('E, d MMM yyyy').format(now);
+                String sortableDate = DateFormat('yyyyMMdd').format(now);
                 List<String> exercisesCompleted = [];
                 List<double> weights = [];
                 List<int> repsPlanned = [];
@@ -3369,24 +3373,22 @@ class _WorkoutPageState extends State<WorkoutPage> {
                       decrementWeight(exIdx);
                       exercisesBox.getAt(exIdx)!.save();
 
-                      // because of how Hive works, we also have to 
+                      // because of how Hive works, we also have to
                       // go through each individual workout
                       // inefficient, but I can't find a better way
                       for (int i = 0; i < workoutsBox.length; i++) {
                         final tempWorkout =
-                            Hive.box<Workout>('workoutsBox')
-                                .getAt(i);
+                            Hive.box<Workout>('workoutsBox').getAt(i);
                         for (int j = 0;
                             j < tempWorkout!.exercises.length;
                             j++) {
-                          if (tempWorkout.exercises[j].name ==
-                              name) {
+                          if (tempWorkout.exercises[j].name == name) {
                             tempWorkout.exercises[j].weight =
                                 exercisesBox.getAt(exIdx)!.weight;
                           }
                           tempWorkout.save();
                         }
-                      }                    
+                      }
                     }
                     // increments failure counter, not yet at deload
                     else {
@@ -3411,19 +3413,17 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
                       for (int i = 0; i < workoutsBox.length; i++) {
                         final tempWorkout =
-                            Hive.box<Workout>('workoutsBox')
-                                .getAt(i);
+                            Hive.box<Workout>('workoutsBox').getAt(i);
                         for (int j = 0;
                             j < tempWorkout!.exercises.length;
                             j++) {
-                          if (tempWorkout.exercises[j].name ==
-                              name) {
+                          if (tempWorkout.exercises[j].name == name) {
                             tempWorkout.exercises[j].weight =
                                 exercisesBox.getAt(exIdx)!.weight;
                           }
                           tempWorkout.save();
                         }
-                      }                       
+                      }
                     }
                     // increments success counter, but does not add weight because
                     // not at frequency to increment yet
@@ -3438,6 +3438,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                 indivWorkoutsBox.add(IndivWorkout(
                     name,
                     date,
+                    sortableDate,
                     exercisesCompleted,
                     weights,
                     repsPlanned,
@@ -6891,7 +6892,9 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
 
   double postTempBodyWeight = 0;
   TextEditingController dateinput = TextEditingController();
+  String originalDate = "";
   String dateChange = "";
+  String sortableDateChange = "";
 
   late final Box<IndivWorkout> indivWorkoutsBox;
   late final Box<double> bodyWeightsBox;
@@ -6905,6 +6908,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
     notesBox = Hive.box<String>('notesBox');
     dateinput.text = indivWorkoutsBox.getAt(widget.index)!.date.substring(5);
     dateChange = indivWorkoutsBox.getAt(widget.index)!.date;
+    originalDate = indivWorkoutsBox.getAt(widget.index)!.date;
     postTempBodyWeight = bodyWeightsBox.getAt(widget.index)!;
     // yet again roundabout way of making a copy
     for (int i = 0;
@@ -6967,6 +6971,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                       .format(pickedDate!);
                                   dateChange = DateFormat('E, d MMM yyyy')
                                       .format(pickedDate);
+                                  sortableDateChange =
+                                      DateFormat('yyyyMMdd').format(pickedDate);
                                 });
                               }))))),
           actions: <Widget>[
@@ -6979,21 +6985,34 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
               ),
               child: const Text("Save"),
               onPressed: () {
-                // save any weight, rep, set, name changes
-                // don't need to save reps because going back reverts it
-                // only change body weight on save
-
                 bodyWeightsBox.putAt(widget.index, postTempBodyWeight);
 
                 notesBox.putAt(widget.index, postWorkoutTempNote);
 
                 postWorkoutTempNote = "";
 
-                final tempIndiv = Hive.box<IndivWorkout>('indivWorkoutsBox')
-                    .getAt(widget.index);
+                if (originalDate != dateChange) {
+                  final tempIndiv = Hive.box<IndivWorkout>('indivWorkoutsBox')
+                      .getAt(widget.index);
+                  tempIndiv!.date = dateChange;
+                  tempIndiv.sortableDate = sortableDateChange;
+                  tempIndiv.save();
 
-                tempIndiv!.date = dateChange;
-                tempIndiv.save();
+                  List<IndivWorkout> copyIndivs = [];
+                  // again, no deep copies. workaround
+                  // sorts workouts by date on date change
+                  // to ensure list page is ordered by date
+                  for (int i = 0; i < indivWorkoutsBox.length; i++) {
+                    copyIndivs.add(indivWorkoutsBox.getAt(i)!);
+                  }
+                  copyIndivs.sort((a, b) {
+                    return a.sortableDate.compareTo(b.sortableDate);
+                  });
+                  indivWorkoutsBox.deleteAll(indivWorkoutsBox.keys);
+                  for (int i = 0; i < copyIndivs.length; i++) {
+                    indivWorkoutsBox.add(copyIndivs[i]);
+                  }
+                }
 
                 Navigator.of(context).pop();
               },
