@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 part 'main.g.dart';
 
@@ -458,11 +459,11 @@ void createNotification(int exIdx, int setIdx) {
             ? workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight %
                         1 ==
                     0
-                ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight.toInt()}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
-                : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
+                ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].reps}×${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight.toInt()}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
+                : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].reps}×${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
             : workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight % 1 == 0
-                ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight.toInt()}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}"
-                : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}x${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}",
+                ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].reps}×${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight.toInt()}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}"
+                : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].reps}×${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}",
         payload: {"name": "BlockLifts"},
         autoDismissible: false,
         locked: true,
@@ -846,9 +847,9 @@ class _HomeState extends State<Home> {
             builder: (context, value, child) {
               counter = counterBox.getAt(0);
               return Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
                 constraints: const BoxConstraints(
-                  maxHeight: 690,
+                  //maxHeight: MediaQuery.of(context).size.height * 0.75,
                 ),
                 child: ListView(
                     physics: const BouncingScrollPhysics(),
@@ -1051,7 +1052,49 @@ class _HistoryState extends State<History> {
   }
 }
 
+
+  
+  class _MyData {
+    final double xval;
+    final double weight;
+
+    _MyData({
+      required this.xval,
+      required this.weight,
+    });
+  }
 class _ProgressState extends State<Progress> {
+  
+  late List<_MyData> _data;
+  late final Box<IndivWorkout> indivWorkoutsBox;
+
+  List<_MyData> _generateData(int max) {
+
+    final List<_MyData> data = <_MyData>[];
+
+    // test for squat. obv will take exercise index as input
+    for (int i = 0; i < indivWorkoutsBox.length; ++i) {
+      for (int j = 0; j < indivWorkoutsBox.getAt(i)!.exercisesCompleted.length; j++) {
+        if (indivWorkoutsBox.getAt(i)!.exercisesCompleted[j] == "Squat") {
+          String tempDate = indivWorkoutsBox.getAt(i)!.sortableDate;
+          double date = DateTime.parse(tempDate).millisecondsSinceEpoch.toDouble();
+          data.add(_MyData(xval: date, weight: indivWorkoutsBox.getAt(i)!.weights[j]));
+        }
+      }
+    }
+
+    return data;
+  }
+
+
+  @override
+  void initState() {
+    indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
+    _data = _generateData(3);
+    super.initState();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1062,10 +1105,40 @@ class _ProgressState extends State<Progress> {
         title: const Text("Progress"),
         titleTextStyle: const TextStyle(fontSize: 22),
       ),
-      body: Container(
-        alignment: Alignment.center,
-        child: const Text('Here is the progress page!'),
+      body: Center(
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(),
+          ),
+          child: _graph(),
+          margin: EdgeInsets.all(3),
+          padding: EdgeInsets.all(15),
+          height: MediaQuery.of(context).size.height * 0.5,
+        ),
       ),
+    );
+  }
+  Widget _graph() {
+    final spots = _data
+        .asMap()
+        .entries
+        .map((element) => FlSpot(
+              element.value.xval,
+              element.value.weight,
+            ))
+        .toList();
+
+    return LineChart(
+      LineChartData(
+        lineBarsData: [
+          LineChartBarData(
+            spots: spots,
+            color: Colors.orange,
+          ),
+        ],
+      ),
+      swapAnimationDuration: Duration(milliseconds: 150), // Optional
+      swapAnimationCurve: Curves.linear, // Optional
     );
   }
 }
@@ -2966,15 +3039,17 @@ class _EditState extends State<Edit> {
               },
             ),
           ),
+          const Divider(height: 10, color: Colors.transparent),
           if (workoutsBox.isNotEmpty)
-            SizedBox(
+            Container(
               height: 55,
               width: double.infinity,
+              padding: const EdgeInsets.only(left: 20),
               child: TextButton(
                 style: TextButton.styleFrom(
                     primary: Colors.white,
                     textStyle: const TextStyle(fontSize: 16),
-                    alignment: const Alignment(-.42, 0)),
+                    alignment: Alignment.centerLeft),
                 child: const Text("Delete All Workouts"),
                 onPressed: () {
                   setState(() {
@@ -4321,14 +4396,15 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                 },
               ),
             ),
-            SizedBox(
+            Container(
               height: 55,
               width: double.infinity,
+              padding: const EdgeInsets.only(left: 20),
               child: TextButton(
                 style: TextButton.styleFrom(
                     primary: Colors.white,
                     textStyle: const TextStyle(fontSize: 16),
-                    alignment: const Alignment(-.32, 0)),
+                    alignment: Alignment.centerLeft),
                 child: const Text("Change Workout Name"),
                 onPressed: () {
                   setState(() => _myController.text =
@@ -4412,14 +4488,15 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
               ),
             ),
             if (workoutsBox.getAt(widget.index)!.exercises.isNotEmpty)
-              SizedBox(
+              Container(
                 height: 55,
                 width: double.infinity,
+                padding: const EdgeInsets.only(left: 20),
                 child: TextButton(
                   style: TextButton.styleFrom(
                       primary: Colors.white,
                       textStyle: const TextStyle(fontSize: 16),
-                      alignment: const Alignment(-.42, 0)),
+                      alignment: Alignment.centerLeft),
                   child: const Text("Delete All Exercises"),
                   onPressed: () {
                     // add confirmation "would you like to delete all exercises?""
