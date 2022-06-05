@@ -849,8 +849,8 @@ class _HomeState extends State<Home> {
               return Container(
                 padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
                 constraints: const BoxConstraints(
-                  //maxHeight: MediaQuery.of(context).size.height * 0.75,
-                ),
+                    //maxHeight: MediaQuery.of(context).size.height * 0.75,
+                    ),
                 child: ListView(
                     physics: const BouncingScrollPhysics(),
                     scrollDirection: Axis.vertical,
@@ -950,7 +950,8 @@ class _HomeState extends State<Home> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontSize: 17, color: Colors.grey,
+                          fontSize: 17,
+                          color: Colors.grey,
                         )),
                   ),
                   const Divider(height: 15, color: Colors.transparent),
@@ -1052,33 +1053,34 @@ class _HistoryState extends State<History> {
   }
 }
 
+class _MyData {
+  final double xval;
+  final double weight;
 
-  
-  class _MyData {
-    final double xval;
-    final double weight;
+  _MyData({
+    required this.xval,
+    required this.weight,
+  });
+}
 
-    _MyData({
-      required this.xval,
-      required this.weight,
-    });
-  }
 class _ProgressState extends State<Progress> {
-  
   late List<_MyData> _data;
   late final Box<IndivWorkout> indivWorkoutsBox;
 
   List<_MyData> _generateData(int max) {
-
     final List<_MyData> data = <_MyData>[];
 
     // test for squat. obv will take exercise index as input
     for (int i = 0; i < indivWorkoutsBox.length; ++i) {
-      for (int j = 0; j < indivWorkoutsBox.getAt(i)!.exercisesCompleted.length; j++) {
+      for (int j = 0;
+          j < indivWorkoutsBox.getAt(i)!.exercisesCompleted.length;
+          j++) {
         if (indivWorkoutsBox.getAt(i)!.exercisesCompleted[j] == "Squat") {
           String tempDate = indivWorkoutsBox.getAt(i)!.sortableDate;
-          double date = DateTime.parse(tempDate).millisecondsSinceEpoch.toDouble();
-          data.add(_MyData(xval: date, weight: indivWorkoutsBox.getAt(i)!.weights[j]));
+          double date =
+              DateTime.parse(tempDate).millisecondsSinceEpoch.toDouble();
+          data.add(_MyData(
+              xval: date, weight: indivWorkoutsBox.getAt(i)!.weights[j]));
         }
       }
     }
@@ -1086,14 +1088,12 @@ class _ProgressState extends State<Progress> {
     return data;
   }
 
-
   @override
   void initState() {
     indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
     _data = _generateData(3);
     super.initState();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -1113,11 +1113,13 @@ class _ProgressState extends State<Progress> {
           child: _graph(),
           margin: EdgeInsets.all(3),
           padding: EdgeInsets.all(15),
-          height: MediaQuery.of(context).size.height * 0.5,
+          height: MediaQuery.of(context).size.height * 0.3,
+          width: MediaQuery.of(context).size.width * 0.9,
         ),
       ),
     );
   }
+
   Widget _graph() {
     final spots = _data
         .asMap()
@@ -1134,11 +1136,69 @@ class _ProgressState extends State<Progress> {
           LineChartBarData(
             spots: spots,
             color: Colors.orange,
+            belowBarData: BarAreaData(
+              show: true,
+              color: Colors.orange.withOpacity(0.1),
+            ),
+            dotData: FlDotData(
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(
+                  radius: 3,
+                  color: Colors.orange,
+                  strokeWidth: 0,
+                );
+              },
+            ),
           ),
         ],
+        titlesData: FlTitlesData(
+          rightTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: rightTitleWidgets,
+              reservedSize: 45,
+            ),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+        ),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          drawHorizontalLine: true,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: Colors.grey,
+              strokeWidth: 1,
+              dashArray: [5, 5],
+            );
+          },
+        ),
       ),
-      swapAnimationDuration: Duration(milliseconds: 150), // Optional
-      swapAnimationCurve: Curves.linear, // Optional
+    );
+  }
+
+  Widget rightTitleWidgets(double value, TitleMeta meta) {
+    const style = TextStyle(
+      color: Colors.grey,
+      fontSize: 9,
+    );
+    Widget text;
+    value % 1 == 0
+    ? text = Text(value.toInt().toString(), style: style)
+    : text = Text(value.toStringAsFixed(2), style: style);
+
+    return SideTitleWidget(
+      axisSide: meta.axisSide,
+      space: 6,
+      child: text,
     );
   }
 }
@@ -7066,7 +7126,6 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
               ),
               child: const Text("Save"),
               onPressed: () {
-
                 final tempIndiv = Hive.box<IndivWorkout>('indivWorkoutsBox')
                     .getAt(widget.index);
 
