@@ -108,6 +108,8 @@ ValueNotifier<int> _timerCounter =
 ValueNotifier<int> _plateCounter =
     ValueNotifier<int>(0); // refrehes plates list
 ValueNotifier<int> _incrementsCounter = ValueNotifier<int>(0); // for increments
+ValueNotifier<int> _graphCounter =
+    ValueNotifier<int>(0); // to update graph text
 
 @HiveType(typeId: 1)
 class Workout extends HiveObject {
@@ -1095,6 +1097,9 @@ class _ProgressState extends State<Progress> {
     super.initState();
   }
 
+  double graphWeight = 0; // set to most recent workout weight
+  String graphDate = ""; // set to most recent workout date
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1105,17 +1110,40 @@ class _ProgressState extends State<Progress> {
         title: const Text("Progress"),
         titleTextStyle: const TextStyle(fontSize: 22),
       ),
-      body: Center(
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(),
-          ),
-          child: _graph(),
-          margin: EdgeInsets.all(3),
-          padding: EdgeInsets.all(15),
-          height: MediaQuery.of(context).size.height * 0.3,
-          width: MediaQuery.of(context).size.width * 0.9,
-        ),
+      body: Column(
+        children: <Widget>[
+          ValueListenableBuilder(
+              valueListenable: _graphCounter,
+              builder: (context, value, child) {
+                return Container(padding: const EdgeInsets.only(left: 25),
+                  child: Column(children: <Widget>[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: graphWeight % 1 == 0
+                        ? Text("${graphWeight.toInt().toString()}lb",
+                            style: const TextStyle(fontSize: 18))
+                        : Text("${graphWeight.toString()}lb",
+                            style: const TextStyle(fontSize: 18)),
+                  ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(graphDate,
+                        style: const TextStyle(fontSize: 14, 
+                          color: Colors.grey)),
+                  ),
+                ]));
+              }),
+          Align(
+              alignment: Alignment.center,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(),
+                ),
+                child: _graph(),
+                padding: const EdgeInsets.all(25),
+                height: MediaQuery.of(context).size.height * 0.3,
+              ))
+        ],
       ),
     );
   }
@@ -1138,7 +1166,13 @@ class _ProgressState extends State<Progress> {
             color: Colors.orange,
             belowBarData: BarAreaData(
               show: true,
-              color: Colors.orange.withOpacity(0.1),
+              gradient: LinearGradient(
+                begin: Alignment(0, -1),
+                end: Alignment(0, 1),
+                colors: [Colors.orange.withOpacity(0.2),
+                Colors.orange.withOpacity(0.01)
+                ],
+              ),
             ),
             dotData: FlDotData(
               getDotPainter: (spot, percent, barData, index) {
@@ -1181,6 +1215,41 @@ class _ProgressState extends State<Progress> {
             );
           },
         ),
+        lineTouchData: LineTouchData(
+            enabled: true,
+            touchSpotThreshold: 10000, // snaps to nearest point
+            touchCallback:
+                (FlTouchEvent event, LineTouchResponse? touchResponse) {
+              _graphCounter.value++;
+            },
+            touchTooltipData: LineTouchTooltipData(
+              getTooltipItems: (touchedSpots) {
+                return touchedSpots.map(
+                  (LineBarSpot touchedSpot) {
+                    graphWeight = _data[touchedSpot.spotIndex].weight;
+                    int dateInt = _data[touchedSpot.spotIndex].xval.toInt();
+                    DateTime tempDate = DateTime.fromMillisecondsSinceEpoch(dateInt);
+                    graphDate = DateFormat('d MMM yyyy').format(tempDate);
+                  },
+                ).toList();
+              },
+            ),
+            getTouchedSpotIndicator:
+                (LineChartBarData barData, List<int> indicators) {
+              return indicators.map(
+                (int index) {
+                  final line = FlLine(
+                    color: Colors.orange,
+                    strokeWidth: 1,
+                  );
+                  return TouchedSpotIndicatorData(
+                    line,
+                    FlDotData(show: false),
+                  );
+                },
+              ).toList();
+            },
+            getTouchLineEnd: (_, __) => double.infinity),
       ),
     );
   }
@@ -1192,8 +1261,8 @@ class _ProgressState extends State<Progress> {
     );
     Widget text;
     value % 1 == 0
-    ? text = Text(value.toInt().toString(), style: style)
-    : text = Text(value.toStringAsFixed(2), style: style);
+        ? text = Text(value.toInt().toString(), style: style)
+        : text = Text(value.toString(), style: style);
 
     return SideTitleWidget(
       axisSide: meta.axisSide,
