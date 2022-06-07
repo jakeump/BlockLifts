@@ -553,6 +553,22 @@ class Settings extends StatefulWidget {
   // creating State Object of MyWidget
 }
 
+class GraphPage extends StatefulWidget {
+  final int index;
+  const GraphPage(this.index, {Key? key}) : super(key: key);
+  @override
+  _GraphPageState createState() => _GraphPageState();
+}
+
+class GraphBuilderPage extends StatefulWidget {
+  final int exIndex;
+  final int duration;
+  const GraphBuilderPage(this.exIndex, this.duration, {Key? key})
+      : super(key: key);
+  @override
+  _GraphBuilderState createState() => _GraphBuilderState();
+}
+
 class TimerPage extends StatefulWidget {
   const TimerPage({Key? key}) : super(key: key);
   @override
@@ -1025,11 +1041,11 @@ class _HistoryState extends State<History> {
             backgroundColor: headerColor,
             title: const Text("History"),
             titleTextStyle: const TextStyle(fontSize: 22),
-            bottom: const TabBar(
-              indicatorColor: Color.fromARGB(255, 172, 10, 10),
+            bottom: TabBar(
+              indicatorColor: redColor,
               indicatorWeight: 3,
               indicatorSize: TabBarIndicatorSize.tab,
-              tabs: [
+              tabs: const [
                 Tab(
                   text: 'List',
                 ),
@@ -1066,39 +1082,13 @@ class _MyData {
 }
 
 class _ProgressState extends State<Progress> {
-  late List<_MyData> _data;
-  late final Box<IndivWorkout> indivWorkoutsBox;
-
-  List<_MyData> _generateData(int max) {
-    final List<_MyData> data = <_MyData>[];
-
-    // test for squat. obv will take exercise index as input
-    for (int i = 0; i < indivWorkoutsBox.length; ++i) {
-      for (int j = 0;
-          j < indivWorkoutsBox.getAt(i)!.exercisesCompleted.length;
-          j++) {
-        if (indivWorkoutsBox.getAt(i)!.exercisesCompleted[j] == "Squat") {
-          String tempDate = indivWorkoutsBox.getAt(i)!.sortableDate;
-          double date =
-              DateTime.parse(tempDate).millisecondsSinceEpoch.toDouble();
-          data.add(_MyData(
-              xval: date, weight: indivWorkoutsBox.getAt(i)!.weights[j]));
-        }
-      }
-    }
-
-    return data;
-  }
+  late final Box<Exercise> exercisesBox;
 
   @override
   void initState() {
-    indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
-    _data = _generateData(3);
+    exercisesBox = Hive.box<Exercise>('exercisesBox');
     super.initState();
   }
-
-  double graphWeight = 0; // set to most recent workout weight
-  String graphDate = ""; // set to most recent workout date
 
   @override
   Widget build(BuildContext context) {
@@ -1112,162 +1102,56 @@ class _ProgressState extends State<Progress> {
       ),
       body: Column(
         children: <Widget>[
-          ValueListenableBuilder(
-              valueListenable: _graphCounter,
-              builder: (context, value, child) {
-                return Container(padding: const EdgeInsets.only(left: 25),
-                  child: Column(children: <Widget>[
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: graphWeight % 1 == 0
-                        ? Text("${graphWeight.toInt().toString()}lb",
-                            style: const TextStyle(fontSize: 18))
-                        : Text("${graphWeight.toString()}lb",
-                            style: const TextStyle(fontSize: 18)),
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(graphDate,
-                        style: const TextStyle(fontSize: 14, 
-                          color: Colors.grey)),
-                  ),
-                ]));
-              }),
-          Align(
-              alignment: Alignment.center,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(),
-                ),
-                child: _graph(),
-                padding: const EdgeInsets.all(25),
-                height: MediaQuery.of(context).size.height * 0.3,
-              ))
+          ListView(shrinkWrap: true, children: <Widget>[
+            // i = 0 is "Custom Exercise"
+            for (int i = 1; i < exercisesBox.length; i++)
+              SizedBox(
+                height: 80,
+                width: double.infinity,
+                child: TextButton(
+                    style: TextButton.styleFrom(
+                        primary: Colors.white,
+                        textStyle: const TextStyle(fontSize: 16)),
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                      child: Row(children: <Widget>[
+                        Expanded(
+                          child: Column(children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(exercisesBox.getAt(i)!.name,
+                                  style: const TextStyle(fontSize: 17),
+                                  overflow: TextOverflow.ellipsis),
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: exercisesBox.getAt(i)!.weight % 1 == 0
+                                  ? Text(
+                                      "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
+                                      style:
+                                          const TextStyle(color: Colors.grey))
+                                  : Text(
+                                      "${exercisesBox.getAt(i)!.weight.toString()}lb",
+                                      style:
+                                          const TextStyle(color: Colors.grey)),
+                            ),
+                          ]),
+                        ),
+                      ]),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => GraphPage(i)));
+                    }),
+              )
+          ]),
+          // divider
+          // listview
+          // divider
+          // listview
         ],
       ),
-    );
-  }
-
-  Widget _graph() {
-    final spots = _data
-        .asMap()
-        .entries
-        .map((element) => FlSpot(
-              element.value.xval,
-              element.value.weight,
-            ))
-        .toList();
-
-    return LineChart(
-      LineChartData(
-        lineBarsData: [
-          LineChartBarData(
-            spots: spots,
-            color: Colors.orange,
-            belowBarData: BarAreaData(
-              show: true,
-              gradient: LinearGradient(
-                begin: Alignment(0, -1),
-                end: Alignment(0, 1),
-                colors: [Colors.orange.withOpacity(0.2),
-                Colors.orange.withOpacity(0.01)
-                ],
-              ),
-            ),
-            dotData: FlDotData(
-              getDotPainter: (spot, percent, barData, index) {
-                return FlDotCirclePainter(
-                  radius: 3,
-                  color: Colors.orange,
-                  strokeWidth: 0,
-                );
-              },
-            ),
-          ),
-        ],
-        titlesData: FlTitlesData(
-          rightTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: rightTitleWidgets,
-              reservedSize: 45,
-            ),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-        ),
-        gridData: FlGridData(
-          show: true,
-          drawVerticalLine: false,
-          drawHorizontalLine: true,
-          getDrawingHorizontalLine: (value) {
-            return FlLine(
-              color: Colors.grey,
-              strokeWidth: 1,
-              dashArray: [5, 5],
-            );
-          },
-        ),
-        lineTouchData: LineTouchData(
-            enabled: true,
-            touchSpotThreshold: 10000, // snaps to nearest point
-            touchCallback:
-                (FlTouchEvent event, LineTouchResponse? touchResponse) {
-              _graphCounter.value++;
-            },
-            touchTooltipData: LineTouchTooltipData(
-              getTooltipItems: (touchedSpots) {
-                return touchedSpots.map(
-                  (LineBarSpot touchedSpot) {
-                    graphWeight = _data[touchedSpot.spotIndex].weight;
-                    int dateInt = _data[touchedSpot.spotIndex].xval.toInt();
-                    DateTime tempDate = DateTime.fromMillisecondsSinceEpoch(dateInt);
-                    graphDate = DateFormat('d MMM yyyy').format(tempDate);
-                  },
-                ).toList();
-              },
-            ),
-            getTouchedSpotIndicator:
-                (LineChartBarData barData, List<int> indicators) {
-              return indicators.map(
-                (int index) {
-                  final line = FlLine(
-                    color: Colors.orange,
-                    strokeWidth: 1,
-                  );
-                  return TouchedSpotIndicatorData(
-                    line,
-                    FlDotData(show: false),
-                  );
-                },
-              ).toList();
-            },
-            getTouchLineEnd: (_, __) => double.infinity),
-      ),
-    );
-  }
-
-  Widget rightTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(
-      color: Colors.grey,
-      fontSize: 9,
-    );
-    Widget text;
-    value % 1 == 0
-        ? text = Text(value.toInt().toString(), style: style)
-        : text = Text(value.toString(), style: style);
-
-    return SideTitleWidget(
-      axisSide: meta.axisSide,
-      space: 6,
-      child: text,
     );
   }
 }
@@ -1454,6 +1338,334 @@ class _SettingsState extends State<Settings> {
               }),
         )
       ]),
+    );
+  }
+}
+
+class _GraphPageState extends State<GraphPage> {
+  late final Box<Exercise> exercisesBox;
+
+  @override
+  void initState() {
+    exercisesBox = Hive.box<Exercise>('exercisesBox');
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 6,
+      child: Scaffold(
+        backgroundColor: backColor,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios),
+            iconSize: 18,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          backgroundColor: headerColor,
+          title: Text(exercisesBox.getAt(widget.index)!.name),
+          titleTextStyle: const TextStyle(fontSize: 22),
+          bottom: TabBar(
+            indicatorColor: redColor,
+            indicatorWeight: 3,
+            indicatorSize: TabBarIndicatorSize.tab,
+            tabs: const [
+              Tab(
+                text: '1M',
+              ),
+              Tab(
+                text: '3M',
+              ),
+              Tab(
+                text: '6M',
+              ),
+              Tab(
+                text: '1Y',
+              ),
+              Tab(
+                text: '2Y',
+              ),
+              Tab(
+                text: '∞',
+              ),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            GraphBuilderPage(widget.index, 1),
+            GraphBuilderPage(widget.index, 3),
+            GraphBuilderPage(widget.index, 6),
+            GraphBuilderPage(widget.index, 12),
+            GraphBuilderPage(widget.index, 24),
+            GraphBuilderPage(widget.index, 25), // infinite
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GraphBuilderState extends State<GraphBuilderPage> {
+  late final Box<Exercise> exercisesBox;
+  late final Box<IndivWorkout> indivWorkoutsBox;
+  late List<_MyData> _data;
+  double date = 0;
+  double graphWeight = 0;
+  String graphDate = "";
+  double minWeight = 0;
+  double maxWeight = 0;
+
+  List<_MyData> _generateData(int max) {
+    final List<_MyData> data = <_MyData>[];
+    DateTime now = DateTime.now();
+    late final DateTime start;
+    int dateRange = 0;
+
+    if (widget.duration == 1) {
+      start = now.subtract(const Duration(days: 30));
+    } else if (widget.duration == 3) {
+      start = now.subtract(const Duration(days: 90));
+    } else if (widget.duration == 6) {
+      start = now.subtract(const Duration(days: 180));
+    } else if (widget.duration == 12) {
+      start = now.subtract(const Duration(days: 365));
+    } else if (widget.duration == 24) {
+      start = now.subtract(const Duration(days: 730));
+    } else if (widget.duration == 25) {
+      start = DateTime(1900);
+    }
+    // this is the starting date that we compare workout dates to
+    // if workout date > dateRange, it's in range and added to the graph
+    dateRange = int.parse(DateFormat('yyyyMMdd').format(start));
+
+    for (int i = 0; i < indivWorkoutsBox.length; ++i) {
+      if (int.parse(indivWorkoutsBox.getAt(i)!.sortableDate) > dateRange) {
+        for (int j = 0;
+            j < indivWorkoutsBox.getAt(i)!.exercisesCompleted.length;
+            j++) {
+          if (indivWorkoutsBox.getAt(i)!.exercisesCompleted[j] ==
+              exercisesBox.getAt(widget.exIndex)!.name) {
+            String tempDate = indivWorkoutsBox.getAt(i)!.sortableDate;
+            date = DateTime.parse(tempDate).millisecondsSinceEpoch.toDouble();
+            data.add(_MyData(
+                xval: date, weight: indivWorkoutsBox.getAt(i)!.weights[j]));
+            graphWeight = indivWorkoutsBox.getAt(i)!.weights[j];
+            DateTime dateToFormat =
+                DateTime.fromMillisecondsSinceEpoch(date.toInt());
+            graphDate = DateFormat('d MMM yyyy').format(dateToFormat);
+            if (indivWorkoutsBox.getAt(i)!.weights[j] > maxWeight ||
+                maxWeight == 0) {
+              maxWeight = indivWorkoutsBox.getAt(i)!.weights[j];
+            }
+            if (indivWorkoutsBox.getAt(i)!.weights[j] < minWeight ||
+                minWeight == 0) {
+              minWeight = indivWorkoutsBox.getAt(i)!.weights[j];
+            }
+          }
+        }
+      }
+    }
+    return data;
+  }
+
+  @override
+  void initState() {
+    exercisesBox = Hive.box<Exercise>('exercisesBox');
+    indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
+    _data = _generateData(3);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        backgroundColor: backColor,
+        body: _data.isNotEmpty
+        ? Column(
+          children: <Widget>[
+            ValueListenableBuilder(
+                valueListenable: _graphCounter,
+                builder: (context, value, child) {
+                  return Container(
+                      padding: const EdgeInsets.only(left: 25, top: 25),
+                      child: Column(children: <Widget>[
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: graphWeight % 1 == 0
+                              ? Text("${graphWeight.toInt().toString()}lb",
+                                  style: const TextStyle(fontSize: 18))
+                              : Text("${graphWeight.toString()}lb",
+                                  style: const TextStyle(fontSize: 18)),
+                        ),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(graphDate,
+                              style: const TextStyle(
+                                  fontSize: 14, color: Colors.grey)),
+                        ),
+                      ]));
+                }),
+            Align(
+                alignment: Alignment.center,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(),
+                  ),
+                  child: _graph(),
+                  padding: const EdgeInsets.all(25),
+                  height: MediaQuery.of(context).size.height * 0.3,
+                ))
+          ],
+        )
+        : Align(
+          alignment: Alignment.topCenter,
+          child: Container(padding: const EdgeInsets.only(top: 100),
+            child: widget.duration == 25
+              ? const Text("No workouts logged")
+              : widget.duration == 24
+                ? const Text("No workouts logged in the last two years")
+                : widget.duration == 12
+                  ? const Text("No workouts logged in the last year")
+                  : widget.duration == 1
+                    ? const Text("No workouts logged in the last month")
+                    : Text("No workouts logged in the last ${widget.duration} months"),
+          ),
+        ),
+    );
+  }
+
+  Widget _graph() {
+    final spots = _data
+        .asMap()
+        .entries
+        .map((element) => FlSpot(
+              element.value.xval,
+              element.value.weight,
+            ))
+        .toList();
+
+    return LineChart(
+      LineChartData(
+        lineBarsData: [
+          LineChartBarData(
+            spots: spots,
+            color: Colors.orange,
+            belowBarData: BarAreaData(
+              show: true,
+              gradient: LinearGradient(
+                begin: const Alignment(0, -1),
+                end: const Alignment(0, 1),
+                colors: [
+                  Colors.orange.withOpacity(0.2),
+                  Colors.orange.withOpacity(0.01)
+                ],
+              ),
+            ),
+            dotData: FlDotData(
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(
+                  radius: 3,
+                  color: Colors.orange,
+                  strokeWidth: 0,
+                );
+              },
+            ),
+          ),
+        ],
+        minX: _data.length == 1 ? date - 1 : _data.first.xval,
+        maxX: _data.length == 1 ? date + 1 : _data.last.xval,
+        minY: minWeight * 0.994,
+        maxY: maxWeight * 1.006,
+        titlesData: FlTitlesData(
+          rightTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: rightTitleWidgets,
+              reservedSize: 45,
+            ),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+        ),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          drawHorizontalLine: true,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: Colors.grey,
+              strokeWidth: 1,
+              dashArray: [5, 5],
+            );
+          },
+        ),
+        lineTouchData: LineTouchData(
+            enabled: true,
+            touchSpotThreshold: 10000, // snaps to nearest point
+            touchCallback:
+                (FlTouchEvent event, LineTouchResponse? touchResponse) {
+              _graphCounter.value++;
+            },
+            touchTooltipData: LineTouchTooltipData(
+              getTooltipItems: (touchedSpots) {
+                return touchedSpots.map(
+                  (LineBarSpot touchedSpot) {
+                    graphWeight = _data[touchedSpot.spotIndex].weight;
+                    int dateInt = _data[touchedSpot.spotIndex].xval.toInt();
+                    DateTime tempDate =
+                        DateTime.fromMillisecondsSinceEpoch(dateInt);
+                    graphDate = DateFormat('d MMM yyyy').format(tempDate);
+                  },
+                ).toList();
+              },
+            ),
+            getTouchedSpotIndicator:
+                (LineChartBarData barData, List<int> indicators) {
+              return indicators.map(
+                (int index) {
+                  final line = FlLine(
+                    color: Colors.orange,
+                    strokeWidth: 1,
+                  );
+                  return TouchedSpotIndicatorData(
+                    line,
+                    FlDotData(show: false),
+                  );
+                },
+              ).toList();
+            },
+            getTouchLineEnd: (_, __) => double.infinity),
+      ),
+    );
+  }
+
+  Widget rightTitleWidgets(double value, TitleMeta meta) {
+    const style = TextStyle(
+      color: Colors.grey,
+      fontSize: 9,
+    );
+    Widget text;
+    if (value < maxWeight * 1.006 && value > minWeight * 0.994) {
+      value % 1 == 0
+          ? text = Text(value.toInt().toString(), style: style)
+          : text = Text(value.toStringAsFixed(2), style: style);
+    } else {
+      text = const Text("");
+    }
+
+    return SideTitleWidget(
+      axisSide: meta.axisSide,
+      space: 6,
+      child: text,
     );
   }
 }
@@ -2239,7 +2451,7 @@ class _PlatesState extends State<PlatesPage> {
     int tempNumber = platesBox.getAt(i)!.number;
     return StatefulBuilder(builder: (context, _setState) {
       return Dialog(
-          insetPadding: const EdgeInsets.all(10),
+          insetPadding: const EdgeInsets.fromLTRB(10, 100, 10, 100),
           child: Container(
             padding: const EdgeInsets.fromLTRB(0, 10, 10, 10),
             child: Column(children: <Widget>[
@@ -3506,7 +3718,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                 timer?.cancel();
 
                 String name = workoutsBox.getAt(widget.index)!.name;
-                var now = DateTime.now();
+                DateTime now = DateTime.now();
                 String date = DateFormat('E, d MMM yyyy').format(now);
                 String sortableDate = DateFormat('yyyyMMdd').format(now);
                 List<String> exercisesCompleted = [];
