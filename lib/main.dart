@@ -1239,8 +1239,8 @@ class _ProgressState extends State<Progress> {
                             ]),
                           ),
                           onPressed: () {
-                            //Navigator.of(context).push(MaterialPageRoute(
-                            //    builder: (context) => GraphPage(0)));
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => const GraphPage(-1)));
                           },
                     )
                   ),
@@ -1482,6 +1482,7 @@ class _SettingsState extends State<Settings> {
 }
 
 class _GraphPageState extends State<GraphPage> {
+  // widget.index of -1 means body weight
   late final Box<Exercise> exercisesBox;
 
   @override
@@ -1503,27 +1504,29 @@ class _GraphPageState extends State<GraphPage> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           backgroundColor: headerColor,
-          title: Text(exercisesBox.getAt(widget.index)!.name),
+          title: widget.index == -1 ? const Text("Body Weight")
+                : Text(exercisesBox.getAt(widget.index)!.name),
           titleTextStyle: const TextStyle(fontSize: 22),
           actions: <Widget>[
-            IconButton(
-              icon: exercisesBox.getAt(widget.index)!.bookmarked
-                  ? const Icon(Icons.bookmark)
-                  : const Icon(Icons.bookmark_border),
-              color: exercisesBox.getAt(widget.index)!.bookmarked
-                  ? Colors.orange
-                  : Colors.white,
-              iconSize: 24,
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              onPressed: () {
-                exercisesBox.getAt(widget.index)!.bookmarked =
-                    !exercisesBox.getAt(widget.index)!.bookmarked;
-                exercisesBox.getAt(widget.index)!.save();
-                _progressCounter.value++;
-                setState(() {});
-              },
-            ),
+            if (widget.index != -1) 
+              IconButton(
+                icon: exercisesBox.getAt(widget.index)!.bookmarked
+                    ? const Icon(Icons.bookmark)
+                    : const Icon(Icons.bookmark_border),
+                color: exercisesBox.getAt(widget.index)!.bookmarked
+                    ? Colors.orange
+                    : Colors.white,
+                iconSize: 24,
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                onPressed: () {
+                  exercisesBox.getAt(widget.index)!.bookmarked =
+                      !exercisesBox.getAt(widget.index)!.bookmarked;
+                  exercisesBox.getAt(widget.index)!.save();
+                  _progressCounter.value++;
+                  setState(() {});
+                },
+              ),
           ],
           bottom: TabBar(
             indicatorColor: redColor,
@@ -1567,6 +1570,7 @@ class _GraphPageState extends State<GraphPage> {
 }
 
 class _GraphBuilderState extends State<GraphBuilderPage> {
+  // widget.exIndex of -1 means body weight
   late final Box<Exercise> exercisesBox;
   late final Box<IndivWorkout> indivWorkoutsBox;
   late List<_MyData> _data;
@@ -1576,7 +1580,7 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
   double minWeight = 0;
   double maxWeight = 0;
 
-  List<_MyData> _generateData(int max) {
+  List<_MyData> _generateData() {
     final List<_MyData> data = <_MyData>[];
     DateTime now = DateTime.now();
     late final DateTime start;
@@ -1601,26 +1605,42 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
 
     for (int i = 0; i < indivWorkoutsBox.length; ++i) {
       if (int.parse(indivWorkoutsBox.getAt(i)!.sortableDate) >= dateRange) {
-        for (int j = 0;
+        String tempDate = indivWorkoutsBox.getAt(i)!.sortableDate;
+        date = DateTime.parse(tempDate).millisecondsSinceEpoch.toDouble();        
+        DateTime dateToFormat =
+            DateTime.fromMillisecondsSinceEpoch(date.toInt());        
+        if (widget.exIndex == -1) {
+          data.add(_MyData(
+              xval: date, weight: indivWorkoutsBox.getAt(i)!.bodyWeight));
+          graphWeight = indivWorkoutsBox.getAt(i)!.bodyWeight;
+          graphDate = DateFormat('d MMM yyyy').format(dateToFormat);
+          if (indivWorkoutsBox.getAt(i)!.bodyWeight > maxWeight ||
+              maxWeight == 0) {
+            maxWeight = indivWorkoutsBox.getAt(i)!.bodyWeight;
+          }
+          if (indivWorkoutsBox.getAt(i)!.bodyWeight < minWeight ||
+              minWeight == 0) {
+            minWeight = indivWorkoutsBox.getAt(i)!.bodyWeight;
+          }
+        }
+        else {
+          for (int j = 0;
             j < indivWorkoutsBox.getAt(i)!.exercisesCompleted.length;
             j++) {
-          if (indivWorkoutsBox.getAt(i)!.exercisesCompleted[j] ==
-              exercisesBox.getAt(widget.exIndex)!.name) {
-            String tempDate = indivWorkoutsBox.getAt(i)!.sortableDate;
-            date = DateTime.parse(tempDate).millisecondsSinceEpoch.toDouble();
-            data.add(_MyData(
-                xval: date, weight: indivWorkoutsBox.getAt(i)!.weights[j]));
-            graphWeight = indivWorkoutsBox.getAt(i)!.weights[j];
-            DateTime dateToFormat =
-                DateTime.fromMillisecondsSinceEpoch(date.toInt());
-            graphDate = DateFormat('d MMM yyyy').format(dateToFormat);
-            if (indivWorkoutsBox.getAt(i)!.weights[j] > maxWeight ||
-                maxWeight == 0) {
-              maxWeight = indivWorkoutsBox.getAt(i)!.weights[j];
-            }
-            if (indivWorkoutsBox.getAt(i)!.weights[j] < minWeight ||
-                minWeight == 0) {
-              minWeight = indivWorkoutsBox.getAt(i)!.weights[j];
+            if (indivWorkoutsBox.getAt(i)!.exercisesCompleted[j] ==
+                exercisesBox.getAt(widget.exIndex)!.name) {
+              data.add(_MyData(
+                  xval: date, weight: indivWorkoutsBox.getAt(i)!.weights[j]));
+              graphWeight = indivWorkoutsBox.getAt(i)!.weights[j];
+              graphDate = DateFormat('d MMM yyyy').format(dateToFormat);
+              if (indivWorkoutsBox.getAt(i)!.weights[j] > maxWeight ||
+                  maxWeight == 0) {
+                maxWeight = indivWorkoutsBox.getAt(i)!.weights[j];
+              }
+              if (indivWorkoutsBox.getAt(i)!.weights[j] < minWeight ||
+                  minWeight == 0) {
+                minWeight = indivWorkoutsBox.getAt(i)!.weights[j];
+              }
             }
           }
         }
@@ -1633,7 +1653,7 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
   void initState() {
     exercisesBox = Hive.box<Exercise>('exercisesBox');
     indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
-    _data = _generateData(3);
+    _data = _generateData();
     super.initState();
   }
 
