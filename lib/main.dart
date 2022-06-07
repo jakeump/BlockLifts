@@ -110,6 +110,8 @@ ValueNotifier<int> _plateCounter =
 ValueNotifier<int> _incrementsCounter = ValueNotifier<int>(0); // for increments
 ValueNotifier<int> _graphCounter =
     ValueNotifier<int>(0); // to update graph text
+ValueNotifier<int> _progressCounter =
+    ValueNotifier<int>(0); // for progress page
 
 @HiveType(typeId: 1)
 class Workout extends HiveObject {
@@ -177,6 +179,8 @@ class Exercise extends HiveObject {
   int deloadPercent = 10;
   @HiveField(14)
   String note = "";
+  @HiveField(15)
+  bool bookmarked = false;
 
   Exercise(this.name);
 }
@@ -222,6 +226,7 @@ Exercise customxyz = Exercise("Custom Exercise");
 
 void defaultState() async {
   showTimer = false;
+  _progressCounter.value++;
 
   Workout defaultA = Workout("BlockLifts A");
   Workout defaultB = Workout("BlockLifts B");
@@ -230,6 +235,9 @@ void defaultState() async {
   Exercise barbellRow = Exercise("Barbell Row");
   Exercise overheadPress = Exercise("Overhead Press");
   Exercise deadlift = Exercise("Deadlift");
+  squat.bookmarked = true;
+  benchPress.bookmarked = true;
+  deadlift.bookmarked = true;
   deadlift.sets = 1;
   deadlift.reps = 1;
   deadlift.increment = 10;
@@ -1083,76 +1091,207 @@ class _MyData {
 
 class _ProgressState extends State<Progress> {
   late final Box<Exercise> exercisesBox;
+  late final Box<IndivWorkout> indivWorkoutsBox;
 
   @override
   void initState() {
     exercisesBox = Hive.box<Exercise>('exercisesBox');
+    indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backColor,
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: headerColor,
-        title: const Text("Progress"),
-        titleTextStyle: const TextStyle(fontSize: 22),
-      ),
-      body: Column(
-        children: <Widget>[
-          ListView(shrinkWrap: true, children: <Widget>[
-            // i = 0 is "Custom Exercise"
-            for (int i = 1; i < exercisesBox.length; i++)
-              SizedBox(
-                height: 80,
-                width: double.infinity,
-                child: TextButton(
-                    style: TextButton.styleFrom(
-                        primary: Colors.white,
-                        textStyle: const TextStyle(fontSize: 16)),
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                      child: Row(children: <Widget>[
-                        Expanded(
-                          child: Column(children: [
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(exercisesBox.getAt(i)!.name,
-                                  style: const TextStyle(fontSize: 17),
-                                  overflow: TextOverflow.ellipsis),
+        backgroundColor: backColor,
+        appBar: AppBar(
+          centerTitle: true,
+          backgroundColor: headerColor,
+          title: const Text("Progress"),
+          titleTextStyle: const TextStyle(fontSize: 22),
+        ),
+        body: ValueListenableBuilder(
+            valueListenable: _progressCounter,
+            builder: (context, value, child) {
+              int bookmarkCounter = 0;
+              for (int i = 1; i < exercisesBox.length; i++) {
+                if (exercisesBox.getAt(i)!.bookmarked) {
+                  bookmarkCounter++;
+                }
+              }
+              return ListView(
+                shrinkWrap: true,
+                children: <Widget>[
+                  // i = 0 is "Custom Exercise"
+                  for (int i = 1; i < exercisesBox.length; i++)
+                    if (exercisesBox.getAt(i)!.bookmarked)
+                      SizedBox(
+                        height: 80,
+                        width: double.infinity,
+                        child: TextButton(
+                            style: TextButton.styleFrom(
+                                primary: Colors.white,
+                                textStyle: const TextStyle(fontSize: 16)),
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                              child: Row(children: <Widget>[
+                                Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Flexible(
+                                        child: Row(children: <Widget>[
+                                          Container(
+                                            constraints: BoxConstraints(
+                                                maxWidth: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.7),
+                                            child: RichText(
+                                                text: TextSpan(
+                                                  text: exercisesBox
+                                                      .getAt(i)!
+                                                      .name,
+                                                  style: const TextStyle(
+                                                      fontSize: 22),
+                                                ),
+                                                overflow:
+                                                    TextOverflow.ellipsis),
+                                          ),
+                                          Container(
+                                            padding:
+                                                const EdgeInsets.only(left: 10),
+                                            child: const Icon(
+                                              Icons.bookmark,
+                                              color: Colors.orange,
+                                            ),
+                                          ),
+                                        ]),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: exercisesBox.getAt(i)!.weight %
+                                                    1 ==
+                                                0
+                                            ? Text(
+                                                "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
+                                                style: const TextStyle(
+                                                    color: Colors.grey))
+                                            : Text(
+                                                "${exercisesBox.getAt(i)!.weight.toString()}lb",
+                                                style: const TextStyle(
+                                                    color: Colors.grey)),
+                                      ),
+                                    ]),
+                              ]),
                             ),
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: exercisesBox.getAt(i)!.weight % 1 == 0
-                                  ? Text(
-                                      "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
-                                      style:
-                                          const TextStyle(color: Colors.grey))
-                                  : Text(
-                                      "${exercisesBox.getAt(i)!.weight.toString()}lb",
-                                      style:
-                                          const TextStyle(color: Colors.grey)),
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(
+                                      builder: (context) => GraphPage(i)))
+                                  .then((value) {
+                                setState(() {});
+                              });
+                            }),
+                      ),
+                  if (bookmarkCounter > 0)
+                    Divider(height: 10, thickness: 1, color: widgetNavColor, indent: 10, endIndent: 10),
+                  // body weight
+                  SizedBox(
+                    height: 80,
+                    width: double.infinity,
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                          primary: Colors.white,
+                          textStyle: const TextStyle(fontSize: 16)),
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                            child: Row(children: <Widget>[
+                              Expanded(
+                                child: Column(children: [
+                                  const Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("Body Weight",
+                                        style: const TextStyle(fontSize: 17),
                             ),
-                          ]),
-                        ),
-                      ]),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => GraphPage(i)));
-                    }),
-              )
-          ]),
-          // divider
-          // listview
-          // divider
-          // listview
-        ],
-      ),
-    );
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: indivWorkoutsBox.isEmpty
+                                      ? const Text("150lb", style: TextStyle(color: Colors.grey))
+                                      : indivWorkoutsBox.getAt(indivWorkoutsBox.
+                                            length - 1)!.bodyWeight % 1 == 0
+                                        ? Text(
+                                            "${indivWorkoutsBox.getAt(indivWorkoutsBox.
+                                              length - 1)!.bodyWeight.toInt().toString()}lb",
+                                            style: const TextStyle(
+                                                color: Colors.grey))
+                                        : Text(
+                                            "${indivWorkoutsBox.getAt(indivWorkoutsBox.
+                                              length - 1)!.bodyWeight.toString()}lb",
+                                            style: const TextStyle(
+                                                color: Colors.grey)),
+                                  ),
+                                ]),
+                              ),
+                            ]),
+                          ),
+                          onPressed: () {
+                            //Navigator.of(context).push(MaterialPageRoute(
+                            //    builder: (context) => GraphPage(0)));
+                          },
+                    )
+                  ),
+                  Divider(height: 10, thickness: 1, color: widgetNavColor, indent: 10, endIndent: 10),
+                  for (int i = 1; i < exercisesBox.length; i++)
+                    if (!exercisesBox.getAt(i)!.bookmarked)
+                      SizedBox(
+                        height: 80,
+                        width: double.infinity,
+                        child: TextButton(
+                            style: TextButton.styleFrom(
+                                primary: Colors.white,
+                                textStyle: const TextStyle(fontSize: 16)),
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                              child: Row(children: <Widget>[
+                                Expanded(
+                                  child: Column(children: [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(exercisesBox.getAt(i)!.name,
+                                          style: const TextStyle(fontSize: 17),
+                                          overflow: TextOverflow.ellipsis),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: exercisesBox.getAt(i)!.weight %
+                                                  1 ==
+                                              0
+                                          ? Text(
+                                              "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
+                                              style: const TextStyle(
+                                                  color: Colors.grey))
+                                          : Text(
+                                              "${exercisesBox.getAt(i)!.weight.toString()}lb",
+                                              style: const TextStyle(
+                                                  color: Colors.grey)),
+                                    ),
+                                  ]),
+                                ),
+                              ]),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => GraphPage(i)));
+                            }),
+                      ),
+                ],
+              );
+            }));
   }
 }
 
@@ -1366,6 +1505,26 @@ class _GraphPageState extends State<GraphPage> {
           backgroundColor: headerColor,
           title: Text(exercisesBox.getAt(widget.index)!.name),
           titleTextStyle: const TextStyle(fontSize: 22),
+          actions: <Widget>[
+            IconButton(
+              icon: exercisesBox.getAt(widget.index)!.bookmarked
+                  ? const Icon(Icons.bookmark)
+                  : const Icon(Icons.bookmark_border),
+              color: exercisesBox.getAt(widget.index)!.bookmarked
+                  ? Colors.orange
+                  : Colors.white,
+              iconSize: 24,
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              onPressed: () {
+                exercisesBox.getAt(widget.index)!.bookmarked =
+                    !exercisesBox.getAt(widget.index)!.bookmarked;
+                exercisesBox.getAt(widget.index)!.save();
+                _progressCounter.value++;
+                setState(() {});
+              },
+            ),
+          ],
           bottom: TabBar(
             indicatorColor: redColor,
             indicatorWeight: 3,
@@ -1437,11 +1596,11 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
       start = DateTime(1900);
     }
     // this is the starting date that we compare workout dates to
-    // if workout date > dateRange, it's in range and added to the graph
+    // if workout date >= dateRange, it's in range and added to the graph
     dateRange = int.parse(DateFormat('yyyyMMdd').format(start));
 
     for (int i = 0; i < indivWorkoutsBox.length; ++i) {
-      if (int.parse(indivWorkoutsBox.getAt(i)!.sortableDate) > dateRange) {
+      if (int.parse(indivWorkoutsBox.getAt(i)!.sortableDate) >= dateRange) {
         for (int j = 0;
             j < indivWorkoutsBox.getAt(i)!.exercisesCompleted.length;
             j++) {
@@ -1481,58 +1640,61 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: backColor,
-        body: _data.isNotEmpty
-        ? Column(
-          children: <Widget>[
-            ValueListenableBuilder(
-                valueListenable: _graphCounter,
-                builder: (context, value, child) {
-                  return Container(
-                      padding: const EdgeInsets.only(left: 25, top: 25),
-                      child: Column(children: <Widget>[
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: graphWeight % 1 == 0
-                              ? Text("${graphWeight.toInt().toString()}lb",
-                                  style: const TextStyle(fontSize: 18))
-                              : Text("${graphWeight.toString()}lb",
-                                  style: const TextStyle(fontSize: 18)),
-                        ),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(graphDate,
-                              style: const TextStyle(
-                                  fontSize: 14, color: Colors.grey)),
-                        ),
-                      ]));
-                }),
-            Align(
-                alignment: Alignment.center,
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(),
-                  ),
-                  child: _graph(),
-                  padding: const EdgeInsets.all(25),
-                  height: MediaQuery.of(context).size.height * 0.3,
-                ))
-          ],
-        )
-        : Align(
-          alignment: Alignment.topCenter,
-          child: Container(padding: const EdgeInsets.only(top: 100),
-            child: widget.duration == 25
-              ? const Text("No workouts logged")
-              : widget.duration == 24
-                ? const Text("No workouts logged in the last two years")
-                : widget.duration == 12
-                  ? const Text("No workouts logged in the last year")
-                  : widget.duration == 1
-                    ? const Text("No workouts logged in the last month")
-                    : Text("No workouts logged in the last ${widget.duration} months"),
-          ),
-        ),
+      backgroundColor: backColor,
+      body: _data.isNotEmpty
+          ? Column(
+              children: <Widget>[
+                ValueListenableBuilder(
+                    valueListenable: _graphCounter,
+                    builder: (context, value, child) {
+                      return Container(
+                          padding: const EdgeInsets.only(left: 25, top: 25),
+                          child: Column(children: <Widget>[
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: graphWeight % 1 == 0
+                                  ? Text("${graphWeight.toInt().toString()}lb",
+                                      style: const TextStyle(fontSize: 18))
+                                  : Text("${graphWeight.toString()}lb",
+                                      style: const TextStyle(fontSize: 18)),
+                            ),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(graphDate,
+                                  style: const TextStyle(
+                                      fontSize: 14, color: Colors.grey)),
+                            ),
+                          ]));
+                    }),
+                Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(),
+                      ),
+                      child: _graph(),
+                      padding: const EdgeInsets.all(25),
+                      height: MediaQuery.of(context).size.height * 0.3,
+                    ))
+              ],
+            )
+          : Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                padding: const EdgeInsets.only(top: 100),
+                child: widget.duration == 25
+                    ? const Text("No workouts logged")
+                    : widget.duration == 24
+                        ? const Text("No workouts logged in the last two years")
+                        : widget.duration == 12
+                            ? const Text("No workouts logged in the last year")
+                            : widget.duration == 1
+                                ? const Text(
+                                    "No workouts logged in the last month")
+                                : Text(
+                                    "No workouts logged in the last ${widget.duration} months"),
+              ),
+            ),
     );
   }
 
@@ -3868,6 +4030,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                 tempNoteBox.putAt(0, ""); // clears note for next workout
 
                 _counter.value++;
+                _progressCounter.value++;
 
                 for (int i = 0; i < workoutsBox.length; i++) {
                   final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(i);
@@ -5106,6 +5269,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                     .add(newEx);
                                                                 tempWorkout
                                                                     ?.save();
+                                                                _progressCounter
+                                                                    .value++;
 
                                                                 if (workoutsBox
                                                                         .getAt(widget
@@ -6330,6 +6495,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                         }
                                       }
                                     });
+                                    _progressCounter.value++;
                                     Navigator.of(context).pop();
                                   },
                                 ),
