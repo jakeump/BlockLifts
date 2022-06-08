@@ -10,11 +10,15 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:paged_vertical_calendar/paged_vertical_calendar.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 part 'main.g.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final androidInfo = await DeviceInfoPlugin().androidInfo;
+  final androidSdkVersion = androidInfo.version.sdkInt ?? 0;
   final directory = await pathprovider.getApplicationDocumentsDirectory();
   await Hive.initFlutter(directory.path);
 
@@ -82,7 +86,7 @@ void main() async {
     ],
   );
 
-  runApp(const MyApp());
+  runApp(MyApp(androidSdkVersion: androidSdkVersion));
 }
 
 String postWorkoutTempNote = "";
@@ -112,6 +116,8 @@ ValueNotifier<int> _graphCounter =
     ValueNotifier<int>(0); // to update graph text
 ValueNotifier<int> _progressCounter =
     ValueNotifier<int>(0); // for progress page
+ValueNotifier<int> _calendarCounter =
+    ValueNotifier<int>(0); // for calendar page
 
 @HiveType(typeId: 1)
 class Workout extends HiveObject {
@@ -498,7 +504,9 @@ void createNotification(int exIdx, int setIdx) {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({Key? key, required this.androidSdkVersion}) : super(key: key);
+  
+  final int androidSdkVersion;
 
   @override
   Widget build(BuildContext context) {
@@ -514,6 +522,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'BlockLifts',
       theme: ThemeData(
+        useMaterial3: true,
         //primarySwatch: Colors.blue,
         brightness: Brightness.dark,
         textSelectionTheme: TextSelectionThemeData(
@@ -521,8 +530,47 @@ class MyApp extends StatelessWidget {
           cursorColor: Colors.white.withOpacity(.5),
         ),
       ),
-      home: const HomePage(),
+      home: ScrollConfiguration(
+        behavior: CustomScrollBehavior(
+          androidSdkVersion: androidSdkVersion,
+        ),
+        child: const HomePage(),
+      ),
     );
+  }
+}
+
+class CustomScrollBehavior extends ScrollBehavior {
+  const CustomScrollBehavior({required this.androidSdkVersion}) : super();
+  final int androidSdkVersion;
+  @override
+  Widget buildOverscrollIndicator(
+      BuildContext context,
+      Widget child,
+      ScrollableDetails details,
+  ) {
+    switch (getPlatform(context)) {
+      case TargetPlatform.iOS:
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+        return child;
+      case TargetPlatform.android:
+        if (androidSdkVersion > 30) {
+          return StretchingOverscrollIndicator(
+            axisDirection: details.direction,
+            child: child,
+          );
+        }
+    continue glow;
+    glow:
+    case TargetPlatform.fuchsia:
+      return GlowingOverscrollIndicator(
+        axisDirection: details.direction,
+        color: Theme.of(context).colorScheme.secondary,
+        child: child,
+      );
+    }
   }
 }
 
@@ -878,7 +926,6 @@ class _HomeState extends State<Home> {
                     //maxHeight: MediaQuery.of(context).size.height * 0.75,
                     ),
                 child: ListView(
-                    physics: const BouncingScrollPhysics(),
                     scrollDirection: Axis.vertical,
                     shrinkWrap: true,
                     children: <Widget>[
@@ -1196,55 +1243,70 @@ class _ProgressState extends State<Progress> {
                             }),
                       ),
                   if (bookmarkCounter > 0)
-                    Divider(height: 10, thickness: 1, color: widgetNavColor, indent: 10, endIndent: 10),
+                    Divider(
+                        height: 10,
+                        thickness: 1,
+                        color: widgetNavColor,
+                        indent: 10,
+                        endIndent: 10),
                   // body weight
                   SizedBox(
-                    height: 80,
-                    width: double.infinity,
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                          primary: Colors.white,
-                          textStyle: const TextStyle(fontSize: 16)),
-                          child: Container(
-                            padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                            child: Row(children: <Widget>[
-                              Expanded(
-                                child: Column(children: [
-                                  const Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text("Body Weight",
-                                        style: const TextStyle(fontSize: 17),
+                      height: 80,
+                      width: double.infinity,
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                            primary: Colors.white,
+                            textStyle: const TextStyle(fontSize: 16)),
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                          child: Row(children: <Widget>[
+                            Expanded(
+                              child: Column(children: [
+                                const Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    "Body Weight",
+                                    style: TextStyle(fontSize: 17),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: indivWorkoutsBox.isEmpty
+                                      ? const Text("150lb",
+                                          style: TextStyle(color: Colors.grey))
+                                      : indivWorkoutsBox
+                                                      .getAt(indivWorkoutsBox
+                                                              .length -
+                                                          1)!
+                                                      .bodyWeight %
+                                                  1 ==
+                                              0
+                                          ? Text(
+                                              "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toInt().toString()}lb",
+                                              style: const TextStyle(
+                                                  color: Colors.grey))
+                                          : Text(
+                                              "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toString()}lb",
+                                              style: const TextStyle(
+                                                  color: Colors.grey)),
+                                ),
+                              ]),
                             ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: indivWorkoutsBox.isEmpty
-                                      ? const Text("150lb", style: TextStyle(color: Colors.grey))
-                                      : indivWorkoutsBox.getAt(indivWorkoutsBox.
-                                            length - 1)!.bodyWeight % 1 == 0
-                                        ? Text(
-                                            "${indivWorkoutsBox.getAt(indivWorkoutsBox.
-                                              length - 1)!.bodyWeight.toInt().toString()}lb",
-                                            style: const TextStyle(
-                                                color: Colors.grey))
-                                        : Text(
-                                            "${indivWorkoutsBox.getAt(indivWorkoutsBox.
-                                              length - 1)!.bodyWeight.toString()}lb",
-                                            style: const TextStyle(
-                                                color: Colors.grey)),
-                                  ),
-                                ]),
-                              ),
-                            ]),
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => const GraphPage(-1)));
-                          },
-                    )
-                  ),
-                  Divider(height: 10, thickness: 1, color: widgetNavColor, indent: 10, endIndent: 10),
+                          ]),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => const GraphPage(-1)));
+                        },
+                      )),
+                  if (bookmarkCounter < exercisesBox.length - 1)
+                    Divider(
+                        height: 10,
+                        thickness: 1,
+                        color: widgetNavColor,
+                        indent: 10,
+                        endIndent: 10),
                   for (int i = 1; i < exercisesBox.length; i++)
                     if (!exercisesBox.getAt(i)!.bookmarked)
                       SizedBox(
@@ -1345,7 +1407,7 @@ class _SettingsState extends State<Settings> {
         title: const Text("Settings"),
         titleTextStyle: const TextStyle(fontSize: 22),
       ),
-      body: Column(children: <Widget>[
+      body: ListView(children: <Widget>[
         SizedBox(
           height: 80,
           width: double.infinity,
@@ -1504,11 +1566,12 @@ class _GraphPageState extends State<GraphPage> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           backgroundColor: headerColor,
-          title: widget.index == -1 ? const Text("Body Weight")
-                : Text(exercisesBox.getAt(widget.index)!.name),
+          title: widget.index == -1
+              ? const Text("Body Weight")
+              : Text(exercisesBox.getAt(widget.index)!.name),
           titleTextStyle: const TextStyle(fontSize: 22),
           actions: <Widget>[
-            if (widget.index != -1) 
+            if (widget.index != -1)
               IconButton(
                 icon: exercisesBox.getAt(widget.index)!.bookmarked
                     ? const Icon(Icons.bookmark)
@@ -1606,9 +1669,9 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
     for (int i = 0; i < indivWorkoutsBox.length; ++i) {
       if (int.parse(indivWorkoutsBox.getAt(i)!.sortableDate) >= dateRange) {
         String tempDate = indivWorkoutsBox.getAt(i)!.sortableDate;
-        date = DateTime.parse(tempDate).millisecondsSinceEpoch.toDouble();        
+        date = DateTime.parse(tempDate).millisecondsSinceEpoch.toDouble();
         DateTime dateToFormat =
-            DateTime.fromMillisecondsSinceEpoch(date.toInt());        
+            DateTime.fromMillisecondsSinceEpoch(date.toInt());
         if (widget.exIndex == -1) {
           data.add(_MyData(
               xval: date, weight: indivWorkoutsBox.getAt(i)!.bodyWeight));
@@ -1622,11 +1685,10 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
               minWeight == 0) {
             minWeight = indivWorkoutsBox.getAt(i)!.bodyWeight;
           }
-        }
-        else {
+        } else {
           for (int j = 0;
-            j < indivWorkoutsBox.getAt(i)!.exercisesCompleted.length;
-            j++) {
+              j < indivWorkoutsBox.getAt(i)!.exercisesCompleted.length;
+              j++) {
             if (indivWorkoutsBox.getAt(i)!.exercisesCompleted[j] ==
                 exercisesBox.getAt(widget.exIndex)!.name) {
               data.add(_MyData(
@@ -1959,7 +2021,7 @@ class _TimerState extends State<TimerPage> {
         title: const Text("Timer"),
         titleTextStyle: const TextStyle(fontSize: 22),
       ),
-      body: Column(children: <Widget>[
+      body: ListView(children: <Widget>[
         SizedBox(
           height: 88,
           width: double.infinity,
@@ -2017,7 +2079,7 @@ class _TimerState extends State<TimerPage> {
                       textStyle: const TextStyle(fontSize: 16)),
                   child: Container(
                     padding: const EdgeInsets.all(10),
-                    child: Column(children: <Widget>[
+                    child: ListView(children: <Widget>[
                       Row(children: <Widget>[
                         Expanded(
                           child: Column(children: [
@@ -2926,7 +2988,6 @@ class _ListState extends State<ListPage> {
             valueListenable: _counter,
             builder: (context, value, child) {
               return ListView(
-                  physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(10),
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,
@@ -3148,15 +3209,147 @@ class _ListState extends State<ListPage> {
 }
 
 class _CalendarState extends State<CalendarPage> {
+  late final Box<IndivWorkout> indivWorkoutsBox;
+  List<DateTime> datesList = [];
+  DateTime minDate = DateTime.now();
+  DateTime minDateMonth = DateTime.now();
+  DateTime curDate = DateTime.now();
+  DateTime maxDate = DateTime.now();
+
+  @override
+  void initState() {
+    indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
+    super.initState();
+  }
+
+  void getMinMaxDate() {
+    while (curDate.month == maxDate.month) {
+      maxDate = DateTime(maxDate.year, maxDate.month, maxDate.day + 1);
+    }
+    maxDate = DateTime(maxDate.year, maxDate.month, maxDate.day - 1);
+
+    if (indivWorkoutsBox.isNotEmpty) {
+      String tempDate = indivWorkoutsBox.getAt(0)!.sortableDate;
+      double date = DateTime.parse(tempDate).millisecondsSinceEpoch.toDouble();
+      minDate = DateTime.fromMillisecondsSinceEpoch(date.toInt());
+      minDateMonth = DateTime.fromMillisecondsSinceEpoch(date.toInt());
+    }
+    while (minDateMonth.month == minDate.month) {
+      minDateMonth =
+          DateTime(minDateMonth.year, minDateMonth.month, minDateMonth.day - 1);
+    }
+    minDateMonth =
+        DateTime(minDateMonth.year, minDateMonth.month, minDateMonth.day + 1);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: backColor,
-      body: Container(
-        alignment: Alignment.center,
-        child: const Text('Here is the calendar page'),
-      ),
-    );
+    return ValueListenableBuilder(
+        valueListenable: _calendarCounter,
+        builder: (context, value, child) {
+          getMinMaxDate();
+          datesList.clear();
+          for (int i = 0; i < indivWorkoutsBox.length; i++) {
+            String tempDate = indivWorkoutsBox.getAt(i)!.sortableDate;
+            double date = DateTime.parse(tempDate).millisecondsSinceEpoch.toDouble();
+            DateTime finalDate = DateTime.fromMillisecondsSinceEpoch(date.toInt());
+            datesList.add(finalDate);
+          }
+          return Scaffold(
+            backgroundColor: backColor,
+            body: Column(children: <Widget>[
+            SizedBox(height: MediaQuery.of(context).size.height * 0.015),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05,
+              child: Row(children: <Widget> [
+                const SizedBox(width: 23.8),
+                const Text("S"),
+                SizedBox(width: MediaQuery.of(context).size.width * 0.111),
+                const Text("M"),
+                SizedBox(width: MediaQuery.of(context).size.width * 0.111),
+                const Text("T"),
+                SizedBox(width: MediaQuery.of(context).size.width * 0.111),
+                const Text("W"),
+                SizedBox(width: MediaQuery.of(context).size.width * 0.111),
+                const Text("T"),
+                SizedBox(width: MediaQuery.of(context).size.width * 0.111),
+                const Text("F"),
+                SizedBox(width: MediaQuery.of(context).size.width * 0.111),
+                const Text("S"),
+              ]),
+            ),
+            Expanded(
+              child: PagedVerticalCalendar(
+                invisibleMonthsThreshold: 100,
+                startWeekWithSunday: true,
+                minDate: minDateMonth,
+                maxDate: maxDate,
+                dayBuilder: (context, date) {
+                  final eventsThisDay = datesList.where((e) => e == date);
+                  return Center(
+                      child: CircleAvatar(
+                    radius: 26,
+                    backgroundColor: eventsThisDay.isNotEmpty
+                        ? Colors.red
+                        : Colors.transparent,
+                    child: Text(DateFormat('d').format(date),
+                        style: TextStyle(
+                            color: date.day > DateTime.now().day
+                                  && date.month >= DateTime.now().month
+                                  && date.year >= DateTime.now().year
+                                ? Colors.grey
+                                : eventsThisDay.isEmpty &&
+                                    date.day == DateTime.now().day &&
+                                    date.month == DateTime.now().month &&
+                                    date.year == DateTime.now().year
+                                ? Colors.red
+                                : Colors.white)),
+                  ));
+                },
+                onDayPressed: (date) {
+                  final eventsThisDay = datesList.where((e) => e == date);
+                  if (eventsThisDay.isNotEmpty) {
+                    int i = datesList.indexOf(date);
+                    List<List<int>> copyRepsCompleted = [];
+
+                    for (int j = 0;
+                        j < indivWorkoutsBox.getAt(i)!.repsCompleted.length;
+                        j++) {
+                      copyRepsCompleted.add([0]);
+                      copyRepsCompleted[j]
+                          .add(indivWorkoutsBox.getAt(i)!.repsCompleted[j][0]);
+                      copyRepsCompleted[j].removeAt(0);
+                      for (int k = 1;
+                          k <
+                              indivWorkoutsBox
+                                  .getAt(i)!
+                                  .repsCompleted[j]
+                                  .length;
+                          k++) {
+                        copyRepsCompleted[j].add(
+                            indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]);
+                      }
+                    }
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(
+                            builder: (context) =>
+                                PostWorkoutEditPage(i, copyRepsCompleted)))
+                        .then((value) {
+                      setState(() {});
+                    });
+                  }
+                },
+                monthBuilder: (context, month, year) {
+                  return Container(
+                    padding: const EdgeInsets.only(right: 20, top: 20),
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      DateFormat('MMMM yyyy').format(DateTime(year, month)),
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  );
+                })),])
+          );
+        });
   }
 }
 
@@ -3177,7 +3370,6 @@ class _NotesState extends State<NotesPage> {
             valueListenable: _counter,
             builder: (context, value, child) {
               return ListView(
-                  physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(10),
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,
@@ -3408,13 +3600,12 @@ class _EditState extends State<Edit> {
         titleTextStyle: const TextStyle(fontSize: 22),
       ),
       body: Container(
-        constraints: const BoxConstraints(
-          maxHeight: 750,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
         ),
         child: Column(children: <Widget>[
           Flexible(
             child: ReorderableListView(
-              physics: const BouncingScrollPhysics(),
               shrinkWrap: true,
               // for every item of the List<Workout> class, display the reorder indicator
               // the name, the exercises, and three dots on the right
@@ -4051,6 +4242,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
                 _counter.value++;
                 _progressCounter.value++;
+                _calendarCounter.value++;
 
                 for (int i = 0; i < workoutsBox.length; i++) {
                   final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(i);
@@ -4069,8 +4261,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
         ),
         body: Container(
             padding: const EdgeInsets.all(10),
-            constraints: const BoxConstraints(
-              maxHeight: 680,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.75,
             ),
             child: Column(children: <Widget>[
               Flexible(
@@ -4535,12 +4727,12 @@ class _WorkoutPageState extends State<WorkoutPage> {
                     showTimer
                         ? Container(
                             width: double.infinity,
-                            height: 100,
+                            height: MediaQuery.of(context).size.height * 0.1,
                             padding: const EdgeInsets.only(left: 25),
                             child: Align(
                                 alignment: Alignment.center,
                                 child: Container(
-                                    height: 80,
+                                    height: MediaQuery.of(context).size.height * 0.1,
                                     width: double.infinity,
                                     child: Row(children: <Widget>[
                                       Flexible(
@@ -4721,7 +4913,6 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
             Flexible(
               child: ReorderableListView(
                 shrinkWrap: true,
-                physics: const BouncingScrollPhysics(),
                 // for every item of the List<Workout> class, display the reorder indicator
                 // the name, the exercises, and three dots on the right
                 scrollDirection: Axis.vertical,
@@ -5586,9 +5777,12 @@ class _EditExercisePageState extends State<EditExercisePage> {
         ),
         titleTextStyle: const TextStyle(fontSize: 22),
       ),
-      body: Column(children: <Widget>[
-        GestureDetector(
-            onTap: () {
+      body: ListView(children: <Widget>[
+        TextButton(
+            style: TextButton.styleFrom(
+              primary: Colors.white,
+              textStyle: const TextStyle(fontSize: 16)),
+            onPressed: () {
               if (exercisesBox.getAt(widget.index)!.weight % 1 == 0) {
                 setState(() => _myController.text = exercisesBox
                     .getAt(widget.index)!
@@ -5811,8 +6005,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
               );
             },
             child: Container(
-                padding: const EdgeInsets.only(left: 20),
-                color: Colors.black,
+                padding: const EdgeInsets.all(10),
                 height: 80,
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -5851,8 +6044,11 @@ class _EditExercisePageState extends State<EditExercisePage> {
                         ),
                     ]))),
         // bar weight
-        GestureDetector(
-            onTap: () {
+        TextButton(
+            style: TextButton.styleFrom(
+              primary: Colors.white,
+              textStyle: const TextStyle(fontSize: 16)),
+            onPressed: () {
               if (exercisesBox.getAt(widget.index)!.barWeight % 1 == 0) {
                 setState(() => _myController.text = exercisesBox
                     .getAt(widget.index)!
@@ -6075,8 +6271,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
               );
             },
             child: Container(
-                padding: const EdgeInsets.only(left: 20),
-                color: Colors.black,
+                padding: const EdgeInsets.all(10),
                 height: 80,
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -6114,11 +6309,12 @@ class _EditExercisePageState extends State<EditExercisePage> {
                           ),
                         ),
                     ]))),
-        GestureDetector(
+        TextButton(
+          style: TextButton.styleFrom(
+            primary: Colors.white,
+            textStyle: const TextStyle(fontSize: 16)),
           child: Container(
-            padding: const EdgeInsets.only(left: 20),
-            color: Colors.black,
-            height: 80,
+            padding: const EdgeInsets.all(10),
             child:
                 Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               const Align(
@@ -6144,7 +6340,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
               ),
             ]),
           ),
-          onTap: () {
+          onPressed: () {
             Navigator.of(context)
                 .push(MaterialPageRoute(
                     builder: (context) => IncrementsPage(widget.index)))
@@ -6154,8 +6350,11 @@ class _EditExercisePageState extends State<EditExercisePage> {
           },
         ),
         // sets x reps
-        GestureDetector(
-            onTap: () {
+        TextButton(
+            style: TextButton.styleFrom(
+              primary: Colors.white,
+              textStyle: const TextStyle(fontSize: 16)),
+            onPressed: () {
               setState(() => _myController.text =
                   exercisesBox.getAt(widget.index)!.sets.toString());
               setState(() => _myController2.text =
@@ -6358,9 +6557,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
               );
             },
             child: Container(
-                padding: const EdgeInsets.only(left: 20),
-                color: Colors.black,
-                height: 80,
+                padding: const EdgeInsets.all(10),
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -6386,10 +6583,14 @@ class _EditExercisePageState extends State<EditExercisePage> {
                     ]))),
         const SizedBox(height: 10),
         // plate calculator
-        GestureDetector(
-            child: Container(
+        TextButton(
+          style: TextButton.styleFrom(
+            primary: Colors.white,
+            textStyle: const TextStyle(fontSize: 16)),
+          onPressed: () {},
+          child: Container(
           height: 80,
-          padding: const EdgeInsets.only(left: 20),
+          padding: const EdgeInsets.all(10),
           child: Column(children: <Widget>[
             const Align(
               alignment: Alignment.centerLeft,
@@ -6411,9 +6612,12 @@ class _EditExercisePageState extends State<EditExercisePage> {
           ]),
         )),
         const SizedBox(height: 5),
-        GestureDetector(
+        TextButton(
+          style: TextButton.styleFrom(
+            primary: Colors.white,
+            textStyle: const TextStyle(fontSize: 16)),
           child: Container(
-            padding: const EdgeInsets.only(left: 20),
+            padding: const EdgeInsets.all(10),
             height: 55,
             child: const Align(
               alignment: Alignment.centerLeft,
@@ -6421,7 +6625,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                   Text("Change Exercise Name", style: TextStyle(fontSize: 16)),
             ),
           ),
-          onTap: () {
+          onPressed: () {
             setState(() =>
                 _myController.text = exercisesBox.getAt(widget.index)!.name);
             showDialog(
@@ -7621,6 +7825,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   }
                 }
                 tempIndiv.save();
+                _calendarCounter.value++;
                 Navigator.of(context).pop();
               },
             ),
@@ -8068,6 +8273,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   child: TextButton(
                       onPressed: () {
                         indivWorkoutsBox.deleteAt(widget.index);
+                        _calendarCounter.value++;
                         Navigator.of(context).pop();
                       },
                       child: const Text("Delete"),
