@@ -99,9 +99,13 @@ int exerciseIndex = 0;
 int setIndex = 0;
 late bool failed;
 
-var headerColor = Colors.black;
-var backColor = Colors.black;
-var widgetNavColor = const Color.fromARGB(133, 65, 64, 64);
+late var headerColor;
+late var backColor;
+late var widgetNavColor;
+late var textColor;
+late var dividerColor;
+late var underlineColor;
+late var circleColor;
 var redColor = Colors.red;
 
 bool _canVibrate = true;
@@ -118,6 +122,7 @@ ValueNotifier<int> _progressCounter =
     ValueNotifier<int>(0); // for progress page
 ValueNotifier<int> _calendarCounter =
     ValueNotifier<int>(0); // for calendar page
+ValueNotifier<int> _themeCounter = ValueNotifier<int>(0); // for dark/light mode
 
 @HiveType(typeId: 1)
 class Workout extends HiveObject {
@@ -232,7 +237,11 @@ Exercise customxyz = Exercise("Custom Exercise");
 
 void defaultState() async {
   showTimer = false;
+  _counter.value++;
   _progressCounter.value++;
+  _calendarCounter.value++;
+  _themeCounter.value++;
+  AwesomeNotifications().cancelAll();
 
   Workout defaultA = Workout("BlockLifts A");
   Workout defaultB = Workout("BlockLifts B");
@@ -504,9 +513,10 @@ void createNotification(int exIdx, int setIdx) {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key, required this.androidSdkVersion}) : super(key: key);
-  
+  MyApp({Key? key, required this.androidSdkVersion}) : super(key: key);
+
   final int androidSdkVersion;
+  final Box<bool> boolBox = Hive.box<bool>('boolBox');
 
   @override
   Widget build(BuildContext context) {
@@ -518,25 +528,59 @@ class MyApp extends StatelessWidget {
       }
     });
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'BlockLifts',
-      theme: ThemeData(
-        useMaterial3: true,
-        //primarySwatch: Colors.blue,
-        brightness: Brightness.dark,
-        textSelectionTheme: TextSelectionThemeData(
-          selectionHandleColor: Colors.white.withOpacity(.5),
-          cursorColor: Colors.white.withOpacity(.5),
-        ),
-      ),
-      home: ScrollConfiguration(
-        behavior: CustomScrollBehavior(
-          androidSdkVersion: androidSdkVersion,
-        ),
-        child: const HomePage(),
-      ),
-    );
+    return ValueListenableBuilder(
+        valueListenable: _themeCounter,
+        builder: (_, model, __) {
+          if (boolBox.getAt(0)!) {
+            // dark mode
+            backColor = Colors.black;
+            headerColor = Colors.black;
+            widgetNavColor = const Color.fromARGB(133, 65, 64, 64);
+            textColor = Colors.white;
+            dividerColor = const Color.fromARGB(133, 65, 64, 64);
+            underlineColor = Colors.white.withOpacity(.7);
+            circleColor = const Color.fromARGB(255, 41, 41, 41);
+          } else {
+            // light mode
+            backColor = Colors.white;
+            headerColor = Colors.white;
+            widgetNavColor = Colors.white;
+            textColor = Colors.black;
+            dividerColor = Colors.grey;
+            underlineColor = Colors.black;
+            circleColor = const Color.fromARGB(255, 228, 228, 228);
+          }
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'BlockLifts',
+            theme: ThemeData(
+              useMaterial3: true,
+              backgroundColor: Colors.white,
+              brightness: Brightness.light,
+              //textTheme: TextTheme(bodyColor: Colors.black),
+              textSelectionTheme: const TextSelectionThemeData(
+                selectionHandleColor: Colors.black,
+                cursorColor: Colors.black,
+              ),
+            ),
+            darkTheme: ThemeData(
+              useMaterial3: true,
+              backgroundColor: Colors.black,
+              brightness: Brightness.dark,
+              textSelectionTheme: TextSelectionThemeData(
+                selectionHandleColor: Colors.white.withOpacity(.5),
+                cursorColor: Colors.white.withOpacity(.5),
+              ),
+            ),
+            themeMode: boolBox.getAt(0)! ? ThemeMode.dark : ThemeMode.light,
+            home: ScrollConfiguration(
+              behavior: CustomScrollBehavior(
+                androidSdkVersion: androidSdkVersion,
+              ),
+              child: const HomePage(),
+            ),
+          );
+        });
   }
 }
 
@@ -545,9 +589,9 @@ class CustomScrollBehavior extends ScrollBehavior {
   final int androidSdkVersion;
   @override
   Widget buildOverscrollIndicator(
-      BuildContext context,
-      Widget child,
-      ScrollableDetails details,
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
   ) {
     switch (getPlatform(context)) {
       case TargetPlatform.iOS:
@@ -562,14 +606,14 @@ class CustomScrollBehavior extends ScrollBehavior {
             child: child,
           );
         }
-    continue glow;
-    glow:
-    case TargetPlatform.fuchsia:
-      return GlowingOverscrollIndicator(
-        axisDirection: details.direction,
-        color: Theme.of(context).colorScheme.secondary,
-        child: child,
-      );
+        continue glow;
+      glow:
+      case TargetPlatform.fuchsia:
+        return GlowingOverscrollIndicator(
+          axisDirection: details.direction,
+          color: Theme.of(context).colorScheme.secondary,
+          child: child,
+        );
     }
   }
 }
@@ -798,47 +842,52 @@ class _HomePageState extends State<HomePage> {
       Progress(),
       Settings(),
     ];
-    return Theme(
-      data: ThemeData(
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        brightness: Brightness.dark,
-      ),
-      child: Scaffold(
-        body: IndexedStack(
-          index: _selectedIndex,
-          children: _pages,
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          backgroundColor: widgetNavColor,
-          fixedColor: redColor,
-          selectedFontSize: 15,
-          showSelectedLabels: true,
-          showUnselectedLabels: false,
-          items: const [
-            BottomNavigationBarItem(
-              label: "Home",
-              icon: Icon(Icons.home),
+    return ValueListenableBuilder<int>(
+        valueListenable: _themeCounter,
+        builder: (context, index, child) {
+          return Theme(
+            data: ThemeData(
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              brightness: Brightness.dark,
             ),
-            BottomNavigationBarItem(
-              label: "History",
-              icon: Icon(Icons.calendar_month),
+            child: Scaffold(
+              body: IndexedStack(
+                index: _selectedIndex,
+                children: _pages,
+              ),
+              bottomNavigationBar: BottomNavigationBar(
+                type: BottomNavigationBarType.fixed,
+                currentIndex: _selectedIndex,
+                onTap: _onItemTapped,
+                backgroundColor: widgetNavColor,
+                selectedFontSize: 15,
+                selectedItemColor: redColor,
+                unselectedItemColor: Colors.grey,
+                showSelectedLabels: true,
+                showUnselectedLabels: false,
+                items: const [
+                  BottomNavigationBarItem(
+                    label: "Home",
+                    icon: Icon(Icons.home),
+                  ),
+                  BottomNavigationBarItem(
+                    label: "History",
+                    icon: Icon(Icons.calendar_month),
+                  ),
+                  BottomNavigationBarItem(
+                    label: "Progress",
+                    icon: Icon(Icons.stacked_line_chart_outlined),
+                  ),
+                  BottomNavigationBarItem(
+                    label: "Settings",
+                    icon: Icon(Icons.settings),
+                  ),
+                ],
+              ),
             ),
-            BottomNavigationBarItem(
-              label: "Progress",
-              icon: Icon(Icons.stacked_line_chart_outlined),
-            ),
-            BottomNavigationBarItem(
-              label: "Settings",
-              icon: Icon(Icons.settings),
-            ),
-          ],
-        ),
-      ),
-    );
+          );
+        });
   }
 
   void _onItemTapped(int index) {
@@ -884,99 +933,95 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData(
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        brightness: Brightness.dark,
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
-          centerTitle: true,
-          backgroundColor: headerColor,
-          title: const Text("BlockLifts"),
-          titleTextStyle: const TextStyle(fontSize: 22),
-          actions: <Widget>[
-            TextButton(
-              style: TextButton.styleFrom(
-                primary: redColor,
-                textStyle:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                alignment: Alignment.center,
-              ),
-              child: const Text("Edit"),
-              onPressed: () {
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (context) => const Edit()))
-                    .then((value) {
-                  setState(() {});
-                });
-              },
+    return ValueListenableBuilder<int>(
+        valueListenable: _themeCounter,
+        builder: (context, index, child) {
+          return Scaffold(
+            backgroundColor: backColor,
+            appBar: AppBar(
+              elevation: 0,
+              centerTitle: true,
+              backgroundColor: headerColor,
+              title: const Text("BlockLifts"),
+              titleTextStyle: TextStyle(fontSize: 22, color: textColor),
+              actions: <Widget>[
+                TextButton(
+                  style: TextButton.styleFrom(
+                    primary: redColor,
+                    textStyle: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                    alignment: Alignment.center,
+                  ),
+                  child: const Text("Edit"),
+                  onPressed: () {
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(
+                            builder: (context) => const Edit()))
+                        .then((value) {
+                      setState(() {});
+                    });
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-        body: ValueListenableBuilder(
-            valueListenable: _counter,
-            builder: (context, value, child) {
-              counter = counterBox.getAt(0);
-              return Container(
-                padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-                constraints: const BoxConstraints(
-                    //maxHeight: MediaQuery.of(context).size.height * 0.75,
-                    ),
-                child: ListView(
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    children: <Widget>[
-                      for (int i = counter; i < workoutsBox.length; i++)
-                        buildTile(i),
-                      for (int i = 0; i < counter; i++) buildTile(i),
-                    ]),
-              );
-            }),
-        floatingActionButton: SizedBox(
-          width: 150,
-          height: 50,
-          child: OutlinedButton(
-            child: const Text("Start Workout"),
-            style: OutlinedButton.styleFrom(
-              primary: Colors.white,
-              backgroundColor: redColor,
-              shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(50))),
-            ),
-            onPressed: () {
-              // if statement prevents excessive adding to list
-              if (workoutsBox.getAt(counter)!.isInitialized == false) {
-                // change from 0 to counter (index of first workout that's up)
-                for (int i = 0;
-                    i < workoutsBox.getAt(counter)!.exercises.length;
-                    ++i) {
-                  for (int j = 0;
-                      j < workoutsBox.getAt(counter)!.exercises[i].sets;
-                      j++) {
-                    // repsCompleted initialized with initial reps value
-                    workoutsBox
-                        .getAt(counter)!
-                        .exercises[i]
-                        .repsCompleted
-                        .add(workoutsBox.getAt(counter)!.exercises[i].reps + 1);
+            body: ValueListenableBuilder(
+                valueListenable: _counter,
+                builder: (context, value, child) {
+                  counter = counterBox.getAt(0);
+                  return Container(
+                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                    child: ListView(
+                        scrollDirection: Axis.vertical,
+                        children: <Widget>[
+                          for (int i = counter; i < workoutsBox.length; i++)
+                            buildTile(i),
+                          for (int i = 0; i < counter; i++) buildTile(i),
+                        ]),
+                  );
+                }),
+            floatingActionButton: SizedBox(
+              width: 150,
+              height: 50,
+              child: OutlinedButton(
+                child: const Text("Start Workout"),
+                style: OutlinedButton.styleFrom(
+                  primary: Colors.white,
+                  backgroundColor: redColor,
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(50))),
+                ),
+                onPressed: () {
+                  // if statement prevents excessive adding to list
+                  if (workoutsBox.getAt(counter)!.isInitialized == false) {
+                    // change from 0 to counter (index of first workout that's up)
+                    for (int i = 0;
+                        i < workoutsBox.getAt(counter)!.exercises.length;
+                        ++i) {
+                      for (int j = 0;
+                          j < workoutsBox.getAt(counter)!.exercises[i].sets;
+                          j++) {
+                        // repsCompleted initialized with initial reps value
+                        workoutsBox
+                            .getAt(counter)!
+                            .exercises[i]
+                            .repsCompleted
+                            .add(workoutsBox.getAt(counter)!.exercises[i].reps +
+                                1);
+                      }
+                    }
+                    workoutsBox.getAt(counter)!.isInitialized = true;
                   }
-                }
-                workoutsBox.getAt(counter)!.isInitialized = true;
-              }
-              Navigator.of(context)
-                  .push(MaterialPageRoute(
-                      builder: (context) => WorkoutPage(counter)))
-                  .then((value) {
-                setState(() {});
-              });
-            },
-          ),
-        ),
-      ),
-    );
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(
+                          builder: (context) => WorkoutPage(counter)))
+                      .then((value) {
+                    setState(() {});
+                  });
+                },
+              ),
+            ),
+          );
+        });
   }
 
   Widget buildTile(int i) {
@@ -1039,8 +1084,9 @@ class _HomeState extends State<Home> {
                               alignment: Alignment.centerLeft,
                               child:
                                   Text(workoutsBox.getAt(i)!.exercises[j].name,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 17,
+                                        color: textColor,
                                       )),
                             ),
                           ),
@@ -1051,8 +1097,9 @@ class _HomeState extends State<Home> {
                                     alignment: Alignment.centerRight,
                                     child: Text(
                                         "${workoutsBox.getAt(i)!.exercises[j].sets}×${workoutsBox.getAt(i)!.exercises[j].reps} ${workoutsBox.getAt(i)!.exercises[j].weight ~/ 1}lb",
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 17,
+                                          color: textColor,
                                         ))))
                           else
                             Expanded(
@@ -1060,7 +1107,10 @@ class _HomeState extends State<Home> {
                                     alignment: Alignment.centerRight,
                                     child: Text(
                                         "${workoutsBox.getAt(i)!.exercises[j].sets}×${workoutsBox.getAt(i)!.exercises[j].reps} ${workoutsBox.getAt(i)!.exercises[j].weight.toString()}lb",
-                                        style: const TextStyle(fontSize: 17)))),
+                                        style: TextStyle(
+                                          fontSize: 17,
+                                          color: textColor,
+                                        )))),
                         ]),
                         Divider(
                             // larger divider if not at end of list
@@ -1081,48 +1131,54 @@ class _HomeState extends State<Home> {
 class _HistoryState extends State<History> {
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData(
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        brightness: Brightness.dark,
-      ),
-      child: DefaultTabController(
-        length: 3,
-        child: Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            centerTitle: true,
-            backgroundColor: headerColor,
-            title: const Text("History"),
-            titleTextStyle: const TextStyle(fontSize: 22),
-            bottom: TabBar(
-              indicatorColor: redColor,
-              indicatorWeight: 3,
-              indicatorSize: TabBarIndicatorSize.tab,
-              tabs: const [
-                Tab(
-                  text: 'List',
-                ),
-                Tab(
-                  text: 'Calendar',
-                ),
-                Tab(
-                  text: 'Notes',
-                ),
-              ],
+    return ValueListenableBuilder<int>(
+        valueListenable: _themeCounter,
+        builder: (context, index, child) {
+          return Theme(
+            data: ThemeData(
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              brightness: Brightness.dark,
             ),
-          ),
-          body: const TabBarView(
-            children: [
-              ListPage(),
-              CalendarPage(),
-              NotesPage(),
-            ],
-          ),
-        ),
-      ),
-    );
+            child: DefaultTabController(
+              length: 3,
+              child: Scaffold(
+                backgroundColor: Colors.black,
+                appBar: AppBar(
+                  elevation: 0,
+                  centerTitle: true,
+                  backgroundColor: headerColor,
+                  title: const Text("History"),
+                  titleTextStyle: TextStyle(fontSize: 22, color: textColor),
+                  bottom: TabBar(
+                    indicatorColor: redColor,
+                    labelColor: textColor,
+                    indicatorWeight: 3,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    tabs: const [
+                      Tab(
+                        text: 'List',
+                      ),
+                      Tab(
+                        text: 'Calendar',
+                      ),
+                      Tab(
+                        text: 'Notes',
+                      ),
+                    ],
+                  ),
+                ),
+                body: const TabBarView(
+                  children: [
+                    ListPage(),
+                    CalendarPage(),
+                    NotesPage(),
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
   }
 }
 
@@ -1149,211 +1205,234 @@ class _ProgressState extends State<Progress> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: backColor,
-        appBar: AppBar(
-          centerTitle: true,
-          backgroundColor: headerColor,
-          title: const Text("Progress"),
-          titleTextStyle: const TextStyle(fontSize: 22),
-        ),
-        body: ValueListenableBuilder(
-            valueListenable: _progressCounter,
-            builder: (context, value, child) {
-              int bookmarkCounter = 0;
-              for (int i = 1; i < exercisesBox.length; i++) {
-                if (exercisesBox.getAt(i)!.bookmarked) {
-                  bookmarkCounter++;
-                }
-              }
-              return ListView(
-                shrinkWrap: true,
-                children: <Widget>[
-                  // i = 0 is "Custom Exercise"
-                  for (int i = 1; i < exercisesBox.length; i++)
-                    if (exercisesBox.getAt(i)!.bookmarked)
-                      SizedBox(
-                        height: 80,
-                        width: double.infinity,
-                        child: TextButton(
-                            style: TextButton.styleFrom(
-                                primary: Colors.white,
-                                textStyle: const TextStyle(fontSize: 16)),
-                            child: Container(
-                              padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                              child: Row(children: <Widget>[
-                                Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Flexible(
-                                        child: Row(children: <Widget>[
-                                          Container(
-                                            constraints: BoxConstraints(
-                                                maxWidth: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.7),
-                                            child: RichText(
-                                                text: TextSpan(
-                                                  text: exercisesBox
-                                                      .getAt(i)!
-                                                      .name,
-                                                  style: const TextStyle(
-                                                      fontSize: 22),
+    return ValueListenableBuilder<int>(
+        valueListenable: _themeCounter,
+        builder: (context, index, child) {
+          return Scaffold(
+              backgroundColor: backColor,
+              appBar: AppBar(
+                elevation: 0,
+                centerTitle: true,
+                backgroundColor: headerColor,
+                title: const Text("Progress"),
+                titleTextStyle: TextStyle(fontSize: 22, color: textColor),
+              ),
+              body: ValueListenableBuilder(
+                  valueListenable: _progressCounter,
+                  builder: (context, value, child) {
+                    int bookmarkCounter = 0;
+                    for (int i = 1; i < exercisesBox.length; i++) {
+                      if (exercisesBox.getAt(i)!.bookmarked) {
+                        bookmarkCounter++;
+                      }
+                    }
+                    return ListView(
+                      children: <Widget>[
+                        // i = 0 is "Custom Exercise"
+                        for (int i = 1; i < exercisesBox.length; i++)
+                          if (exercisesBox.getAt(i)!.bookmarked)
+                            SizedBox(
+                              height: 80,
+                              width: double.infinity,
+                              child: TextButton(
+                                  style: TextButton.styleFrom(
+                                      primary: Colors.white,
+                                      textStyle: const TextStyle(fontSize: 16)),
+                                  child: Container(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                    child: Row(children: <Widget>[
+                                      Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Flexible(
+                                              child: Row(children: <Widget>[
+                                                Container(
+                                                  constraints: BoxConstraints(
+                                                      maxWidth:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .width *
+                                                              0.7),
+                                                  child: RichText(
+                                                      text: TextSpan(
+                                                        text: exercisesBox
+                                                            .getAt(i)!
+                                                            .name,
+                                                        style: TextStyle(
+                                                            fontSize: 22,
+                                                            color: textColor),
+                                                      ),
+                                                      overflow: TextOverflow
+                                                          .ellipsis),
                                                 ),
-                                                overflow:
-                                                    TextOverflow.ellipsis),
-                                          ),
-                                          Container(
-                                            padding:
-                                                const EdgeInsets.only(left: 10),
-                                            child: const Icon(
-                                              Icons.bookmark,
-                                              color: Colors.orange,
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 10),
+                                                  child: const Icon(
+                                                    Icons.bookmark,
+                                                    color: Colors.orange,
+                                                  ),
+                                                ),
+                                              ]),
                                             ),
-                                          ),
-                                        ]),
+                                            const SizedBox(height: 8),
+                                            Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: exercisesBox
+                                                              .getAt(i)!
+                                                              .weight %
+                                                          1 ==
+                                                      0
+                                                  ? Text(
+                                                      "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
+                                                      style: const TextStyle(
+                                                          color: Colors.grey))
+                                                  : Text(
+                                                      "${exercisesBox.getAt(i)!.weight.toString()}lb",
+                                                      style: const TextStyle(
+                                                          color: Colors.grey)),
+                                            ),
+                                          ]),
+                                    ]),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(context)
+                                        .push(MaterialPageRoute(
+                                            builder: (context) => GraphPage(i)))
+                                        .then((value) {
+                                      setState(() {});
+                                    });
+                                  }),
+                            ),
+                        if (bookmarkCounter > 0)
+                          Divider(
+                              height: 10,
+                              thickness: 1,
+                              color: dividerColor,
+                              indent: 10,
+                              endIndent: 10),
+                        // body weight
+                        SizedBox(
+                            height: 80,
+                            width: double.infinity,
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                  primary: Colors.white,
+                                  textStyle: const TextStyle(fontSize: 16)),
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                child: Row(children: <Widget>[
+                                  Expanded(
+                                    child: Column(children: [
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          "Body Weight",
+                                          style: TextStyle(
+                                              fontSize: 17, color: textColor),
+                                        ),
                                       ),
                                       const SizedBox(height: 8),
                                       Align(
                                         alignment: Alignment.centerLeft,
-                                        child: exercisesBox.getAt(i)!.weight %
-                                                    1 ==
-                                                0
-                                            ? Text(
-                                                "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
-                                                style: const TextStyle(
+                                        child: indivWorkoutsBox.isEmpty
+                                            ? const Text("150lb",
+                                                style: TextStyle(
                                                     color: Colors.grey))
-                                            : Text(
-                                                "${exercisesBox.getAt(i)!.weight.toString()}lb",
-                                                style: const TextStyle(
-                                                    color: Colors.grey)),
+                                            : indivWorkoutsBox
+                                                            .getAt(
+                                                                indivWorkoutsBox
+                                                                        .length -
+                                                                    1)!
+                                                            .bodyWeight %
+                                                        1 ==
+                                                    0
+                                                ? Text(
+                                                    "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toInt().toString()}lb",
+                                                    style: const TextStyle(
+                                                        color: Colors.grey))
+                                                : Text(
+                                                    "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toString()}lb",
+                                                    style: const TextStyle(
+                                                        color: Colors.grey)),
                                       ),
                                     ]),
-                              ]),
-                            ),
-                            onPressed: () {
-                              Navigator.of(context)
-                                  .push(MaterialPageRoute(
-                                      builder: (context) => GraphPage(i)))
-                                  .then((value) {
-                                setState(() {});
-                              });
-                            }),
-                      ),
-                  if (bookmarkCounter > 0)
-                    Divider(
-                        height: 10,
-                        thickness: 1,
-                        color: widgetNavColor,
-                        indent: 10,
-                        endIndent: 10),
-                  // body weight
-                  SizedBox(
-                      height: 80,
-                      width: double.infinity,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                            primary: Colors.white,
-                            textStyle: const TextStyle(fontSize: 16)),
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                          child: Row(children: <Widget>[
-                            Expanded(
-                              child: Column(children: [
-                                const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    "Body Weight",
-                                    style: TextStyle(fontSize: 17),
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: indivWorkoutsBox.isEmpty
-                                      ? const Text("150lb",
-                                          style: TextStyle(color: Colors.grey))
-                                      : indivWorkoutsBox
-                                                      .getAt(indivWorkoutsBox
-                                                              .length -
-                                                          1)!
-                                                      .bodyWeight %
-                                                  1 ==
-                                              0
-                                          ? Text(
-                                              "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toInt().toString()}lb",
-                                              style: const TextStyle(
-                                                  color: Colors.grey))
-                                          : Text(
-                                              "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toString()}lb",
-                                              style: const TextStyle(
-                                                  color: Colors.grey)),
-                                ),
-                              ]),
+                                ]),
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) => const GraphPage(-1)));
+                              },
+                            )),
+                        if (bookmarkCounter < exercisesBox.length - 1)
+                          Divider(
+                              height: 10,
+                              thickness: 1,
+                              color: dividerColor,
+                              indent: 10,
+                              endIndent: 10),
+                        for (int i = 1; i < exercisesBox.length; i++)
+                          if (!exercisesBox.getAt(i)!.bookmarked)
+                            SizedBox(
+                              height: 80,
+                              width: double.infinity,
+                              child: TextButton(
+                                  style: TextButton.styleFrom(
+                                      primary: Colors.white,
+                                      textStyle: const TextStyle(fontSize: 16)),
+                                  child: Container(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                    child: Row(children: <Widget>[
+                                      Expanded(
+                                        child: Column(children: [
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(
+                                                exercisesBox.getAt(i)!.name,
+                                                style: TextStyle(
+                                                    fontSize: 17,
+                                                    color: textColor),
+                                                overflow:
+                                                    TextOverflow.ellipsis),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: exercisesBox
+                                                            .getAt(i)!
+                                                            .weight %
+                                                        1 ==
+                                                    0
+                                                ? Text(
+                                                    "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
+                                                    style: const TextStyle(
+                                                        color: Colors.grey))
+                                                : Text(
+                                                    "${exercisesBox.getAt(i)!.weight.toString()}lb",
+                                                    style: const TextStyle(
+                                                        color: Colors.grey)),
+                                          ),
+                                        ]),
+                                      ),
+                                    ]),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                GraphPage(i)));
+                                  }),
                             ),
-                          ]),
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const GraphPage(-1)));
-                        },
-                      )),
-                  if (bookmarkCounter < exercisesBox.length - 1)
-                    Divider(
-                        height: 10,
-                        thickness: 1,
-                        color: widgetNavColor,
-                        indent: 10,
-                        endIndent: 10),
-                  for (int i = 1; i < exercisesBox.length; i++)
-                    if (!exercisesBox.getAt(i)!.bookmarked)
-                      SizedBox(
-                        height: 80,
-                        width: double.infinity,
-                        child: TextButton(
-                            style: TextButton.styleFrom(
-                                primary: Colors.white,
-                                textStyle: const TextStyle(fontSize: 16)),
-                            child: Container(
-                              padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                              child: Row(children: <Widget>[
-                                Expanded(
-                                  child: Column(children: [
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(exercisesBox.getAt(i)!.name,
-                                          style: const TextStyle(fontSize: 17),
-                                          overflow: TextOverflow.ellipsis),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: exercisesBox.getAt(i)!.weight %
-                                                  1 ==
-                                              0
-                                          ? Text(
-                                              "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
-                                              style: const TextStyle(
-                                                  color: Colors.grey))
-                                          : Text(
-                                              "${exercisesBox.getAt(i)!.weight.toString()}lb",
-                                              style: const TextStyle(
-                                                  color: Colors.grey)),
-                                    ),
-                                  ]),
-                                ),
-                              ]),
-                            ),
-                            onPressed: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => GraphPage(i)));
-                            }),
-                      ),
-                ],
-              );
-            }));
+                      ],
+                    );
+                  }));
+        });
   }
 }
 
@@ -1363,16 +1442,18 @@ class _SettingsState extends State<Settings> {
   String platesString = "";
 
   void toggleSwitch(bool value) {
-    if (boolBox.getAt(0)! == false) {
+    if (boolBox.getAt(0) == false) {
       setState(() {
         boolBox.putAt(0, true);
       });
-      // set dark theme
+      _themeCounter.value++;
+      _calendarCounter.value++;
     } else {
       setState(() {
         boolBox.putAt(0, false);
       });
-      // set light theme
+      _themeCounter.value++;
+      _calendarCounter.value++;
     }
   }
 
@@ -1402,10 +1483,11 @@ class _SettingsState extends State<Settings> {
     return Scaffold(
       backgroundColor: backColor,
       appBar: AppBar(
+        elevation: 0,
         centerTitle: true,
         backgroundColor: headerColor,
         title: const Text("Settings"),
-        titleTextStyle: const TextStyle(fontSize: 22),
+        titleTextStyle: TextStyle(fontSize: 22, color: textColor),
       ),
       body: ListView(children: <Widget>[
         SizedBox(
@@ -1418,10 +1500,11 @@ class _SettingsState extends State<Settings> {
             child: Container(
               padding: const EdgeInsets.all(10),
               child: Row(children: <Widget>[
-                const Expanded(
+                Expanded(
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child: Text("Dark Mode"),
+                    child:
+                        Text("Dark Mode", style: TextStyle(color: textColor)),
                   ),
                 ),
                 Expanded(
@@ -1429,7 +1512,8 @@ class _SettingsState extends State<Settings> {
                     alignment: Alignment.centerRight,
                     child: Switch(
                       inactiveThumbColor: Colors.grey,
-                      inactiveTrackColor: widgetNavColor,
+                      inactiveTrackColor:
+                          const Color.fromARGB(255, 207, 207, 207),
                       activeColor: Colors.white,
                       activeTrackColor: Colors.grey,
                       value: boolBox.getAt(0)!,
@@ -1454,9 +1538,9 @@ class _SettingsState extends State<Settings> {
               child: Row(children: <Widget>[
                 Expanded(
                   child: Column(children: [
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
-                      child: Text("Timer"),
+                      child: Text("Timer", style: TextStyle(color: textColor)),
                     ),
                     const SizedBox(height: 8),
                     Align(
@@ -1493,9 +1577,9 @@ class _SettingsState extends State<Settings> {
               child: Row(children: <Widget>[
                 Expanded(
                   child: Column(children: [
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
-                      child: Text("Plates"),
+                      child: Text("Plates", style: TextStyle(color: textColor)),
                     ),
                     const SizedBox(height: 8),
                     Align(
@@ -1528,13 +1612,13 @@ class _SettingsState extends State<Settings> {
                   textStyle: const TextStyle(fontSize: 16)),
               child: Container(
                 padding: const EdgeInsets.all(10),
-                child: const Align(
-                    alignment: Alignment.centerLeft, child: Text("Reset")),
+                child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Reset", style: TextStyle(color: redColor))),
               ),
               onPressed: () {
                 setState(() {
                   defaultState();
-                  _counter.value++;
                 });
               }),
         )
@@ -1560,6 +1644,7 @@ class _GraphPageState extends State<GraphPage> {
       child: Scaffold(
         backgroundColor: backColor,
         appBar: AppBar(
+          elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios),
             iconSize: 18,
@@ -1569,7 +1654,7 @@ class _GraphPageState extends State<GraphPage> {
           title: widget.index == -1
               ? const Text("Body Weight")
               : Text(exercisesBox.getAt(widget.index)!.name),
-          titleTextStyle: const TextStyle(fontSize: 22),
+          titleTextStyle: TextStyle(fontSize: 22, color: textColor),
           actions: <Widget>[
             if (widget.index != -1)
               IconButton(
@@ -1578,7 +1663,7 @@ class _GraphPageState extends State<GraphPage> {
                     : const Icon(Icons.bookmark_border),
                 color: exercisesBox.getAt(widget.index)!.bookmarked
                     ? Colors.orange
-                    : Colors.white,
+                    : textColor,
                 iconSize: 24,
                 splashColor: Colors.transparent,
                 highlightColor: Colors.transparent,
@@ -1593,6 +1678,7 @@ class _GraphPageState extends State<GraphPage> {
           ],
           bottom: TabBar(
             indicatorColor: redColor,
+            labelColor: textColor,
             indicatorWeight: 3,
             indicatorSize: TabBarIndicatorSize.tab,
             tabs: const [
@@ -1751,9 +1837,6 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
                 Align(
                     alignment: Alignment.center,
                     child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(),
-                      ),
                       child: _graph(),
                       padding: const EdgeInsets.all(25),
                       height: MediaQuery.of(context).size.height * 0.3,
@@ -1792,6 +1875,9 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
 
     return LineChart(
       LineChartData(
+        borderData: FlBorderData(
+          show: false,
+        ),
         lineBarsData: [
           LineChartBarData(
             spots: spots,
@@ -2012,6 +2098,7 @@ class _TimerState extends State<TimerPage> {
     return Scaffold(
       backgroundColor: backColor,
       appBar: AppBar(
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
           iconSize: 18,
@@ -2019,7 +2106,7 @@ class _TimerState extends State<TimerPage> {
         ),
         backgroundColor: headerColor,
         title: const Text("Timer"),
-        titleTextStyle: const TextStyle(fontSize: 22),
+        titleTextStyle: TextStyle(fontSize: 22, color: textColor),
       ),
       body: ListView(children: <Widget>[
         SizedBox(
@@ -2035,9 +2122,10 @@ class _TimerState extends State<TimerPage> {
                 Row(children: <Widget>[
                   Expanded(
                     child: Column(children: [
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
-                        child: Text("Timer"),
+                        child:
+                            Text("Timer", style: TextStyle(color: textColor)),
                       ),
                       const SizedBox(height: 8),
                       Align(
@@ -2055,7 +2143,8 @@ class _TimerState extends State<TimerPage> {
                       alignment: Alignment.centerRight,
                       child: Switch(
                         inactiveThumbColor: Colors.grey,
-                        inactiveTrackColor: widgetNavColor,
+                        inactiveTrackColor:
+                            const Color.fromARGB(255, 207, 207, 207),
                         activeColor: Colors.white,
                         activeTrackColor: Colors.grey,
                         value: boolBox.getAt(1)!,
@@ -2083,9 +2172,10 @@ class _TimerState extends State<TimerPage> {
                       Row(children: <Widget>[
                         Expanded(
                           child: Column(children: [
-                            const Align(
+                            Align(
                               alignment: Alignment.centerLeft,
-                              child: Text("Ring"),
+                              child: Text("Ring",
+                                  style: TextStyle(color: textColor)),
                             ),
                             const SizedBox(height: 8),
                             Align(
@@ -2103,7 +2193,8 @@ class _TimerState extends State<TimerPage> {
                             alignment: Alignment.centerRight,
                             child: Switch(
                               inactiveThumbColor: Colors.grey,
-                              inactiveTrackColor: widgetNavColor,
+                              inactiveTrackColor:
+                                  const Color.fromARGB(255, 207, 207, 207),
                               activeColor: Colors.white,
                               activeTrackColor: Colors.grey,
                               value: boolBox.getAt(2)!,
@@ -2132,9 +2223,10 @@ class _TimerState extends State<TimerPage> {
                       Row(children: <Widget>[
                         Expanded(
                           child: Column(children: [
-                            const Align(
+                            Align(
                               alignment: Alignment.centerLeft,
-                              child: Text("Vibration"),
+                              child: Text("Vibration",
+                                  style: TextStyle(color: textColor)),
                             ),
                             const SizedBox(height: 8),
                             Align(
@@ -2152,7 +2244,8 @@ class _TimerState extends State<TimerPage> {
                             alignment: Alignment.centerRight,
                             child: Switch(
                               inactiveThumbColor: Colors.grey,
-                              inactiveTrackColor: widgetNavColor,
+                              inactiveTrackColor:
+                                  const Color.fromARGB(255, 207, 207, 207),
                               activeColor: Colors.white,
                               activeTrackColor: Colors.grey,
                               value: boolBox.getAt(3)!,
@@ -2180,9 +2273,10 @@ class _TimerState extends State<TimerPage> {
                     child: Column(children: <Widget>[
                       Expanded(
                         child: Column(children: [
-                          const Align(
+                          Align(
                             alignment: Alignment.centerLeft,
-                            child: Text("Success Timer"),
+                            child: Text("Success Timer",
+                                style: TextStyle(color: textColor)),
                           ),
                           const SizedBox(height: 8),
                           Align(
@@ -2220,9 +2314,10 @@ class _TimerState extends State<TimerPage> {
                     child: Column(children: <Widget>[
                       Expanded(
                         child: Column(children: [
-                          const Align(
+                          Align(
                             alignment: Alignment.centerLeft,
-                            child: Text("Fail Timer"),
+                            child: Text("Fail Timer",
+                                style: TextStyle(color: textColor)),
                           ),
                           const SizedBox(height: 8),
                           Align(
@@ -2299,6 +2394,7 @@ class _SetTimerState extends State<SetTimerPage> {
     return Scaffold(
       backgroundColor: backColor,
       appBar: AppBar(
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
           iconSize: 18,
@@ -2308,7 +2404,7 @@ class _SetTimerState extends State<SetTimerPage> {
         title: widget.index == 0
             ? const Text("Success Timer")
             : const Text("Fail Timer"),
-        titleTextStyle: const TextStyle(fontSize: 22),
+        titleTextStyle: TextStyle(fontSize: 22, color: textColor),
       ),
       body: ListView(children: <Widget>[
         for (int index = 0; index < times.length; index++)
@@ -2318,7 +2414,7 @@ class _SetTimerState extends State<SetTimerPage> {
                   ? isChecked(successTimerBox, index)
                   : isChecked(failTimerBox, index),
               activeColor: redColor,
-              checkColor: Colors.black,
+              checkColor: backColor,
               onChanged: (value) {
                 setState(() {
                   if (widget.index == 0) {
@@ -2428,20 +2524,18 @@ class _SetTimerState extends State<SetTimerPage> {
                                             selectionOverlay:
                                                 Column(children: <Widget>[
                                               Container(
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                          border: Border(
-                                                              top: BorderSide(
-                                                color: Colors.white,
+                                                  decoration: BoxDecoration(
+                                                      border: Border(
+                                                          top: BorderSide(
+                                                color: textColor,
                                                 width: 2,
                                               )))),
                                               const SizedBox(height: 50),
                                               Container(
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                          border: Border(
-                                                              top: BorderSide(
-                                                color: Colors.white,
+                                                  decoration: BoxDecoration(
+                                                      border: Border(
+                                                          top: BorderSide(
+                                                color: textColor,
                                                 width: 2,
                                               ))))
                                             ]),
@@ -2472,20 +2566,18 @@ class _SetTimerState extends State<SetTimerPage> {
                                             selectionOverlay:
                                                 Column(children: <Widget>[
                                               Container(
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                          border: Border(
-                                                              top: BorderSide(
-                                                color: Colors.white,
+                                                  decoration: BoxDecoration(
+                                                      border: Border(
+                                                          top: BorderSide(
+                                                color: textColor,
                                                 width: 2,
                                               )))),
                                               const SizedBox(height: 50),
                                               Container(
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                          border: Border(
-                                                              top: BorderSide(
-                                                color: Colors.white,
+                                                  decoration: BoxDecoration(
+                                                      border: Border(
+                                                          top: BorderSide(
+                                                color: textColor,
                                                 width: 2,
                                               ))))
                                             ]),
@@ -2617,6 +2709,7 @@ class _PlatesState extends State<PlatesPage> {
     return Scaffold(
         backgroundColor: backColor,
         appBar: AppBar(
+          elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios),
             iconSize: 18,
@@ -2624,7 +2717,7 @@ class _PlatesState extends State<PlatesPage> {
           ),
           backgroundColor: headerColor,
           title: const Text("Plates"),
-          titleTextStyle: const TextStyle(fontSize: 22),
+          titleTextStyle: TextStyle(fontSize: 22, color: textColor),
         ),
         body: ValueListenableBuilder(
             valueListenable: _plateCounter,
@@ -2644,13 +2737,15 @@ class _PlatesState extends State<PlatesPage> {
                             Expanded(
                               child: Column(children: [
                                 Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: platesBox.getAt(i)!.weight % 1 == 0
-                                      ? Text(
-                                          "${platesBox.getAt(i)!.weight.toInt().toString()}lb")
-                                      : Text(
-                                          "${platesBox.getAt(i)!.weight.toString()}lb"),
-                                ),
+                                    alignment: Alignment.centerLeft,
+                                    child: platesBox.getAt(i)!.weight % 1 == 0
+                                        ? Text(
+                                            "${platesBox.getAt(i)!.weight.toInt().toString()}lb",
+                                            style: TextStyle(color: textColor))
+                                        : Text(
+                                            "${platesBox.getAt(i)!.weight.toString()}lb",
+                                            style:
+                                                TextStyle(color: textColor))),
                                 const SizedBox(height: 8),
                                 Align(
                                   alignment: Alignment.centerLeft,
@@ -2729,6 +2824,7 @@ class _PlatesState extends State<PlatesPage> {
                       }),
               ])),
               Row(children: <Widget>[
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextButton(
                       child: const Text("Delete"),
@@ -2819,7 +2915,7 @@ class _PlatesState extends State<PlatesPage> {
                 ),
               ),
               Divider(
-                color: Colors.white.withOpacity(.7),
+                color: underlineColor,
                 height: 2,
                 thickness: 2,
               ),
@@ -2982,239 +3078,258 @@ class _ListState extends State<ListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: backColor,
-        body: ValueListenableBuilder(
-            valueListenable: _counter,
-            builder: (context, value, child) {
-              return ListView(
-                  padding: const EdgeInsets.all(10),
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  children: <Widget>[
-                    for (int i = indivWorkoutsBox.length - 1; i >= 0; i--)
-                      Column(children: <Widget>[
-                        GestureDetector(
-                            onTap: () {
-                              // workaround to fill (seems to be pass-by-reference, strangely again)
-                              List<List<int>> copyRepsCompleted = [];
+    return ValueListenableBuilder<int>(
+        valueListenable: _themeCounter,
+        builder: (context, index, child) {
+          return Scaffold(
+              backgroundColor: backColor,
+              body: ValueListenableBuilder(
+                  valueListenable: _counter,
+                  builder: (context, value, child) {
+                    return ListView(
+                        padding: const EdgeInsets.all(10),
+                        scrollDirection: Axis.vertical,
+                        children: <Widget>[
+                          for (int i = indivWorkoutsBox.length - 1; i >= 0; i--)
+                            Column(children: <Widget>[
+                              GestureDetector(
+                                  onTap: () {
+                                    // workaround to fill (seems to be pass-by-reference, strangely again)
+                                    List<List<int>> copyRepsCompleted = [];
 
-                              for (int j = 0;
-                                  j <
-                                      indivWorkoutsBox
+                                    for (int j = 0;
+                                        j <
+                                            indivWorkoutsBox
+                                                .getAt(i)!
+                                                .repsCompleted
+                                                .length;
+                                        j++) {
+                                      copyRepsCompleted.add([0]);
+                                      copyRepsCompleted[j].add(indivWorkoutsBox
                                           .getAt(i)!
-                                          .repsCompleted
-                                          .length;
-                                  j++) {
-                                copyRepsCompleted.add([0]);
-                                copyRepsCompleted[j].add(indivWorkoutsBox
-                                    .getAt(i)!
-                                    .repsCompleted[j][0]);
-                                copyRepsCompleted[j].removeAt(0);
-                                for (int k = 1;
-                                    k <
-                                        indivWorkoutsBox
-                                            .getAt(i)!
-                                            .repsCompleted[j]
-                                            .length;
-                                    k++) {
-                                  copyRepsCompleted[j].add(indivWorkoutsBox
-                                      .getAt(i)!
-                                      .repsCompleted[j][k]);
-                                }
-                              }
-                              postWorkoutTempNote =
-                                  indivWorkoutsBox.getAt(i)!.note;
-                              Navigator.of(context)
-                                  .push(MaterialPageRoute(
-                                      builder: (context) => PostWorkoutEditPage(
-                                          i, copyRepsCompleted)))
-                                  .then((value) {
-                                setState(() {});
-                              });
-                            },
-                            child: Flexible(
-                                child: Container(
-                                    padding: const EdgeInsets.all(20),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.grey),
-                                      borderRadius: BorderRadius.circular(6),
-                                      color: widgetNavColor,
-                                    ),
-                                    alignment: Alignment.topLeft,
-                                    child: Column(children: [
-                                      Row(children: <Widget>[
-                                        Expanded(
-                                          child: Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Text(
-                                                indivWorkoutsBox.getAt(i)!.name,
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.grey,
-                                                )),
+                                          .repsCompleted[j][0]);
+                                      copyRepsCompleted[j].removeAt(0);
+                                      for (int k = 1;
+                                          k <
+                                              indivWorkoutsBox
+                                                  .getAt(i)!
+                                                  .repsCompleted[j]
+                                                  .length;
+                                          k++) {
+                                        copyRepsCompleted[j].add(
+                                            indivWorkoutsBox
+                                                .getAt(i)!
+                                                .repsCompleted[j][k]);
+                                      }
+                                    }
+                                    postWorkoutTempNote =
+                                        indivWorkoutsBox.getAt(i)!.note;
+                                    Navigator.of(context)
+                                        .push(MaterialPageRoute(
+                                            builder: (context) =>
+                                                PostWorkoutEditPage(
+                                                    i, copyRepsCompleted)))
+                                        .then((value) {
+                                      setState(() {});
+                                    });
+                                  },
+                                  child: Flexible(
+                                      child: Container(
+                                          padding: const EdgeInsets.all(20),
+                                          decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.grey),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                            color: widgetNavColor,
                                           ),
-                                        ),
-                                        Expanded(
-                                          child: Align(
-                                            alignment: Alignment.centerRight,
-                                            child: Text(
-                                                indivWorkoutsBox.getAt(i)!.date,
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.grey,
-                                                )),
-                                          ),
-                                        ),
-                                      ]),
-                                      const Divider(
-                                          height: 15,
-                                          color: Colors.transparent),
-                                      Column(children: [
-                                        for (int j = 0;
-                                            j <
-                                                indivWorkoutsBox
-                                                    .getAt(i)!
-                                                    .exercisesCompleted
-                                                    .length;
-                                            j++)
-                                          Column(children: <Widget>[
+                                          alignment: Alignment.topLeft,
+                                          child: Column(children: [
                                             Row(children: <Widget>[
                                               Expanded(
-                                                flex: 3,
                                                 child: Align(
                                                   alignment:
                                                       Alignment.centerLeft,
                                                   child: Text(
                                                       indivWorkoutsBox
                                                           .getAt(i)!
-                                                          .exercisesCompleted[j],
+                                                          .name,
                                                       style: const TextStyle(
                                                         fontSize: 16,
+                                                        color: Colors.grey,
                                                       )),
                                                 ),
                                               ),
                                               Expanded(
-                                                  flex: 4,
-                                                  child: Align(
-                                                      alignment:
-                                                          Alignment.centerRight,
-                                                      child: Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .end,
-                                                          children: <Widget>[
-                                                            for (int k = 0;
-                                                                k <
-                                                                    indivWorkoutsBox.getAt(i)!.setsPlanned[
-                                                                        j];
-                                                                k++)
-                                                              if (k == 5 &&
-                                                                  indivWorkoutsBox.getAt(i)!.weights[j] %
-                                                                          1 ==
-                                                                      0)
-                                                                Text(
-                                                                    "... ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
-                                                                    style:
-                                                                        const TextStyle(
-                                                                      fontSize:
-                                                                          16,
-                                                                    ))
-                                                              else if (k == 5 &&
-                                                                  indivWorkoutsBox.getAt(i)!.weights[j] %
-                                                                          1 !=
-                                                                      0)
-                                                                Text(
-                                                                    "... ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
-                                                                    style:
-                                                                        const TextStyle(
-                                                                      fontSize:
-                                                                          16,
-                                                                    ))
-                                                              else if (k > 5)
-                                                                const SizedBox(
-                                                                    width: 0)
-                                                              else if (k == indivWorkoutsBox.getAt(i)!.setsPlanned[j] - 1 &&
-                                                                  indivWorkoutsBox.getAt(i)!.weights[j] %
-                                                                          1 ==
-                                                                      0)
-                                                                indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
-                                                                        indivWorkoutsBox.getAt(i)!.repsPlanned[j] +
-                                                                            1
-                                                                    ? Text(
-                                                                        "0 ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
-                                                                        style:
-                                                                            const TextStyle(
-                                                                          fontSize:
-                                                                              16,
-                                                                        ))
-                                                                    : Text(
-                                                                        "${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
-                                                                        style:
-                                                                            const TextStyle(
-                                                                          fontSize:
-                                                                              16,
-                                                                        ))
-                                                              else if (k == indivWorkoutsBox.getAt(i)!.setsPlanned[j] - 1 &&
-                                                                  indivWorkoutsBox.getAt(i)!.weights[j] %
-                                                                          1 !=
-                                                                      0)
-                                                                indivWorkoutsBox
-                                                                            .getAt(i)!
-                                                                            .repsCompleted[j][k] ==
-                                                                        indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
-                                                                    ? Text("0 ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
-                                                                        style: const TextStyle(
-                                                                          fontSize:
-                                                                              16,
-                                                                        ))
-                                                                    : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
-                                                                        style: const TextStyle(
-                                                                          fontSize:
-                                                                              16,
-                                                                        ))
-                                                              else
-                                                                indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] == indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
-                                                                    ? const Text("0/",
-                                                                        style: TextStyle(
-                                                                          fontSize:
-                                                                              16,
-                                                                        ))
-                                                                    : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]}/",
-                                                                        style: const TextStyle(
-                                                                          fontSize:
-                                                                              16,
-                                                                        ))
-                                                          ])))
+                                                child: Align(
+                                                  alignment:
+                                                      Alignment.centerRight,
+                                                  child: Text(
+                                                      indivWorkoutsBox
+                                                          .getAt(i)!
+                                                          .date,
+                                                      style: const TextStyle(
+                                                        fontSize: 16,
+                                                        color: Colors.grey,
+                                                      )),
+                                                ),
+                                              ),
                                             ]),
-                                            Divider(
-                                                // larger divider if not at end of list
-                                                height: j !=
-                                                        indivWorkoutsBox
-                                                                .getAt(i)!
-                                                                .exercisesCompleted
-                                                                .length -
-                                                            1
-                                                    ? 15
-                                                    : 0,
+                                            const Divider(
+                                                height: 15,
                                                 color: Colors.transparent),
-                                          ])
-                                      ]),
-                                    ])))),
-                        const Divider(height: 5, color: Colors.transparent),
-                      ])
-                  ]);
-            }));
+                                            Column(children: [
+                                              for (int j = 0;
+                                                  j <
+                                                      indivWorkoutsBox
+                                                          .getAt(i)!
+                                                          .exercisesCompleted
+                                                          .length;
+                                                  j++)
+                                                Column(children: <Widget>[
+                                                  Row(children: <Widget>[
+                                                    Expanded(
+                                                      flex: 3,
+                                                      child: Align(
+                                                        alignment: Alignment
+                                                            .centerLeft,
+                                                        child: Text(
+                                                            indivWorkoutsBox
+                                                                .getAt(i)!
+                                                                .exercisesCompleted[j],
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              color: textColor,
+                                                            )),
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                        flex: 4,
+                                                        child: Align(
+                                                            alignment: Alignment
+                                                                .centerRight,
+                                                            child: Row(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .end,
+                                                                children: <
+                                                                    Widget>[
+                                                                  for (int k = 0;
+                                                                      k <
+                                                                          indivWorkoutsBox.getAt(i)!.setsPlanned[
+                                                                              j];
+                                                                      k++)
+                                                                    if (k == 5 &&
+                                                                        indivWorkoutsBox.getAt(i)!.weights[j] % 1 ==
+                                                                            0)
+                                                                      Text(
+                                                                          "... ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontSize:
+                                                                                16,
+                                                                            color:
+                                                                                textColor,
+                                                                          ))
+                                                                    else if (k ==
+                                                                            5 &&
+                                                                        indivWorkoutsBox.getAt(i)!.weights[j] % 1 !=
+                                                                            0)
+                                                                      Text(
+                                                                          "... ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontSize:
+                                                                                16,
+                                                                            color:
+                                                                                textColor,
+                                                                          ))
+                                                                    else if (k >
+                                                                        5)
+                                                                      const SizedBox(
+                                                                          width:
+                                                                              0)
+                                                                    else if (k ==
+                                                                            indivWorkoutsBox.getAt(i)!.setsPlanned[j] -
+                                                                                1 &&
+                                                                        indivWorkoutsBox.getAt(i)!.weights[j] % 1 ==
+                                                                            0)
+                                                                      indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
+                                                                              indivWorkoutsBox.getAt(i)!.repsPlanned[j] +
+                                                                                  1
+                                                                          ? Text(
+                                                                              "0 ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
+                                                                              style:
+                                                                                  TextStyle(
+                                                                                fontSize: 16,
+                                                                                color: textColor,
+                                                                              ))
+                                                                          : Text(
+                                                                              "${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
+                                                                              style:
+                                                                                  TextStyle(
+                                                                                fontSize: 16,
+                                                                                color: textColor,
+                                                                              ))
+                                                                    else if (k ==
+                                                                            indivWorkoutsBox.getAt(i)!.setsPlanned[j] -
+                                                                                1 &&
+                                                                        indivWorkoutsBox.getAt(i)!.weights[j] %
+                                                                                1 !=
+                                                                            0)
+                                                                      indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
+                                                                              indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
+                                                                          ? Text("0 ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
+                                                                              style: const TextStyle(
+                                                                                fontSize: 16,
+                                                                              ))
+                                                                          : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
+                                                                              style: const TextStyle(
+                                                                                fontSize: 16,
+                                                                              ))
+                                                                    else
+                                                                      indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] == indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
+                                                                          ? const Text("0/",
+                                                                              style: TextStyle(
+                                                                                fontSize: 16,
+                                                                              ))
+                                                                          : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]}/",
+                                                                              style: const TextStyle(
+                                                                                fontSize: 16,
+                                                                              ))
+                                                                ])))
+                                                  ]),
+                                                  Divider(
+                                                      // larger divider if not at end of list
+                                                      height: j !=
+                                                              indivWorkoutsBox
+                                                                      .getAt(i)!
+                                                                      .exercisesCompleted
+                                                                      .length -
+                                                                  1
+                                                          ? 15
+                                                          : 0,
+                                                      color:
+                                                          Colors.transparent),
+                                                ])
+                                            ]),
+                                          ])))),
+                              const Divider(
+                                  height: 5, color: Colors.transparent),
+                            ])
+                        ]);
+                  }));
+        });
   }
 }
 
 class _CalendarState extends State<CalendarPage> {
   late final Box<IndivWorkout> indivWorkoutsBox;
   List<DateTime> datesList = [];
-  DateTime minDate = DateTime.now();
-  DateTime minDateMonth = DateTime.now();
-  DateTime curDate = DateTime.now();
-  DateTime maxDate = DateTime.now();
+  late DateTime minDate;
+  late DateTime minDateMonth;
+  late DateTime curDate;
+  late DateTime maxDate;
 
   @override
   void initState() {
@@ -3223,6 +3338,10 @@ class _CalendarState extends State<CalendarPage> {
   }
 
   void getMinMaxDate() {
+    minDate = DateTime.now();
+    minDateMonth = DateTime.now();
+    curDate = DateTime.now();
+    maxDate = DateTime.now();
     while (curDate.month == maxDate.month) {
       maxDate = DateTime(maxDate.year, maxDate.month, maxDate.day + 1);
     }
@@ -3251,104 +3370,119 @@ class _CalendarState extends State<CalendarPage> {
           datesList.clear();
           for (int i = 0; i < indivWorkoutsBox.length; i++) {
             String tempDate = indivWorkoutsBox.getAt(i)!.sortableDate;
-            double date = DateTime.parse(tempDate).millisecondsSinceEpoch.toDouble();
-            DateTime finalDate = DateTime.fromMillisecondsSinceEpoch(date.toInt());
+            double date =
+                DateTime.parse(tempDate).millisecondsSinceEpoch.toDouble();
+            DateTime finalDate =
+                DateTime.fromMillisecondsSinceEpoch(date.toInt());
             datesList.add(finalDate);
           }
           return Scaffold(
-            backgroundColor: backColor,
-            body: Column(children: <Widget>[
-            SizedBox(height: MediaQuery.of(context).size.height * 0.015),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.05,
-              child: Row(children: <Widget> [
-                const SizedBox(width: 23.8),
-                const Text("S"),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.111),
-                const Text("M"),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.111),
-                const Text("T"),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.111),
-                const Text("W"),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.111),
-                const Text("T"),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.111),
-                const Text("F"),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.111),
-                const Text("S"),
-              ]),
-            ),
-            Expanded(
-              child: PagedVerticalCalendar(
-                invisibleMonthsThreshold: 100,
-                startWeekWithSunday: true,
-                minDate: minDateMonth,
-                maxDate: maxDate,
-                dayBuilder: (context, date) {
-                  final eventsThisDay = datesList.where((e) => e == date);
-                  return Center(
-                      child: CircleAvatar(
-                    radius: 26,
-                    backgroundColor: eventsThisDay.isNotEmpty
-                        ? Colors.red
-                        : Colors.transparent,
-                    child: Text(DateFormat('d').format(date),
-                        style: TextStyle(
-                            color: date.day > DateTime.now().day
-                                  && date.month >= DateTime.now().month
-                                  && date.year >= DateTime.now().year
-                                ? Colors.grey
-                                : eventsThisDay.isEmpty &&
-                                    date.day == DateTime.now().day &&
-                                    date.month == DateTime.now().month &&
-                                    date.year == DateTime.now().year
+              backgroundColor: backColor,
+              body: Column(children: <Widget>[
+                SizedBox(height: MediaQuery.of(context).size.height * 0.015),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.05,
+                  child: Row(children: <Widget>[
+                    const SizedBox(width: 23.8),
+                    Text("S", style: TextStyle(color: textColor)),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.111),
+                    Text("M", style: TextStyle(color: textColor)),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.111),
+                    Text("T", style: TextStyle(color: textColor)),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.111),
+                    Text("W", style: TextStyle(color: textColor)),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.111),
+                    Text("T", style: TextStyle(color: textColor)),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.111),
+                    Text("F", style: TextStyle(color: textColor)),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.111),
+                    Text("S", style: TextStyle(color: textColor)),
+                  ]),
+                ),
+                Expanded(
+                    child: PagedVerticalCalendar(
+                        invisibleMonthsThreshold: 100,
+                        startWeekWithSunday: true,
+                        minDate: minDateMonth,
+                        maxDate: maxDate,
+                        dayBuilder: (context, date) {
+                          final eventsThisDay =
+                              datesList.where((e) => e == date);
+                          return Center(
+                              child: CircleAvatar(
+                            radius: 26,
+                            backgroundColor: eventsThisDay.isNotEmpty
                                 ? Colors.red
-                                : Colors.white)),
-                  ));
-                },
-                onDayPressed: (date) {
-                  final eventsThisDay = datesList.where((e) => e == date);
-                  if (eventsThisDay.isNotEmpty) {
-                    int i = datesList.indexOf(date);
-                    List<List<int>> copyRepsCompleted = [];
+                                : Colors.transparent,
+                            child: Text(DateFormat('d').format(date),
+                                style: TextStyle(
+                                    color: date.day > DateTime.now().day &&
+                                            date.month >=
+                                                DateTime.now().month &&
+                                            date.year >= DateTime.now().year
+                                        ? Colors.grey
+                                        : eventsThisDay.isEmpty &&
+                                                date.day ==
+                                                    DateTime.now().day &&
+                                                date.month ==
+                                                    DateTime.now().month &&
+                                                date.year == DateTime.now().year
+                                            ? Colors.red
+                                            : textColor)),
+                          ));
+                        },
+                        onDayPressed: (date) {
+                          final eventsThisDay =
+                              datesList.where((e) => e == date);
+                          if (eventsThisDay.isNotEmpty) {
+                            int i = datesList.indexOf(date);
+                            List<List<int>> copyRepsCompleted = [];
 
-                    for (int j = 0;
-                        j < indivWorkoutsBox.getAt(i)!.repsCompleted.length;
-                        j++) {
-                      copyRepsCompleted.add([0]);
-                      copyRepsCompleted[j]
-                          .add(indivWorkoutsBox.getAt(i)!.repsCompleted[j][0]);
-                      copyRepsCompleted[j].removeAt(0);
-                      for (int k = 1;
-                          k <
-                              indivWorkoutsBox
+                            for (int j = 0;
+                                j <
+                                    indivWorkoutsBox
+                                        .getAt(i)!
+                                        .repsCompleted
+                                        .length;
+                                j++) {
+                              copyRepsCompleted.add([0]);
+                              copyRepsCompleted[j].add(indivWorkoutsBox
                                   .getAt(i)!
-                                  .repsCompleted[j]
-                                  .length;
-                          k++) {
-                        copyRepsCompleted[j].add(
-                            indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]);
-                      }
-                    }
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(
-                            builder: (context) =>
-                                PostWorkoutEditPage(i, copyRepsCompleted)))
-                        .then((value) {
-                      setState(() {});
-                    });
-                  }
-                },
-                monthBuilder: (context, month, year) {
-                  return Container(
-                    padding: const EdgeInsets.only(right: 20, top: 20),
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      DateFormat('MMMM yyyy').format(DateTime(year, month)),
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  );
-                })),])
-          );
+                                  .repsCompleted[j][0]);
+                              copyRepsCompleted[j].removeAt(0);
+                              for (int k = 1;
+                                  k <
+                                      indivWorkoutsBox
+                                          .getAt(i)!
+                                          .repsCompleted[j]
+                                          .length;
+                                  k++) {
+                                copyRepsCompleted[j].add(indivWorkoutsBox
+                                    .getAt(i)!
+                                    .repsCompleted[j][k]);
+                              }
+                            }
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(
+                                    builder: (context) => PostWorkoutEditPage(
+                                        i, copyRepsCompleted)))
+                                .then((value) {
+                              setState(() {});
+                            });
+                          }
+                        },
+                        monthBuilder: (context, month, year) {
+                          return Container(
+                            padding: const EdgeInsets.only(right: 20, top: 20),
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              DateFormat('MMMM yyyy')
+                                  .format(DateTime(year, month)),
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          );
+                        })),
+              ]));
         });
   }
 }
@@ -3364,15 +3498,14 @@ class _NotesState extends State<NotesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: backColor,
-        body: ValueListenableBuilder(
-            valueListenable: _counter,
-            builder: (context, value, child) {
-              return ListView(
+    return ValueListenableBuilder<int>(
+        valueListenable: _themeCounter,
+        builder: (context, index, child) {
+          return Scaffold(
+              backgroundColor: backColor,
+              body: ListView(
                   padding: const EdgeInsets.all(10),
                   scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
                   children: <Widget>[
                     for (int i = indivWorkoutsBox.length - 1; i >= 0; i--)
                       if (indivWorkoutsBox.getAt(i)!.note !=
@@ -3467,15 +3600,16 @@ class _NotesState extends State<NotesPage> {
                                                   indivWorkoutsBox
                                                       .getAt(i)!
                                                       .note,
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontSize: 16,
+                                                    color: textColor,
                                                   ))),
                                         ],
                                       )))),
                           const Divider(height: 5, color: Colors.transparent),
                         ])
-                  ]);
-            }));
+                  ]));
+        });
   }
 }
 
@@ -3495,6 +3629,7 @@ class _WorkoutNotesState extends State<WorkoutNotesPage> {
     return Scaffold(
         backgroundColor: backColor,
         appBar: AppBar(
+          elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios),
             iconSize: 18,
@@ -3502,7 +3637,7 @@ class _WorkoutNotesState extends State<WorkoutNotesPage> {
           ),
           backgroundColor: headerColor,
           title: const Text("Note"),
-          titleTextStyle: const TextStyle(fontSize: 22),
+          titleTextStyle: TextStyle(fontSize: 22, color: textColor),
         ),
         body: Container(
             padding: const EdgeInsets.all(10),
@@ -3512,7 +3647,6 @@ class _WorkoutNotesState extends State<WorkoutNotesPage> {
               ),
               autofocus: true,
               maxLines: null,
-              cursorColor: Colors.white,
               showCursor: true,
               enableInteractiveSelection: true,
               style: const TextStyle(
@@ -3541,6 +3675,7 @@ class _PostWorkoutNotesState extends State<PostWorkoutNotesPage> {
     return Scaffold(
         backgroundColor: backColor,
         appBar: AppBar(
+          elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios),
             iconSize: 18,
@@ -3548,7 +3683,7 @@ class _PostWorkoutNotesState extends State<PostWorkoutNotesPage> {
           ),
           backgroundColor: headerColor,
           title: const Text("Note"),
-          titleTextStyle: const TextStyle(fontSize: 22),
+          titleTextStyle: TextStyle(fontSize: 22, color: textColor),
         ),
         body: Container(
             padding: const EdgeInsets.all(10),
@@ -3558,7 +3693,6 @@ class _PostWorkoutNotesState extends State<PostWorkoutNotesPage> {
               ),
               autofocus: true,
               maxLines: null,
-              cursorColor: Colors.white,
               showCursor: true,
               enableInteractiveSelection: true,
               style: const TextStyle(
@@ -3590,6 +3724,7 @@ class _EditState extends State<Edit> {
     return Scaffold(
       backgroundColor: backColor,
       appBar: AppBar(
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
           iconSize: 18,
@@ -3597,7 +3732,7 @@ class _EditState extends State<Edit> {
         ),
         backgroundColor: headerColor,
         title: const Text("Program"),
-        titleTextStyle: const TextStyle(fontSize: 22),
+        titleTextStyle: TextStyle(fontSize: 22, color: textColor),
       ),
       body: Container(
         constraints: BoxConstraints(
@@ -3619,7 +3754,7 @@ class _EditState extends State<Edit> {
                         constraints: const BoxConstraints(
                           minHeight: 80,
                         ),
-                        color: Colors.black, // custom color goes here
+                        color: backColor, // custom color goes here
                         child: Row(children: <Widget>[
                           Container(
                             width: 70,
@@ -3755,16 +3890,19 @@ class _EditState extends State<Edit> {
           ),
           const Divider(height: 10, color: Colors.transparent),
           if (workoutsBox.isNotEmpty)
-            Container(
+            SizedBox(
               height: 55,
               width: double.infinity,
-              padding: const EdgeInsets.only(left: 20),
               child: TextButton(
                 style: TextButton.styleFrom(
                     primary: Colors.white,
                     textStyle: const TextStyle(fontSize: 16),
                     alignment: Alignment.centerLeft),
-                child: const Text("Delete All Workouts"),
+                child: Container(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Text("Delete All Workouts",
+                      style: TextStyle(color: textColor)),
+                ),
                 onPressed: () {
                   setState(() {
                     counterBox.putAt(0, 0);
@@ -3818,7 +3956,7 @@ class _EditState extends State<Edit> {
                                   ),
                                 ),
                                 Divider(
-                                  color: Colors.white.withOpacity(.7),
+                                  color: underlineColor,
                                   height: 2,
                                   thickness: 2,
                                 ),
@@ -3996,6 +4134,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
     return Scaffold(
         backgroundColor: backColor,
         appBar: AppBar(
+          elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios),
             iconSize: 18,
@@ -4007,7 +4146,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                   height: 40,
                   child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 41, 41, 41),
+                        color: circleColor,
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: Padding(
@@ -4262,7 +4401,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
         body: Container(
             padding: const EdgeInsets.all(10),
             constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.75,
+              maxHeight: MediaQuery.of(context).size.height * 0.76,
             ),
             child: Column(children: <Widget>[
               Flexible(
@@ -4276,16 +4415,19 @@ class _WorkoutPageState extends State<WorkoutPage> {
                       Column(children: <Widget>[
                         Row(children: <Widget>[
                           Expanded(
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                  workoutsBox
-                                      .getAt(widget.index)!
-                                      .exercises[i]
-                                      .name,
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                  )),
+                            child: Container(
+                              padding: const EdgeInsets.only(left: 15),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                    workoutsBox
+                                        .getAt(widget.index)!
+                                        .exercises[i]
+                                        .name,
+                                    style: const TextStyle(
+                                      fontSize: 17,
+                                    )),
+                              ),
                             ),
                           ),
                           Expanded(
@@ -4378,7 +4520,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
                           alignment: Alignment.centerLeft,
                           child: ListView(
                               scrollDirection: Axis.horizontal,
-                              shrinkWrap: true,
                               children: <Widget>[
                                 Row(children: <Widget>[
                                   // one circle for each set, initialized with number of reps
@@ -4397,6 +4538,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                             width: 78,
                                             height: 50,
                                             child: MaterialButton(
+                                              elevation: 0,
                                               shape: const CircleBorder(
                                                   side: BorderSide(
                                                       width: 1,
@@ -4427,9 +4569,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                           .getAt(widget.index)!
                                                           .exercises[i]
                                                           .reps
-                                                  ? const Color.fromARGB(
-                                                      255, 41, 41, 41)
-                                                  : Colors.red,
+                                                  ? circleColor
+                                                  : redColor,
                                               textColor: Colors.white,
                                               onPressed: () {
                                                 workoutIndex = widget.index;
@@ -4448,7 +4589,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                       ]),
                   ])),
               Container(
-                  padding: const EdgeInsets.only(top: 20, bottom: 10),
+                  padding: const EdgeInsets.only(top: 15, bottom: 15, left: 15),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
@@ -4537,11 +4678,11 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                         Column(children: <
                                                                             Widget>[
                                                                       Container(
-                                                                          decoration: const BoxDecoration(
+                                                                          decoration: BoxDecoration(
                                                                               border: Border(
                                                                                   top: BorderSide(
-                                                                        color: Colors
-                                                                            .white,
+                                                                        color:
+                                                                            textColor,
                                                                         width:
                                                                             2,
                                                                       )))),
@@ -4549,11 +4690,11 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                           height:
                                                                               50),
                                                                       Container(
-                                                                          decoration: const BoxDecoration(
+                                                                          decoration: BoxDecoration(
                                                                               border: Border(
                                                                                   top: BorderSide(
-                                                                        color: Colors
-                                                                            .white,
+                                                                        color:
+                                                                            textColor,
                                                                         width:
                                                                             2,
                                                                       ))))
@@ -4601,11 +4742,11 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                         Column(children: <
                                                                             Widget>[
                                                                       Container(
-                                                                          decoration: const BoxDecoration(
+                                                                          decoration: BoxDecoration(
                                                                               border: Border(
                                                                                   top: BorderSide(
-                                                                        color: Colors
-                                                                            .white,
+                                                                        color:
+                                                                            textColor,
                                                                         width:
                                                                             2,
                                                                       )))),
@@ -4613,11 +4754,11 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                           height:
                                                                               50),
                                                                       Container(
-                                                                          decoration: const BoxDecoration(
+                                                                          decoration: BoxDecoration(
                                                                               border: Border(
                                                                                   top: BorderSide(
-                                                                        color: Colors
-                                                                            .white,
+                                                                        color:
+                                                                            textColor,
                                                                         width:
                                                                             2,
                                                                       ))))
@@ -4732,7 +4873,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                             child: Align(
                                 alignment: Alignment.center,
                                 child: Container(
-                                    height: MediaQuery.of(context).size.height * 0.1,
+                                    height: MediaQuery.of(context).size.height *
+                                        0.1,
                                     width: double.infinity,
                                     child: Row(children: <Widget>[
                                       Flexible(
@@ -4755,9 +4897,15 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                   60 ==
                                                               0
                                                           ? Text(
-                                                              "Rest ${(failureTimes.last ~/ 60).toString()}min")
+                                                              "Rest ${(failureTimes.last ~/ 60).toString()}min",
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      textColor))
                                                           : Text(
-                                                              "Rest ${(failureTimes.last ~/ 60).toString()}min ${(failureTimes.last % 60).toString()}s")
+                                                              "Rest ${(failureTimes.last ~/ 60).toString()}min ${(failureTimes.last % 60).toString()}s",
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      textColor))
                                                   : successTimes.isEmpty
                                                       ? const Text(
                                                           "No success timer")
@@ -4765,9 +4913,15 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                   60 ==
                                                               0
                                                           ? Text(
-                                                              "Rest ${(successTimes.last ~/ 60).toString()}min")
+                                                              "Rest ${(successTimes.last ~/ 60).toString()}min",
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      textColor))
                                                           : Text(
-                                                              "Rest ${(successTimes.last ~/ 60).toString()}min ${(successTimes.last % 60).toString()}s"),
+                                                              "Rest ${(successTimes.last ~/ 60).toString()}min ${(successTimes.last % 60).toString()}s",
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      textColor)),
                                               IconButton(
                                                   icon: const Icon(Icons.close),
                                                   onPressed: () => setState(
@@ -4834,12 +4988,12 @@ class _WorkoutPageState extends State<WorkoutPage> {
     final seconds = twoDigits(duration.inSeconds.remainder(60));
     return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
       buildTimeCard(minutes, 20),
-      const SizedBox(
+      SizedBox(
           width: 4,
           child: Text(":",
               style: TextStyle(
                 fontSize: 30,
-                color: Colors.white,
+                color: textColor,
               ))),
       buildTimeCard(seconds, 5),
     ]);
@@ -4871,7 +5025,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
         padding: EdgeInsets.only(left: inset),
         child: Text(
           time,
-          style: const TextStyle(color: Colors.white, fontSize: 30),
+          style: TextStyle(color: textColor, fontSize: 30),
         ),
       );
 }
@@ -4895,6 +5049,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
     return Scaffold(
       backgroundColor: backColor,
       appBar: AppBar(
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
           iconSize: 18,
@@ -4902,7 +5057,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
         ),
         backgroundColor: headerColor,
         title: Text(workoutsBox.getAt(widget.index)!.name),
-        titleTextStyle: const TextStyle(fontSize: 22),
+        titleTextStyle: TextStyle(fontSize: 22, color: textColor),
       ),
       body: Container(
         constraints: const BoxConstraints(
@@ -4923,7 +5078,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                       i++)
                     Container(
                       key: Key('$i'),
-                      color: Colors.black, // custom color goes here
+                      color: backColor, // custom color goes here
                       child: Row(
                         children: <Widget>[
                           SizedBox(
@@ -5111,16 +5266,19 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                 },
               ),
             ),
-            Container(
+            SizedBox(
               height: 55,
               width: double.infinity,
-              padding: const EdgeInsets.only(left: 20),
               child: TextButton(
                 style: TextButton.styleFrom(
                     primary: Colors.white,
                     textStyle: const TextStyle(fontSize: 16),
                     alignment: Alignment.centerLeft),
-                child: const Text("Change Workout Name"),
+                child: Container(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Text("Change Workout Name",
+                      style: TextStyle(color: textColor)),
+                ),
                 onPressed: () {
                   setState(() => _myController.text =
                       workoutsBox.getAt(widget.index)!.name);
@@ -5153,7 +5311,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                       ),
                                     ),
                                     Divider(
-                                      color: Colors.white.withOpacity(.7),
+                                      color: underlineColor,
                                       height: 2,
                                       thickness: 2,
                                     ),
@@ -5203,16 +5361,19 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
               ),
             ),
             if (workoutsBox.getAt(widget.index)!.exercises.isNotEmpty)
-              Container(
+              SizedBox(
                 height: 55,
                 width: double.infinity,
-                padding: const EdgeInsets.only(left: 20),
                 child: TextButton(
                   style: TextButton.styleFrom(
                       primary: Colors.white,
                       textStyle: const TextStyle(fontSize: 16),
                       alignment: Alignment.centerLeft),
-                  child: const Text("Delete All Exercises"),
+                  child: Container(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: Text("Delete All Exercises",
+                        style: TextStyle(color: textColor)),
+                  ),
                   onPressed: () {
                     // add confirmation "would you like to delete all exercises?""
                     setState(() {
@@ -5372,8 +5533,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                         ),
                                                       ),
                                                       Divider(
-                                                        color: Colors.white
-                                                            .withOpacity(.7),
+                                                        color: underlineColor,
                                                         height: 2,
                                                         thickness: 2,
                                                       ),
@@ -5694,6 +5854,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
     return Scaffold(
       backgroundColor: backColor,
       appBar: AppBar(
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
           iconSize: 18,
@@ -5706,8 +5867,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
               alignment: Alignment.centerLeft,
               child: Text(
                 exercisesBox.getAt(widget.index)!.name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
+                  color: textColor,
                 ),
               ),
             ),
@@ -5722,8 +5884,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "${exercisesBox.getAt(widget.index)!.weight.toInt().toString()}lb (${(((exercisesBox.getAt(widget.index)!.weight) - exercisesBox.getAt(widget.index)!.barWeight) ~/ 2)}/side)",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
+                    color: textColor,
                   ),
                 ),
               ),
@@ -5737,8 +5900,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "${exercisesBox.getAt(widget.index)!.weight.toInt().toString()}lb (${(((exercisesBox.getAt(widget.index)!.weight) - exercisesBox.getAt(widget.index)!.barWeight) / 2).toString()}/side)",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
+                    color: textColor,
                   ),
                 ),
               ),
@@ -5753,8 +5917,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "${exercisesBox.getAt(widget.index)!.weight.toString()}lb (${(((exercisesBox.getAt(widget.index)!.weight) - exercisesBox.getAt(widget.index)!.barWeight) ~/ 2)}/side)",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
+                    color: textColor,
                   ),
                 ),
               ),
@@ -5768,8 +5933,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "${exercisesBox.getAt(widget.index)!.weight.toString()}lb (${((exercisesBox.getAt(widget.index)!.weight - exercisesBox.getAt(widget.index)!.barWeight) / 2).toString()}/side)",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
+                    color: textColor,
                   ),
                 ),
               ),
@@ -5780,8 +5946,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
       body: ListView(children: <Widget>[
         TextButton(
             style: TextButton.styleFrom(
-              primary: Colors.white,
-              textStyle: const TextStyle(fontSize: 16)),
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
             onPressed: () {
               if (exercisesBox.getAt(widget.index)!.weight % 1 == 0) {
                 setState(() => _myController.text = exercisesBox
@@ -5829,7 +5995,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             ),
                           ),
                           Divider(
-                            color: Colors.white.withOpacity(.7),
+                            color: underlineColor,
                             height: 2,
                             thickness: 2,
                           ),
@@ -6010,12 +6176,13 @@ class _EditExercisePageState extends State<EditExercisePage> {
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
                           "Exercise Weight",
                           style: TextStyle(
                             fontSize: 18,
+                            color: textColor,
                           ),
                         ),
                       ),
@@ -6046,8 +6213,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
         // bar weight
         TextButton(
             style: TextButton.styleFrom(
-              primary: Colors.white,
-              textStyle: const TextStyle(fontSize: 16)),
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
             onPressed: () {
               if (exercisesBox.getAt(widget.index)!.barWeight % 1 == 0) {
                 setState(() => _myController.text = exercisesBox
@@ -6095,7 +6262,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             ),
                           ),
                           Divider(
-                            color: Colors.white.withOpacity(.7),
+                            color: underlineColor,
                             height: 2,
                             thickness: 2,
                           ),
@@ -6276,12 +6443,13 @@ class _EditExercisePageState extends State<EditExercisePage> {
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
                           "Bar Weight",
                           style: TextStyle(
                             fontSize: 18,
+                            color: textColor,
                           ),
                         ),
                       ),
@@ -6311,18 +6479,18 @@ class _EditExercisePageState extends State<EditExercisePage> {
                     ]))),
         TextButton(
           style: TextButton.styleFrom(
-            primary: Colors.white,
-            textStyle: const TextStyle(fontSize: 16)),
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
           child: Container(
             padding: const EdgeInsets.all(10),
             child:
                 Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "Increments",
                   style: TextStyle(
                     fontSize: 18,
+                    color: textColor,
                   ),
                 ),
               ),
@@ -6352,8 +6520,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
         // sets x reps
         TextButton(
             style: TextButton.styleFrom(
-              primary: Colors.white,
-              textStyle: const TextStyle(fontSize: 16)),
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
             onPressed: () {
               setState(() => _myController.text =
                   exercisesBox.getAt(widget.index)!.sets.toString());
@@ -6399,7 +6567,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             ),
                           ),
                           Divider(
-                            color: Colors.white.withOpacity(.7),
+                            color: underlineColor,
                             height: 2,
                             thickness: 2,
                           ),
@@ -6423,7 +6591,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             ),
                           ),
                           Divider(
-                            color: Colors.white.withOpacity(.7),
+                            color: underlineColor,
                             height: 2,
                             thickness: 2,
                           ),
@@ -6561,12 +6729,13 @@ class _EditExercisePageState extends State<EditExercisePage> {
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
                           "Sets × Reps",
                           style: TextStyle(
                             fontSize: 18,
+                            color: textColor,
                           ),
                         ),
                       ),
@@ -6584,45 +6753,44 @@ class _EditExercisePageState extends State<EditExercisePage> {
         const SizedBox(height: 10),
         // plate calculator
         TextButton(
-          style: TextButton.styleFrom(
-            primary: Colors.white,
-            textStyle: const TextStyle(fontSize: 16)),
-          onPressed: () {},
-          child: Container(
-          height: 80,
-          padding: const EdgeInsets.all(10),
-          child: Column(children: <Widget>[
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text("Plate Calculator",
-                  style: TextStyle(
-                    fontSize: 18,
-                  )),
-            ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                plateCalculator(),
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            onPressed: () {},
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Column(children: <Widget>[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text("Plate Calculator",
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                      )),
                 ),
-              ),
-            ),
-          ]),
-        )),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    plateCalculator(),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              ]),
+            )),
         const SizedBox(height: 5),
         TextButton(
           style: TextButton.styleFrom(
-            primary: Colors.white,
-            textStyle: const TextStyle(fontSize: 16)),
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
           child: Container(
             padding: const EdgeInsets.all(10),
             height: 55,
-            child: const Align(
+            child: Align(
               alignment: Alignment.centerLeft,
-              child:
-                  Text("Change Exercise Name", style: TextStyle(fontSize: 16)),
+              child: Text("Change Exercise Name",
+                  style: TextStyle(fontSize: 16, color: textColor)),
             ),
           ),
           onPressed: () {
@@ -6655,7 +6823,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                 ),
                               ),
                               Divider(
-                                color: Colors.white.withOpacity(.7),
+                                color: underlineColor,
                                 height: 2,
                                 thickness: 2,
                               ),
@@ -6811,6 +6979,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
     return Scaffold(
       backgroundColor: backColor,
       appBar: AppBar(
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
           iconSize: 18,
@@ -6853,7 +7022,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
                       alignment: Alignment.centerRight,
                       child: Switch(
                         inactiveThumbColor: Colors.grey,
-                        inactiveTrackColor: widgetNavColor,
+                        inactiveTrackColor:
+                            const Color.fromARGB(255, 207, 207, 207),
                         activeColor: Colors.white,
                         activeTrackColor: Colors.grey,
                         value: exercisesBox.getAt(widget.index)!.overload,
@@ -6969,8 +7139,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
               )
             : const SizedBox(),
         exercisesBox.getAt(widget.index)!.overload
-            ? Container(
-                height: 82,
+            ? Flexible(
+                child: Container(
                 padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                 width: double.infinity,
                 child: ValueListenableBuilder(
@@ -7011,7 +7181,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                         fontSize: 14, color: Colors.grey)),
                       );
                     }),
-              )
+              ))
             : const SizedBox(),
         SizedBox(
           height: 91,
@@ -7044,7 +7214,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
                       alignment: Alignment.centerRight,
                       child: Switch(
                         inactiveThumbColor: Colors.grey,
-                        inactiveTrackColor: widgetNavColor,
+                        inactiveTrackColor:
+                            const Color.fromARGB(255, 207, 207, 207),
                         activeColor: Colors.white,
                         activeTrackColor: Colors.grey,
                         value: exercisesBox.getAt(widget.index)!.deload,
@@ -7149,8 +7320,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
               )
             : const SizedBox(),
         exercisesBox.getAt(widget.index)!.deload
-            ? Container(
-                height: 82,
+            ? Flexible(
+                child: Container(
                 padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                 width: double.infinity,
                 child: ValueListenableBuilder(
@@ -7176,7 +7347,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                     fontSize: 14, color: Colors.grey)),
                       );
                     }),
-              )
+              ))
             : const SizedBox(),
       ]),
     );
@@ -7222,7 +7393,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                 ),
               ),
               Divider(
-                color: Colors.white.withOpacity(.7),
+                color: underlineColor,
                 height: 2,
                 thickness: 2,
               ),
@@ -7391,18 +7562,18 @@ class _IncrementsPageState extends State<IncrementsPage> {
                               diameterRatio: 1.25,
                               selectionOverlay: Column(children: <Widget>[
                                 Container(
-                                    decoration: const BoxDecoration(
+                                    decoration: BoxDecoration(
                                         border: Border(
                                             top: BorderSide(
-                                  color: Colors.white,
+                                  color: textColor,
                                   width: 2,
                                 )))),
                                 const SizedBox(height: 50),
                                 Container(
-                                    decoration: const BoxDecoration(
+                                    decoration: BoxDecoration(
                                         border: Border(
                                             top: BorderSide(
-                                  color: Colors.white,
+                                  color: textColor,
                                   width: 2,
                                 ))))
                               ]),
@@ -7500,18 +7671,18 @@ class _IncrementsPageState extends State<IncrementsPage> {
                               diameterRatio: 1.25,
                               selectionOverlay: Column(children: <Widget>[
                                 Container(
-                                    decoration: const BoxDecoration(
+                                    decoration: BoxDecoration(
                                         border: Border(
                                             top: BorderSide(
-                                  color: Colors.white,
+                                  color: textColor,
                                   width: 2,
                                 )))),
                                 const SizedBox(height: 50),
                                 Container(
-                                    decoration: const BoxDecoration(
+                                    decoration: BoxDecoration(
                                         border: Border(
                                             top: BorderSide(
-                                  color: Colors.white,
+                                  color: textColor,
                                   width: 2,
                                 ))))
                               ]),
@@ -7620,18 +7791,18 @@ class _IncrementsPageState extends State<IncrementsPage> {
                               diameterRatio: 1.25,
                               selectionOverlay: Column(children: <Widget>[
                                 Container(
-                                    decoration: const BoxDecoration(
+                                    decoration: BoxDecoration(
                                         border: Border(
                                             top: BorderSide(
-                                  color: Colors.white,
+                                  color: textColor,
                                   width: 2,
                                 )))),
                                 const SizedBox(height: 50),
                                 Container(
-                                    decoration: const BoxDecoration(
+                                    decoration: BoxDecoration(
                                         border: Border(
                                             top: BorderSide(
-                                  color: Colors.white,
+                                  color: textColor,
                                   width: 2,
                                 ))))
                               ]),
@@ -7748,6 +7919,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
       child: Scaffold(
         backgroundColor: backColor,
         appBar: AppBar(
+          elevation: 0,
           leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios),
               iconSize: 18,
@@ -7758,15 +7930,15 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   height: 40,
                   child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 41, 41, 41),
+                        color: circleColor,
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: Padding(
                           padding: const EdgeInsets.only(left: 10, right: 10),
                           child: TextButton(
                               child: Text(dateinput.text, // workout date
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: textColor,
                                     fontSize: 16,
                                   )),
                               onPressed: () async {
@@ -7833,8 +8005,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
         ),
         body: Container(
             padding: const EdgeInsets.all(10),
-            constraints: const BoxConstraints(
-              maxHeight: 770,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.88,
             ),
             child: Column(children: <Widget>[
               Flexible(
@@ -7852,15 +8024,18 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                       Column(children: <Widget>[
                         Row(children: <Widget>[
                           Expanded(
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                  indivWorkoutsBox
-                                      .getAt(widget.index)!
-                                      .exercisesCompleted[i],
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                  )),
+                            child: Container(
+                              padding: const EdgeInsets.only(left: 15),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                    indivWorkoutsBox
+                                        .getAt(widget.index)!
+                                        .exercisesCompleted[i],
+                                    style: const TextStyle(
+                                      fontSize: 17,
+                                    )),
+                              ),
                             ),
                           ),
                           Expanded(
@@ -7915,7 +8090,6 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                           alignment: Alignment.centerLeft,
                           child: ListView(
                               scrollDirection: Axis.horizontal,
-                              shrinkWrap: true,
                               children: <Widget>[
                                 Row(children: <Widget>[
                                   // one circle for each set, initialized with number of reps
@@ -7930,6 +8104,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                       width: 78,
                                       height: 50,
                                       child: MaterialButton(
+                                        elevation: 0,
                                         shape: const CircleBorder(
                                             side: BorderSide(
                                                 width: 1,
@@ -7954,9 +8129,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                 indivWorkoutsBox
                                                     .getAt(widget.index)!
                                                     .repsPlanned[i]
-                                            ? const Color.fromARGB(
-                                                255, 41, 41, 41)
-                                            : Colors.red,
+                                            ? circleColor
+                                            : redColor,
                                         textColor: Colors.white,
                                         onPressed: () {
                                           final tempIndiv =
@@ -7983,7 +8157,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                       ]),
                   ])),
               Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.fromLTRB(15, 20, 20, 20),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
@@ -8066,11 +8240,11 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                         Column(children: <
                                                                             Widget>[
                                                                       Container(
-                                                                          decoration: const BoxDecoration(
+                                                                          decoration: BoxDecoration(
                                                                               border: Border(
                                                                                   top: BorderSide(
-                                                                        color: Colors
-                                                                            .white,
+                                                                        color:
+                                                                            textColor,
                                                                         width:
                                                                             2,
                                                                       )))),
@@ -8078,11 +8252,11 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                           height:
                                                                               50),
                                                                       Container(
-                                                                          decoration: const BoxDecoration(
+                                                                          decoration: BoxDecoration(
                                                                               border: Border(
                                                                                   top: BorderSide(
-                                                                        color: Colors
-                                                                            .white,
+                                                                        color:
+                                                                            textColor,
                                                                         width:
                                                                             2,
                                                                       ))))
@@ -8130,11 +8304,11 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                         Column(children: <
                                                                             Widget>[
                                                                       Container(
-                                                                          decoration: const BoxDecoration(
+                                                                          decoration: BoxDecoration(
                                                                               border: Border(
                                                                                   top: BorderSide(
-                                                                        color: Colors
-                                                                            .white,
+                                                                        color:
+                                                                            textColor,
                                                                         width:
                                                                             2,
                                                                       )))),
@@ -8142,11 +8316,11 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                           height:
                                                                               50),
                                                                       Container(
-                                                                          decoration: const BoxDecoration(
+                                                                          decoration: BoxDecoration(
                                                                               border: Border(
                                                                                   top: BorderSide(
-                                                                        color: Colors
-                                                                            .white,
+                                                                        color:
+                                                                            textColor,
                                                                         width:
                                                                             2,
                                                                       ))))
@@ -8351,7 +8525,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   ),
                 ),
                 Divider(
-                  color: Colors.white.withOpacity(.7),
+                  color: underlineColor,
                   height: 2,
                   thickness: 2,
                 ),
@@ -8373,7 +8547,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   ),
                 ),
                 Divider(
-                  color: Colors.white.withOpacity(.7),
+                  color: underlineColor,
                   height: 2,
                   thickness: 2,
                 ),
@@ -8395,7 +8569,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   ),
                 ),
                 Divider(
-                  color: Colors.white.withOpacity(.7),
+                  color: underlineColor,
                   height: 2,
                   thickness: 2,
                 ),
