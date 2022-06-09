@@ -60,7 +60,7 @@ void main() async {
         channelKey: 'workout_channel',
         channelName: 'Workout notifications',
         channelDescription: 'Notifications during workout',
-        defaultColor: Color(0xFF9D50DD),
+        defaultColor: const Color(0xFF9D50DD),
         ledColor: Colors.white,
         enableVibration: false,
         playSound: false,
@@ -99,14 +99,14 @@ int exerciseIndex = 0;
 int setIndex = 0;
 late bool failed;
 
-late var headerColor;
-late var backColor;
-late var widgetNavColor;
-late var textColor;
-late var dividerColor;
-late var underlineColor;
-late var circleColor;
-var redColor = Colors.red;
+late Color headerColor;
+late Color backColor;
+late Color widgetNavColor;
+late Color textColor;
+late Color dividerColor;
+late Color underlineColor;
+late Color circleColor;
+const Color redColor = Colors.red;
 
 bool _canVibrate = true;
 ValueNotifier<int> _counter = ValueNotifier<int>(0); // to update list page
@@ -531,6 +531,9 @@ class MyApp extends StatelessWidget {
     return ValueListenableBuilder(
         valueListenable: _themeCounter,
         builder: (_, model, __) {
+          SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+          ));
           if (boolBox.getAt(0)!) {
             // dark mode
             backColor = Colors.black;
@@ -1612,7 +1615,7 @@ class _SettingsState extends State<Settings> {
                   textStyle: const TextStyle(fontSize: 16)),
               child: Container(
                 padding: const EdgeInsets.all(10),
-                child: Align(
+                child: const Align(
                     alignment: Alignment.centerLeft,
                     child: Text("Reset", style: TextStyle(color: redColor))),
               ),
@@ -3379,26 +3382,44 @@ class _CalendarState extends State<CalendarPage> {
           return Scaffold(
               backgroundColor: backColor,
               body: Column(children: <Widget>[
-                SizedBox(height: MediaQuery.of(context).size.height * 0.015),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.05,
-                  child: Row(children: <Widget>[
-                    const SizedBox(width: 23.8),
-                    Text("S", style: TextStyle(color: textColor)),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.111),
-                    Text("M", style: TextStyle(color: textColor)),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.111),
-                    Text("T", style: TextStyle(color: textColor)),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.111),
-                    Text("W", style: TextStyle(color: textColor)),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.111),
-                    Text("T", style: TextStyle(color: textColor)),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.111),
-                    Text("F", style: TextStyle(color: textColor)),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.111),
-                    Text("S", style: TextStyle(color: textColor)),
-                  ]),
-                ),
+                SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                Row(children: <Widget>[
+                  SizedBox(
+                      width: MediaQuery.of(context).size.width * (1/7),
+                      child: Center(
+                          child:
+                              Text("S", style: TextStyle(color: textColor)))),
+                  SizedBox(
+                      width: MediaQuery.of(context).size.width * (1/7),
+                      child: Center(
+                          child:
+                              Text("M", style: TextStyle(color: textColor)))),
+                  SizedBox(
+                      width: MediaQuery.of(context).size.width * (1/7),
+                      child: Center(
+                          child:
+                              Text("T", style: TextStyle(color: textColor)))),
+                  SizedBox(
+                      width: MediaQuery.of(context).size.width * (1/7),
+                      child: Center(
+                          child:
+                              Text("W", style: TextStyle(color: textColor)))),
+                  SizedBox(
+                      width: MediaQuery.of(context).size.width * (1/7),
+                      child: Center(
+                          child:
+                              Text("T", style: TextStyle(color: textColor)))),
+                  SizedBox(
+                      width: MediaQuery.of(context).size.width * (1/7),
+                      child: Center(
+                          child:
+                              Text("F", style: TextStyle(color: textColor)))),
+                  SizedBox(
+                      width: MediaQuery.of(context).size.width * (1/7),
+                      child: Center(
+                          child:
+                              Text("S", style: TextStyle(color: textColor)))),
+                ]),
                 Expanded(
                     child: PagedVerticalCalendar(
                         invisibleMonthsThreshold: 100,
@@ -3478,7 +3499,7 @@ class _CalendarState extends State<CalendarPage> {
                             child: Text(
                               DateFormat('MMMM yyyy')
                                   .format(DateTime(year, month)),
-                              style: const TextStyle(fontSize: 14),
+                              style: TextStyle(fontSize: 14, color: textColor),
                             ),
                           );
                         })),
@@ -4851,7 +4872,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                         alignment: Alignment.centerRight,
                                         child: Text(
                                             "${tempBodyWeightBox.getAt(0)!.toString()}lb",
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontSize: 17,
                                               color: redColor,
                                               fontWeight: FontWeight.bold,
@@ -8413,7 +8434,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                         alignment: Alignment.centerRight,
                                         child: Text(
                                             "${postTempBodyWeight.toString()}lb",
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontSize: 17,
                                               color: redColor,
                                               fontWeight: FontWeight.bold,
