@@ -32,8 +32,10 @@ void main() async {
   await Hive.openBox<Exercise>('exercisesBox');
   await Hive.openBox<Workout>('workoutsBox');
   await Hive.openBox<IndivWorkout>('indivWorkoutsBox');
+  // idx 0 is actual counter, 1 is temp counter
   await Hive.openBox<int>('counterBox');
-  // boolBox contains: theme, timer, ring, vibration, deload, notifications
+  // boolBox contains: theme, timer, ring, vibration,
+  // deload, notifications, workout in progres
   await Hive.openBox<bool>('boolBox');
   await Hive.openBox<TimerMap>('successTimerBox');
   await Hive.openBox<TimerMap>('failTimerBox');
@@ -99,7 +101,6 @@ int exerciseIndex = 0;
 int setIndex = 0;
 late bool failed;
 bool changesMade = false;
-bool workoutInProgress = false;
 
 late Color headerColor;
 late Color backColor;
@@ -306,6 +307,7 @@ void defaultState() async {
   Box<int> counterBox = Hive.box<int>('counterBox');
   counterBox.deleteAll(counterBox.keys);
   counterBox.add(0);
+  counterBox.add(0);
 
   Box<bool> boolBox = Hive.box<bool>('boolBox');
   boolBox.deleteAll(boolBox.keys);
@@ -313,6 +315,7 @@ void defaultState() async {
   boolBox.add(true);
   boolBox.add(true);
   boolBox.add(true);
+  boolBox.add(false);
   boolBox.add(false);
 
   Box<TimerMap> successTimerBox = Hive.box<TimerMap>('successTimerBox');
@@ -930,6 +933,7 @@ class _HomeState extends State<Home> {
   late final Box<Workout> workoutsBox;
   late final Box<int> counterBox;
   late final Box<bool> boolBox;
+  late final Box<String> tempNoteBox;
   late dynamic counter;
 
   @override
@@ -938,6 +942,7 @@ class _HomeState extends State<Home> {
     workoutsBox = Hive.box<Workout>('workoutsBox');
     counterBox = Hive.box<int>('counterBox');
     boolBox = Hive.box<bool>('boolBox');
+    tempNoteBox = Hive.box<String>('tempNoteBox');
     timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
   }
 
@@ -958,6 +963,28 @@ class _HomeState extends State<Home> {
         checkTime(duration.inSeconds);
       }
     }
+  }
+
+  void pushWorkout(int idx) {
+    AwesomeNotifications().cancelAll();
+    showTimer = false;
+    tempNoteBox.putAt(0, "");
+    workoutsBox.getAt(idx)!.isInitialized = true;
+    for (int j = 0; j < workoutsBox.getAt(idx)!.exercises.length; ++j) {
+      final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(idx);
+      tempWorkout!.exercises[j].repsCompleted.clear();
+      for (int k = 0; k < tempWorkout.exercises[j].sets; k++) {
+        // repsCompleted initialized with initial reps value
+        tempWorkout.exercises[j].repsCompleted
+            .add(workoutsBox.getAt(idx)!.exercises[j].reps + 1);
+        tempWorkout.save();
+      }
+    }
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => WorkoutPage(idx)))
+        .then((value) {
+      setState(() {});
+    });
   }
 
   @override
@@ -1009,48 +1036,43 @@ class _HomeState extends State<Home> {
                   );
                 }),
             floatingActionButton: SizedBox(
-              width: 150,
-              height: 50,
+              width: boolBox.getAt(5)! ? 220 : 180,
+              height: boolBox.getAt(5)! ? 75 : 50,
               child: OutlinedButton(
-                child: workoutInProgress
-                    ? const Text("Workout In Progress")
-                    : const Text("Start Workout"),
+                child: boolBox.getAt(5)!
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                            const Text("Workout In Progress",
+                                style: TextStyle(fontSize: 16)),
+                            const Text("x min", style: TextStyle(fontSize: 14))
+                          ])
+                    : const Text("Start Workout",
+                        style: TextStyle(fontSize: 16)),
                 style: OutlinedButton.styleFrom(
                   primary: Colors.white,
                   backgroundColor: redColor,
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(50))),
+                  shape: boolBox.getAt(5)!
+                      ? RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10))
+                      : const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(50))),
                 ),
                 onPressed: () {
-                  // if statement prevents excessive adding to list
-                  if (workoutsBox.getAt(counter)!.isInitialized == false) {
-                    // change from 0 to counter (index of first workout that's up)
-                    for (int i = 0;
-                        i < workoutsBox.getAt(counter)!.exercises.length;
-                        ++i) {
-                      for (int j = 0;
-                          j < workoutsBox.getAt(counter)!.exercises[i].sets;
-                          j++) {
-                        // repsCompleted initialized with initial reps value
-                        workoutsBox
-                            .getAt(counter)!
-                            .exercises[i]
-                            .repsCompleted
-                            .add(workoutsBox.getAt(counter)!.exercises[i].reps +
-                                1);
-                      }
-                    }
-                    workoutsBox.getAt(counter)!.isInitialized = true;
+                  if (boolBox.getAt(5)!) {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) =>
+                            WorkoutPage(counterBox.getAt(0)!)));
+                  } else {
+                    pushWorkout(counterBox.getAt(0)!);
                   }
-                  Navigator.of(context)
-                      .push(MaterialPageRoute(
-                          builder: (context) => WorkoutPage(counter)))
-                      .then((value) {
-                    setState(() {});
-                  });
                 },
               ),
             ),
+            floatingActionButtonLocation: boolBox.getAt(5)!
+                ? FloatingActionButtonLocation.endDocked
+                : FloatingActionButtonLocation.endFloat,
           );
         });
   }
@@ -1059,27 +1081,101 @@ class _HomeState extends State<Home> {
     return Column(children: <Widget>[
       GestureDetector(
           onTap: () {
-            // if statement prevents excessive adding to list
-            if (workoutsBox.getAt(i)!.isInitialized == false) {
-              for (int j = 0; j < workoutsBox.getAt(i)!.exercises.length; ++j) {
-                for (int k = 0;
-                    k < workoutsBox.getAt(i)!.exercises[j].sets;
-                    k++) {
-                  // repsCompleted initialized with initial reps value
-                  workoutsBox
-                      .getAt(i)!
-                      .exercises[j]
-                      .repsCompleted
-                      .add(workoutsBox.getAt(i)!.exercises[j].reps + 1);
-                }
-              }
-              workoutsBox.getAt(i)!.isInitialized = true;
+            if (boolBox.getAt(5)! && i != counterBox.getAt(0)!) {
+              showDialog(
+                  context: context,
+                  builder: (context) => Dialog(
+                        insetPadding: const EdgeInsets.all(10),
+                        child: Flexible(
+                            child: Container(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("Workout In Progress",
+                                        style: TextStyle(
+                                            fontSize: 20, color: textColor))),
+                                const SizedBox(height: 10),
+                                Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                        "Starting a new workout will delete your workout in progress.",
+                                        style: TextStyle(
+                                            fontSize: 15, color: textColor))),
+                                const SizedBox(height: 20),
+                                Column(children: <Widget>[
+                                  Align(
+                                      alignment: Alignment.centerRight,
+                                      child: TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text("Start New Workout"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                          pushWorkout(i);
+                                        },
+                                      )),
+                                  const SizedBox(width: 20),
+                                  Align(
+                                      alignment: Alignment.centerRight,
+                                      child: TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text(
+                                            "Resume Workout in Progress"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                          Navigator.of(context)
+                                              .push(MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      WorkoutPage(counterBox
+                                                          .getAt(0)!)))
+                                              .then((value) {
+                                            setState(() {});
+                                          });
+                                        },
+                                      )),
+                                  Align(
+                                      alignment: Alignment.centerRight,
+                                      child: TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text("Cancel"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      )),
+                                ]),
+                              ]),
+                        )),
+                      ));
+            } else if (boolBox.getAt(5)! && i == counterBox.getAt(0)!) {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(
+                      builder: (context) => WorkoutPage(counterBox.getAt(0)!)))
+                  .then((value) {
+                setState(() {});
+              });
+            } else {
+              pushWorkout(i);
             }
-            Navigator.of(context)
-                .push(MaterialPageRoute(builder: (context) => WorkoutPage(i)))
-                .then((value) {
-              setState(() {});
-            });
           },
           child: Container(
               padding: const EdgeInsets.all(15),
@@ -3984,6 +4080,7 @@ class _EditState extends State<Edit> {
                 onPressed: () {
                   setState(() {
                     counterBox.putAt(0, 0);
+                    counterBox.putAt(1, 0);
                     workoutsBox.deleteAll(workoutsBox.keys);
                     workoutsBox.clear();
                   });
@@ -4207,19 +4304,25 @@ class _WorkoutPageState extends State<WorkoutPage> {
   }
 
   void checkWorkoutInProgress(int idx) {
-    workoutInProgress = false;
+    boolBox.putAt(5, false);
     final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(idx);
     if (tempNoteBox.getAt(0) != "") {
-      workoutInProgress = true;
+      boolBox.putAt(5, true);
     }
     for (int i = 0; i < workoutsBox.getAt(idx)!.exercises.length; ++i) {
       for (int j = 0; j < workoutsBox.getAt(idx)!.exercises[i].sets; j++) {
         if (tempWorkout!.exercises[i].repsCompleted[j] !=
             tempWorkout.exercises[i].reps + 1) {
-          workoutInProgress = true;
+          boolBox.putAt(5, true);
         }
       }
     }
+    if (boolBox.getAt(5)!) {
+      counterBox.putAt(0, idx);
+    } else if (!boolBox.getAt(5)!) {
+      counterBox.putAt(0, counterBox.getAt(1)!);
+    }
+    _counter.value++;
   }
 
   void switchWorkout(int idx) {
@@ -4240,7 +4343,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (context) => WorkoutPage(idx)));
     });
-    workoutInProgress = false;
+    boolBox.putAt(5, false);
   }
 
   @override
@@ -4299,7 +4402,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                   selectVal = w;
                                   int idx = workoutsList.indexOf(selectVal!);
                                   if (idx != widget.index) {
-                                    if (workoutInProgress) {
+                                    if (boolBox.getAt(5)!) {
                                       showDialog(
                                         context: context,
                                         builder: (context) => AlertDialog(
@@ -4359,13 +4462,16 @@ class _WorkoutPageState extends State<WorkoutPage> {
                   onPressed: () {
                     AwesomeNotifications().cancelAll();
                     widget.index == workoutsBox.length - 1
-                        ? counterBox.putAt(0, 0)
-                        : counterBox.putAt(
-                            0,
-                            widget.index +
-                                1); // loops counter according to selected workout
+                        ? {counterBox.putAt(0, 0), counterBox.putAt(1, 0)}
+                        // loops counter according to selected workout
+                        : {
+                            counterBox.putAt(0, widget.index + 1),
+                            counterBox.putAt(1, widget.index + 1)
+                          };
+
                     showTimer = false;
                     timer?.cancel();
+                    boolBox.putAt(5, false);
 
                     String name = workoutsBox.getAt(widget.index)!.name;
                     DateTime now = DateTime.now();
