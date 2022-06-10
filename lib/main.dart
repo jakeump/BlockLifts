@@ -33,7 +33,7 @@ void main() async {
   await Hive.openBox<Workout>('workoutsBox');
   await Hive.openBox<IndivWorkout>('indivWorkoutsBox');
   await Hive.openBox<int>('counterBox');
-  // boolBox contains: theme, timer, ring, vibration, deload
+  // boolBox contains: theme, timer, ring, vibration, deload, notifications
   await Hive.openBox<bool>('boolBox');
   await Hive.openBox<TimerMap>('successTimerBox');
   await Hive.openBox<TimerMap>('failTimerBox');
@@ -311,6 +311,7 @@ void defaultState() async {
   boolBox.add(true);
   boolBox.add(true);
   boolBox.add(true);
+  boolBox.add(false);
 
   Box<TimerMap> successTimerBox = Hive.box<TimerMap>('successTimerBox');
   successTimerBox.deleteAll(successTimerBox.keys);
@@ -813,23 +814,25 @@ class PostWorkoutEditPage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   // home page
   int _selectedIndex = 0;
+  late final Box<bool> boolBox;
 
   @override
   void initState() {
-    super.initState();
+    boolBox = Hive.box<bool>('boolBox');
     _init();
     AwesomeNotifications().isNotificationAllowed().then(
       (isAllowed) {
-        if (!isAllowed) {
+        if (!isAllowed && boolBox.getAt(4)! == false) {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Allow Notifications'),
+              title: const Text('Allow Notifications', style: TextStyle(fontSize: 20)),
               content: const Text(
-                  'BlockLifts would like to send you notifications during workouts'),
+                  'BlockLifts would like to send you notifications during workouts', style: TextStyle(fontSize: 15)),
               actions: [
                 TextButton(
                   onPressed: () {
+                    boolBox.putAt(4, true);
                     Navigator.pop(context);
                   },
                   child: const Text(
@@ -838,9 +841,11 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () => AwesomeNotifications()
-                      .requestPermissionToSendNotifications()
-                      .then((_) => Navigator.pop(context)),
+                  onPressed: () {
+                    AwesomeNotifications()
+                        .requestPermissionToSendNotifications()
+                        .then((_) => Navigator.pop(context));
+                  },
                   child: const Text(
                     'Allow',
                     style: TextStyle(
@@ -853,8 +858,12 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         }
+        else {
+          boolBox.putAt(4, true);
+        }
       },
     );
+    super.initState();
   }
 
   Future<void> _init() async {
