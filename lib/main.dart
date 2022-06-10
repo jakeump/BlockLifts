@@ -101,12 +101,18 @@ late bool failed;
 
 late Color headerColor;
 late Color backColor;
-late Color widgetNavColor;
+late Color tileColor;
 late Color textColor;
 late Color dividerColor;
 late Color underlineColor;
 late Color circleColor;
-const Color redColor = Colors.red;
+late Color emptyCircleTextColor;
+late Color activeSwitchColor;
+Color greyColor =
+    Colors.grey; // runtime error, not initialized when late. weird
+late Color borderColor;
+late Color navIconColor;
+const Color redColor = Color.fromARGB(255, 210, 45, 45);
 
 bool _canVibrate = true;
 ValueNotifier<int> _counter = ValueNotifier<int>(0); // to update list page
@@ -533,34 +539,50 @@ class MyApp extends StatelessWidget {
         builder: (_, model, __) {
           SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
+            systemNavigationBarColor: Colors.transparent,
           ));
           if (boolBox.getAt(0)!) {
             // dark mode
             backColor = Colors.black;
             headerColor = Colors.black;
-            widgetNavColor = const Color.fromARGB(133, 65, 64, 64);
+            tileColor = const Color.fromARGB(255, 29, 29, 29);
             textColor = Colors.white;
             dividerColor = const Color.fromARGB(133, 65, 64, 64);
             underlineColor = Colors.white.withOpacity(.7);
-            circleColor = const Color.fromARGB(255, 41, 41, 41);
+            circleColor = const Color.fromARGB(255, 38, 38, 38);
+            emptyCircleTextColor = const Color.fromARGB(255, 103, 103, 103);
+            greyColor = const Color.fromARGB(255, 165, 165, 165);
+            borderColor = const Color.fromARGB(255, 62, 62, 62);
+            navIconColor = const Color.fromARGB(255, 176, 176, 176);
+            activeSwitchColor = Colors.white;
           } else {
             // light mode
             backColor = Colors.white;
             headerColor = Colors.white;
-            widgetNavColor = Colors.white;
+            tileColor = Colors.white;
             textColor = Colors.black;
-            dividerColor = Colors.grey;
-            underlineColor = Colors.black;
-            circleColor = const Color.fromARGB(255, 228, 228, 228);
+            dividerColor = greyColor;
+            underlineColor = const Color.fromARGB(103, 0, 0, 0);
+            circleColor = const Color.fromARGB(255, 238, 238, 238);
+            emptyCircleTextColor = const Color.fromARGB(255, 199, 199, 199);
+            greyColor = const Color.fromARGB(255, 108, 108, 108);
+            borderColor = const Color.fromARGB(255, 224, 224, 224);
+            navIconColor = const Color.fromARGB(255, 87, 87, 87);
+            activeSwitchColor = const Color.fromARGB(255, 49, 48, 48);
           }
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'BlockLifts',
             theme: ThemeData(
+              // light theme
               useMaterial3: true,
               backgroundColor: Colors.white,
               brightness: Brightness.light,
-              //textTheme: TextTheme(bodyColor: Colors.black),
+              outlinedButtonTheme: OutlinedButtonThemeData(
+                style: OutlinedButton.styleFrom(
+                    side:
+                        const BorderSide(width: 0.0, style: BorderStyle.none)),
+              ),
               textSelectionTheme: const TextSelectionThemeData(
                 selectionHandleColor: Colors.black,
                 cursorColor: Colors.black,
@@ -570,6 +592,11 @@ class MyApp extends StatelessWidget {
               useMaterial3: true,
               backgroundColor: Colors.black,
               brightness: Brightness.dark,
+              outlinedButtonTheme: OutlinedButtonThemeData(
+                style: OutlinedButton.styleFrom(
+                    side:
+                        const BorderSide(width: 0.0, style: BorderStyle.none)),
+              ),
               textSelectionTheme: TextSelectionThemeData(
                 selectionHandleColor: Colors.white.withOpacity(.5),
                 cursorColor: Colors.white.withOpacity(.5),
@@ -863,10 +890,10 @@ class _HomePageState extends State<HomePage> {
                 type: BottomNavigationBarType.fixed,
                 currentIndex: _selectedIndex,
                 onTap: _onItemTapped,
-                backgroundColor: widgetNavColor,
+                backgroundColor: tileColor,
                 selectedFontSize: 15,
                 selectedItemColor: redColor,
-                unselectedItemColor: Colors.grey,
+                unselectedItemColor: navIconColor,
                 showSelectedLabels: true,
                 showUnselectedLabels: false,
                 items: const [
@@ -876,11 +903,11 @@ class _HomePageState extends State<HomePage> {
                   ),
                   BottomNavigationBarItem(
                     label: "History",
-                    icon: Icon(Icons.calendar_month),
+                    icon: Icon(Icons.date_range),
                   ),
                   BottomNavigationBarItem(
                     label: "Progress",
-                    icon: Icon(Icons.stacked_line_chart_outlined),
+                    icon: Icon(Icons.line_axis),
                   ),
                   BottomNavigationBarItem(
                     label: "Settings",
@@ -1057,10 +1084,10 @@ class _HomeState extends State<Home> {
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
                 border: i == counter
-                    ? Border.all(color: Colors.red)
-                    : Border.all(color: Colors.grey),
+                    ? Border.all(color: redColor)
+                    : Border.all(color: borderColor),
                 borderRadius: BorderRadius.circular(6),
-                color: widgetNavColor,
+                color: tileColor,
               ),
               alignment: Alignment.topLeft,
               child: Column(
@@ -1070,9 +1097,9 @@ class _HomeState extends State<Home> {
                     child: Text(workoutsBox.getAt(i)!.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 17,
-                          color: Colors.grey,
+                          color: greyColor,
                         )),
                   ),
                   const Divider(height: 15, color: Colors.transparent),
@@ -1291,12 +1318,12 @@ class _ProgressState extends State<Progress> {
                                                       0
                                                   ? Text(
                                                       "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
-                                                      style: const TextStyle(
-                                                          color: Colors.grey))
+                                                      style: TextStyle(
+                                                          color: greyColor))
                                                   : Text(
                                                       "${exercisesBox.getAt(i)!.weight.toString()}lb",
-                                                      style: const TextStyle(
-                                                          color: Colors.grey)),
+                                                      style: TextStyle(
+                                                          color: greyColor)),
                                             ),
                                           ]),
                                     ]),
@@ -1343,9 +1370,9 @@ class _ProgressState extends State<Progress> {
                                       Align(
                                         alignment: Alignment.centerLeft,
                                         child: indivWorkoutsBox.isEmpty
-                                            ? const Text("150lb",
-                                                style: TextStyle(
-                                                    color: Colors.grey))
+                                            ? Text("150lb",
+                                                style:
+                                                    TextStyle(color: greyColor))
                                             : indivWorkoutsBox
                                                             .getAt(
                                                                 indivWorkoutsBox
@@ -1356,12 +1383,12 @@ class _ProgressState extends State<Progress> {
                                                     0
                                                 ? Text(
                                                     "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toInt().toString()}lb",
-                                                    style: const TextStyle(
-                                                        color: Colors.grey))
+                                                    style: TextStyle(
+                                                        color: greyColor))
                                                 : Text(
                                                     "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toString()}lb",
-                                                    style: const TextStyle(
-                                                        color: Colors.grey)),
+                                                    style: TextStyle(
+                                                        color: greyColor)),
                                       ),
                                     ]),
                                   ),
@@ -1414,12 +1441,12 @@ class _ProgressState extends State<Progress> {
                                                     0
                                                 ? Text(
                                                     "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
-                                                    style: const TextStyle(
-                                                        color: Colors.grey))
+                                                    style: TextStyle(
+                                                        color: greyColor))
                                                 : Text(
                                                     "${exercisesBox.getAt(i)!.weight.toString()}lb",
-                                                    style: const TextStyle(
-                                                        color: Colors.grey)),
+                                                    style: TextStyle(
+                                                        color: greyColor)),
                                           ),
                                         ]),
                                       ),
@@ -1514,11 +1541,11 @@ class _SettingsState extends State<Settings> {
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: Switch(
-                      inactiveThumbColor: Colors.grey,
+                      inactiveThumbColor: greyColor,
                       inactiveTrackColor:
                           const Color.fromARGB(255, 207, 207, 207),
-                      activeColor: Colors.white,
-                      activeTrackColor: Colors.grey,
+                      activeColor: activeSwitchColor,
+                      activeTrackColor: greyColor,
                       value: boolBox.getAt(0)!,
                       onChanged: toggleSwitch,
                     ),
@@ -1549,10 +1576,8 @@ class _SettingsState extends State<Settings> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: boolBox.getAt(1)! == true
-                          ? const Text("On",
-                              style: TextStyle(color: Colors.grey))
-                          : const Text("Off",
-                              style: TextStyle(color: Colors.grey)),
+                          ? Text("On", style: TextStyle(color: greyColor))
+                          : Text("Off", style: TextStyle(color: greyColor)),
                     ),
                   ]),
                 ),
@@ -1590,7 +1615,7 @@ class _SettingsState extends State<Settings> {
                       child: Text(platesString,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Colors.grey)),
+                          style: TextStyle(color: greyColor)),
                     ),
                   ]),
                 ),
@@ -1611,8 +1636,7 @@ class _SettingsState extends State<Settings> {
           width: double.infinity,
           child: TextButton(
               style: TextButton.styleFrom(
-                  primary: Colors.red,
-                  textStyle: const TextStyle(fontSize: 16)),
+                  primary: redColor, textStyle: const TextStyle(fontSize: 16)),
               child: Container(
                 padding: const EdgeInsets.all(10),
                 child: const Align(
@@ -1832,8 +1856,8 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(graphDate,
-                                  style: const TextStyle(
-                                      fontSize: 14, color: Colors.grey)),
+                                  style: TextStyle(
+                                      fontSize: 14, color: greyColor)),
                             ),
                           ]));
                     }),
@@ -1935,7 +1959,7 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
           drawHorizontalLine: true,
           getDrawingHorizontalLine: (value) {
             return FlLine(
-              color: Colors.grey,
+              color: greyColor,
               strokeWidth: 1,
               dashArray: [5, 5],
             );
@@ -1982,8 +2006,8 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
   }
 
   Widget rightTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(
-      color: Colors.grey,
+    TextStyle style = TextStyle(
+      color: greyColor,
       fontSize: 9,
     );
     Widget text;
@@ -2134,10 +2158,8 @@ class _TimerState extends State<TimerPage> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: boolBox.getAt(1)! == true
-                            ? const Text("On",
-                                style: TextStyle(color: Colors.grey))
-                            : const Text("Off",
-                                style: TextStyle(color: Colors.grey)),
+                            ? Text("On", style: TextStyle(color: greyColor))
+                            : Text("Off", style: TextStyle(color: greyColor)),
                       ),
                     ]),
                   ),
@@ -2145,11 +2167,11 @@ class _TimerState extends State<TimerPage> {
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: Switch(
-                        inactiveThumbColor: Colors.grey,
+                        inactiveThumbColor: greyColor,
                         inactiveTrackColor:
                             const Color.fromARGB(255, 207, 207, 207),
-                        activeColor: Colors.white,
-                        activeTrackColor: Colors.grey,
+                        activeColor: activeSwitchColor,
+                        activeTrackColor: greyColor,
                         value: boolBox.getAt(1)!,
                         onChanged: toggleSwitch,
                       ),
@@ -2184,10 +2206,10 @@ class _TimerState extends State<TimerPage> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: boolBox.getAt(2)! == true
-                                  ? const Text("Enabled",
-                                      style: TextStyle(color: Colors.grey))
-                                  : const Text("Disabled",
-                                      style: TextStyle(color: Colors.grey)),
+                                  ? Text("Enabled",
+                                      style: TextStyle(color: greyColor))
+                                  : Text("Disabled",
+                                      style: TextStyle(color: greyColor)),
                             ),
                           ]),
                         ),
@@ -2195,11 +2217,11 @@ class _TimerState extends State<TimerPage> {
                           child: Align(
                             alignment: Alignment.centerRight,
                             child: Switch(
-                              inactiveThumbColor: Colors.grey,
+                              inactiveThumbColor: greyColor,
                               inactiveTrackColor:
                                   const Color.fromARGB(255, 207, 207, 207),
-                              activeColor: Colors.white,
-                              activeTrackColor: Colors.grey,
+                              activeColor: activeSwitchColor,
+                              activeTrackColor: greyColor,
                               value: boolBox.getAt(2)!,
                               onChanged: toggleSwitch2,
                             ),
@@ -2235,10 +2257,10 @@ class _TimerState extends State<TimerPage> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: boolBox.getAt(3)! == true
-                                  ? const Text("Enabled",
-                                      style: TextStyle(color: Colors.grey))
-                                  : const Text("Disabled",
-                                      style: TextStyle(color: Colors.grey)),
+                                  ? Text("Enabled",
+                                      style: TextStyle(color: greyColor))
+                                  : Text("Disabled",
+                                      style: TextStyle(color: greyColor)),
                             ),
                           ]),
                         ),
@@ -2246,11 +2268,11 @@ class _TimerState extends State<TimerPage> {
                           child: Align(
                             alignment: Alignment.centerRight,
                             child: Switch(
-                              inactiveThumbColor: Colors.grey,
+                              inactiveThumbColor: greyColor,
                               inactiveTrackColor:
                                   const Color.fromARGB(255, 207, 207, 207),
-                              activeColor: Colors.white,
-                              activeTrackColor: Colors.grey,
+                              activeColor: activeSwitchColor,
+                              activeTrackColor: greyColor,
                               value: boolBox.getAt(3)!,
                               onChanged: toggleSwitch3,
                             ),
@@ -2287,7 +2309,7 @@ class _TimerState extends State<TimerPage> {
                             child: Text(successTimes,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(color: Colors.grey)),
+                                style: TextStyle(color: greyColor)),
                           ),
                         ]),
                       ),
@@ -2328,7 +2350,7 @@ class _TimerState extends State<TimerPage> {
                             child: Text(failTimes,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(color: Colors.grey)),
+                                style: TextStyle(color: greyColor)),
                           ),
                         ]),
                       ),
@@ -2754,8 +2776,7 @@ class _PlatesState extends State<PlatesPage> {
                                   alignment: Alignment.centerLeft,
                                   child: Text(
                                       "${platesBox.getAt(i)!.number} plates",
-                                      style:
-                                          const TextStyle(color: Colors.grey)),
+                                      style: TextStyle(color: greyColor)),
                                 ),
                               ]),
                             ),
@@ -3141,10 +3162,10 @@ class _ListState extends State<ListPage> {
                                           padding: const EdgeInsets.all(20),
                                           decoration: BoxDecoration(
                                             border:
-                                                Border.all(color: Colors.grey),
+                                                Border.all(color: borderColor),
                                             borderRadius:
                                                 BorderRadius.circular(6),
-                                            color: widgetNavColor,
+                                            color: tileColor,
                                           ),
                                           alignment: Alignment.topLeft,
                                           child: Column(children: [
@@ -3157,9 +3178,9 @@ class _ListState extends State<ListPage> {
                                                       indivWorkoutsBox
                                                           .getAt(i)!
                                                           .name,
-                                                      style: const TextStyle(
+                                                      style: TextStyle(
                                                         fontSize: 16,
-                                                        color: Colors.grey,
+                                                        color: greyColor,
                                                       )),
                                                 ),
                                               ),
@@ -3171,9 +3192,9 @@ class _ListState extends State<ListPage> {
                                                       indivWorkoutsBox
                                                           .getAt(i)!
                                                           .date,
-                                                      style: const TextStyle(
+                                                      style: TextStyle(
                                                         fontSize: 16,
-                                                        color: Colors.grey,
+                                                        color: greyColor,
                                                       )),
                                                 ),
                                               ),
@@ -3385,37 +3406,37 @@ class _CalendarState extends State<CalendarPage> {
                 SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                 Row(children: <Widget>[
                   SizedBox(
-                      width: MediaQuery.of(context).size.width * (1/7),
+                      width: MediaQuery.of(context).size.width * (1 / 7),
                       child: Center(
                           child:
                               Text("S", style: TextStyle(color: textColor)))),
                   SizedBox(
-                      width: MediaQuery.of(context).size.width * (1/7),
+                      width: MediaQuery.of(context).size.width * (1 / 7),
                       child: Center(
                           child:
                               Text("M", style: TextStyle(color: textColor)))),
                   SizedBox(
-                      width: MediaQuery.of(context).size.width * (1/7),
+                      width: MediaQuery.of(context).size.width * (1 / 7),
                       child: Center(
                           child:
                               Text("T", style: TextStyle(color: textColor)))),
                   SizedBox(
-                      width: MediaQuery.of(context).size.width * (1/7),
+                      width: MediaQuery.of(context).size.width * (1 / 7),
                       child: Center(
                           child:
                               Text("W", style: TextStyle(color: textColor)))),
                   SizedBox(
-                      width: MediaQuery.of(context).size.width * (1/7),
+                      width: MediaQuery.of(context).size.width * (1 / 7),
                       child: Center(
                           child:
                               Text("T", style: TextStyle(color: textColor)))),
                   SizedBox(
-                      width: MediaQuery.of(context).size.width * (1/7),
+                      width: MediaQuery.of(context).size.width * (1 / 7),
                       child: Center(
                           child:
                               Text("F", style: TextStyle(color: textColor)))),
                   SizedBox(
-                      width: MediaQuery.of(context).size.width * (1/7),
+                      width: MediaQuery.of(context).size.width * (1 / 7),
                       child: Center(
                           child:
                               Text("S", style: TextStyle(color: textColor)))),
@@ -3433,7 +3454,7 @@ class _CalendarState extends State<CalendarPage> {
                               child: CircleAvatar(
                             radius: 26,
                             backgroundColor: eventsThisDay.isNotEmpty
-                                ? Colors.red
+                                ? redColor
                                 : Colors.transparent,
                             child: Text(DateFormat('d').format(date),
                                 style: TextStyle(
@@ -3441,14 +3462,14 @@ class _CalendarState extends State<CalendarPage> {
                                             date.month >=
                                                 DateTime.now().month &&
                                             date.year >= DateTime.now().year
-                                        ? Colors.grey
+                                        ? greyColor
                                         : eventsThisDay.isEmpty &&
                                                 date.day ==
                                                     DateTime.now().day &&
                                                 date.month ==
                                                     DateTime.now().month &&
                                                 date.year == DateTime.now().year
-                                            ? Colors.red
+                                            ? redColor
                                             : textColor)),
                           ));
                         },
@@ -3576,9 +3597,9 @@ class _NotesState extends State<NotesPage> {
                                   child: Container(
                                       padding: const EdgeInsets.all(20),
                                       decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.grey),
+                                        border: Border.all(color: borderColor),
                                         borderRadius: BorderRadius.circular(6),
-                                        color: widgetNavColor,
+                                        color: tileColor,
                                       ),
                                       alignment: Alignment.topLeft,
                                       child: Column(
@@ -3591,9 +3612,9 @@ class _NotesState extends State<NotesPage> {
                                                     indivWorkoutsBox
                                                         .getAt(i)!
                                                         .name,
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 16,
-                                                      color: Colors.grey,
+                                                      color: greyColor,
                                                     )),
                                               ),
                                             ),
@@ -3605,9 +3626,9 @@ class _NotesState extends State<NotesPage> {
                                                     indivWorkoutsBox
                                                         .getAt(i)!
                                                         .date,
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 16,
-                                                      color: Colors.grey,
+                                                      color: greyColor,
                                                     )),
                                               ),
                                             ),
@@ -4572,16 +4593,22 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                           .getAt(widget.index)!
                                                           .exercises[i]
                                                           .reps
-                                                  ? Text(workoutsBox
-                                                      .getAt(widget.index)!
-                                                      .exercises[i]
-                                                      .reps
-                                                      .toString())
-                                                  : Text(workoutsBox
-                                                      .getAt(widget.index)!
-                                                      .exercises[i]
-                                                      .repsCompleted[j]
-                                                      .toString()),
+                                                  ? Text(
+                                                      workoutsBox
+                                                          .getAt(widget.index)!
+                                                          .exercises[i]
+                                                          .reps
+                                                          .toString(),
+                                                      style: const TextStyle(
+                                                          fontSize: 18))
+                                                  : Text(
+                                                      workoutsBox
+                                                          .getAt(widget.index)!
+                                                          .exercises[i]
+                                                          .repsCompleted[j]
+                                                          .toString(),
+                                                      style: const TextStyle(
+                                                          fontSize: 18)),
                                               color: workoutsBox
                                                           .getAt(widget.index)!
                                                           .exercises[i]
@@ -4592,7 +4619,16 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                           .reps
                                                   ? circleColor
                                                   : redColor,
-                                              textColor: Colors.white,
+                                              textColor: workoutsBox
+                                                          .getAt(widget.index)!
+                                                          .exercises[i]
+                                                          .repsCompleted[j] >
+                                                      workoutsBox
+                                                          .getAt(widget.index)!
+                                                          .exercises[i]
+                                                          .reps
+                                                  ? emptyCircleTextColor
+                                                  : Colors.white,
                                               onPressed: () {
                                                 workoutIndex = widget.index;
                                                 exerciseIndex = i;
@@ -4951,7 +4987,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                       ),
                                     ]),
                                     decoration: BoxDecoration(
-                                      color: widgetNavColor,
+                                      color: circleColor,
                                     ))))
                         : Container(),
                     Container(
@@ -6213,9 +6249,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                           alignment: Alignment.centerLeft,
                           child: Text(
                             "${exercisesBox.getAt(widget.index)!.weight.toInt().toString()}lb",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: Colors.grey,
+                              color: greyColor,
                             ),
                           ),
                         ),
@@ -6224,9 +6260,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                           alignment: Alignment.centerLeft,
                           child: Text(
                             "${exercisesBox.getAt(widget.index)!.weight.toString()}lb",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: Colors.grey,
+                              color: greyColor,
                             ),
                           ),
                         ),
@@ -6480,9 +6516,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                           alignment: Alignment.centerLeft,
                           child: Text(
                             "${exercisesBox.getAt(widget.index)!.barWeight.toInt().toString()}lb",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: Colors.grey,
+                              color: greyColor,
                             ),
                           ),
                         ),
@@ -6491,9 +6527,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                           alignment: Alignment.centerLeft,
                           child: Text(
                             "${exercisesBox.getAt(widget.index)!.barWeight.toString()}lb",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: Colors.grey,
+                              color: greyColor,
                             ),
                           ),
                         ),
@@ -6520,12 +6556,10 @@ class _EditExercisePageState extends State<EditExercisePage> {
                 child: exercisesBox.getAt(widget.index)!.increment % 1 == 0
                     ? Text(
                         "${exercisesBox.getAt(widget.index)!.increment.toInt().toString()}lb",
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.grey))
+                        style: TextStyle(fontSize: 16, color: greyColor))
                     : Text(
                         "${exercisesBox.getAt(widget.index)!.increment.toString()}lb",
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.grey)),
+                        style: TextStyle(fontSize: 16, color: greyColor)),
               ),
             ]),
           ),
@@ -6578,11 +6612,11 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             autofocus: true,
                             keyboardType: TextInputType.number,
                             textAlignVertical: TextAlignVertical.bottom,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: "Sets",
                               labelStyle:
-                                  TextStyle(fontSize: 20, color: Colors.white),
-                              contentPadding: EdgeInsets.only(bottom: 0),
+                                  TextStyle(fontSize: 20, color: textColor),
+                              contentPadding: const EdgeInsets.only(bottom: 0),
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
                             ),
@@ -6602,11 +6636,11 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             autofocus: true,
                             keyboardType: TextInputType.number,
                             textAlignVertical: TextAlignVertical.bottom,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: "Reps",
                               labelStyle:
-                                  TextStyle(fontSize: 20, color: Colors.white),
-                              contentPadding: EdgeInsets.only(bottom: 0),
+                                  TextStyle(fontSize: 20, color: textColor),
+                              contentPadding: const EdgeInsets.only(bottom: 0),
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
                             ),
@@ -6764,9 +6798,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                         alignment: Alignment.centerLeft,
                         child: Text(
                           "${exercisesBox.getAt(widget.index)!.sets.toString()}×${exercisesBox.getAt(widget.index)!.reps.toString()}",
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey,
+                            color: greyColor,
                           ),
                         ),
                       ),
@@ -6793,9 +6827,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     plateCalculator(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
-                      color: Colors.grey,
+                      color: greyColor,
                     ),
                   ),
                 ),
@@ -7008,7 +7042,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
         ),
         backgroundColor: headerColor,
         title: const Text("Increments"),
-        titleTextStyle: const TextStyle(fontSize: 22),
+        titleTextStyle: TextStyle(fontSize: 22, color: textColor),
       ),
       body: ListView(children: <Widget>[
         SizedBox(
@@ -7024,17 +7058,17 @@ class _IncrementsPageState extends State<IncrementsPage> {
                 Row(children: <Widget>[
                   Expanded(
                     flex: 4,
-                    child: Column(children: const [
+                    child: Column(children: [
                       Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text("Progressive Overload",
-                            style: TextStyle(fontSize: 18)),
-                      ),
-                      SizedBox(height: 8),
+                          alignment: Alignment.centerLeft,
+                          child: Text("Progressive Overload",
+                              style:
+                                  TextStyle(fontSize: 18, color: textColor))),
+                      const SizedBox(height: 8),
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text("Add weight if all sets successful",
-                            style: TextStyle(fontSize: 16, color: Colors.grey)),
+                            style: TextStyle(fontSize: 16, color: greyColor)),
                       ),
                     ]),
                   ),
@@ -7042,11 +7076,11 @@ class _IncrementsPageState extends State<IncrementsPage> {
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: Switch(
-                        inactiveThumbColor: Colors.grey,
+                        inactiveThumbColor: greyColor,
                         inactiveTrackColor:
                             const Color.fromARGB(255, 207, 207, 207),
-                        activeColor: Colors.white,
-                        activeTrackColor: Colors.grey,
+                        activeColor: activeSwitchColor,
+                        activeTrackColor: greyColor,
                         value: exercisesBox.getAt(widget.index)!.overload,
                         onChanged: toggleSwitch,
                       ),
@@ -7074,10 +7108,11 @@ class _IncrementsPageState extends State<IncrementsPage> {
                             child: Row(children: <Widget>[
                               Expanded(
                                 child: Column(children: [
-                                  const Align(
+                                  Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text("Increments",
-                                        style: TextStyle(fontSize: 18)),
+                                        style: TextStyle(
+                                            fontSize: 18, color: textColor)),
                                   ),
                                   const SizedBox(height: 8),
                                   Align(
@@ -7089,14 +7124,13 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                             0
                                         ? Text(
                                             "${exercisesBox.getAt(widget.index)!.increment.toInt().toString()}lb",
-                                            style: const TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.grey))
+                                            style: TextStyle(
+                                                fontSize: 16, color: greyColor))
                                         : Text(
                                             "${exercisesBox.getAt(widget.index)!.increment.toString()}lb",
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                                 fontSize: 16,
-                                                color: Colors.grey)),
+                                                color: greyColor)),
                                   ),
                                 ]),
                               ),
@@ -7125,10 +7159,11 @@ class _IncrementsPageState extends State<IncrementsPage> {
                           child: Row(children: <Widget>[
                             Expanded(
                               child: Column(children: [
-                                const Align(
+                                Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text("Frequency",
-                                      style: TextStyle(fontSize: 18)),
+                                      style: TextStyle(
+                                          fontSize: 18, color: textColor)),
                                 ),
                                 const SizedBox(height: 8),
                                 Align(
@@ -7137,14 +7172,13 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                               .getAt(widget.index)!
                                               .incrementFrequency ==
                                           1
-                                      ? const Text("Every Time",
+                                      ? Text("Every Time",
                                           style: TextStyle(
-                                              fontSize: 16, color: Colors.grey))
+                                              fontSize: 16, color: greyColor))
                                       : Text(
                                           "Every ${exercisesBox.getAt(widget.index)!.incrementFrequency.toString()} Times",
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.grey)),
+                                          style: TextStyle(
+                                              fontSize: 16, color: greyColor)),
                                 ),
                               ]),
                             ),
@@ -7170,7 +7204,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                       return Container(
                         padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
                         decoration: BoxDecoration(
-                          color: widgetNavColor,
+                          color: circleColor,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: exercisesBox.getAt(widget.index)!.increment %
@@ -7182,24 +7216,24 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                     1
                                 ? Text(
                                     "Weight increases by ${exercisesBox.getAt(widget.index)!.increment.toInt()}lb in total if you completed all sets on this exercise the last time.",
-                                    style: const TextStyle(
-                                        fontSize: 14, color: Colors.grey))
+                                    style: TextStyle(
+                                        fontSize: 14, color: greyColor))
                                 : Text(
                                     "Weight increases by ${exercisesBox.getAt(widget.index)!.increment.toInt()}lb in total if you completed all sets on this exercise the last ${exercisesBox.getAt(widget.index)!.incrementFrequency} times.",
-                                    style: const TextStyle(
-                                        fontSize: 14, color: Colors.grey))
+                                    style: TextStyle(
+                                        fontSize: 14, color: greyColor))
                             : exercisesBox
                                         .getAt(widget.index)!
                                         .incrementFrequency ==
                                     1
                                 ? Text(
                                     "Weight increases by ${exercisesBox.getAt(widget.index)!.increment}lb in total if you completed all sets on this exercise the last time.",
-                                    style: const TextStyle(
-                                        fontSize: 14, color: Colors.grey))
+                                    style: TextStyle(
+                                        fontSize: 14, color: greyColor))
                                 : Text(
                                     "Weight increases by ${exercisesBox.getAt(widget.index)!.increment}lb in total if you completed all sets on this exercise the last ${exercisesBox.getAt(widget.index)!.incrementFrequency} times.",
-                                    style: const TextStyle(
-                                        fontSize: 14, color: Colors.grey)),
+                                    style: TextStyle(
+                                        fontSize: 14, color: greyColor)),
                       );
                     }),
               ))
@@ -7217,16 +7251,17 @@ class _IncrementsPageState extends State<IncrementsPage> {
                 Row(children: <Widget>[
                   Expanded(
                     flex: 4,
-                    child: Column(children: const [
+                    child: Column(children: [
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: Text("Deload", style: TextStyle(fontSize: 18)),
+                        child: Text("Deload",
+                            style: TextStyle(fontSize: 18, color: textColor)),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text("Decrease weight if failed sets",
-                            style: TextStyle(fontSize: 16, color: Colors.grey)),
+                            style: TextStyle(fontSize: 16, color: greyColor)),
                       ),
                     ]),
                   ),
@@ -7234,11 +7269,11 @@ class _IncrementsPageState extends State<IncrementsPage> {
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: Switch(
-                        inactiveThumbColor: Colors.grey,
+                        inactiveThumbColor: greyColor,
                         inactiveTrackColor:
                             const Color.fromARGB(255, 207, 207, 207),
-                        activeColor: Colors.white,
-                        activeTrackColor: Colors.grey,
+                        activeColor: activeSwitchColor,
+                        activeTrackColor: greyColor,
                         value: exercisesBox.getAt(widget.index)!.deload,
                         onChanged: toggleSwitch2,
                       ),
@@ -7266,18 +7301,19 @@ class _IncrementsPageState extends State<IncrementsPage> {
                             child: Row(children: <Widget>[
                               Expanded(
                                 child: Column(children: [
-                                  const Align(
+                                  Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text("Percentage",
-                                        style: TextStyle(fontSize: 18)),
+                                        style: TextStyle(
+                                            fontSize: 18, color: textColor)),
                                   ),
                                   const SizedBox(height: 8),
                                   Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text(
                                         "${exercisesBox.getAt(widget.index)!.deloadPercent.toString()}%",
-                                        style: const TextStyle(
-                                            fontSize: 16, color: Colors.grey)),
+                                        style: TextStyle(
+                                            fontSize: 16, color: greyColor)),
                                   ),
                                 ]),
                               ),
@@ -7306,10 +7342,11 @@ class _IncrementsPageState extends State<IncrementsPage> {
                           child: Row(children: <Widget>[
                             Expanded(
                               child: Column(children: [
-                                const Align(
+                                Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text("Frequency",
-                                      style: TextStyle(fontSize: 18)),
+                                      style: TextStyle(
+                                          fontSize: 18, color: textColor)),
                                 ),
                                 const SizedBox(height: 8),
                                 Align(
@@ -7318,14 +7355,13 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                               .getAt(widget.index)!
                                               .deloadFrequency ==
                                           1
-                                      ? const Text("Every Time",
+                                      ? Text("Every Time",
                                           style: TextStyle(
-                                              fontSize: 16, color: Colors.grey))
+                                              fontSize: 16, color: greyColor))
                                       : Text(
                                           "Every ${exercisesBox.getAt(widget.index)!.deloadFrequency.toString()} Times",
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.grey)),
+                                          style: TextStyle(
+                                              fontSize: 16, color: greyColor)),
                                 ),
                               ]),
                             ),
@@ -7351,7 +7387,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                       return Container(
                         padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
                         decoration: BoxDecoration(
-                          color: widgetNavColor,
+                          color: circleColor,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: exercisesBox
@@ -7360,12 +7396,12 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                 1
                             ? Text(
                                 "Weight decreases by ${exercisesBox.getAt(widget.index)!.deloadPercent}% if you failed to complete all sets on this exercise the last time.",
-                                style: const TextStyle(
-                                    fontSize: 14, color: Colors.grey))
+                                style:
+                                    TextStyle(fontSize: 14, color: greyColor))
                             : Text(
                                 "Weight decreases by ${exercisesBox.getAt(widget.index)!.deloadPercent}% if you failed to complete all sets on this exercise the last ${exercisesBox.getAt(widget.index)!.deloadFrequency} times.",
-                                style: const TextStyle(
-                                    fontSize: 14, color: Colors.grey)),
+                                style:
+                                    TextStyle(fontSize: 14, color: greyColor)),
                       );
                     }),
               ))
@@ -8136,14 +8172,20 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                 indivWorkoutsBox
                                                     .getAt(widget.index)!
                                                     .repsPlanned[i]
-                                            ? Text(indivWorkoutsBox
-                                                .getAt(widget.index)!
-                                                .repsPlanned[i]
-                                                .toString())
-                                            : Text(indivWorkoutsBox
-                                                .getAt(widget.index)!
-                                                .repsCompleted[i][j]
-                                                .toString()),
+                                            ? Text(
+                                                indivWorkoutsBox
+                                                    .getAt(widget.index)!
+                                                    .repsPlanned[i]
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                    fontSize: 18))
+                                            : Text(
+                                                indivWorkoutsBox
+                                                    .getAt(widget.index)!
+                                                    .repsCompleted[i][j]
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                    fontSize: 18)),
                                         color: indivWorkoutsBox
                                                     .getAt(widget.index)!
                                                     .repsCompleted[i][j] >
@@ -8152,7 +8194,14 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                     .repsPlanned[i]
                                             ? circleColor
                                             : redColor,
-                                        textColor: Colors.white,
+                                        textColor: indivWorkoutsBox
+                                                    .getAt(widget.index)!
+                                                    .repsCompleted[i][j] >
+                                                indivWorkoutsBox
+                                                    .getAt(widget.index)!
+                                                    .repsPlanned[i]
+                                            ? emptyCircleTextColor
+                                            : Colors.white,
                                         onPressed: () {
                                           final tempIndiv =
                                               Hive.box<IndivWorkout>(
@@ -8537,10 +8586,10 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   autofocus: true,
                   keyboardType: TextInputType.number,
                   textAlignVertical: TextAlignVertical.bottom,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Weight",
-                    labelStyle: TextStyle(fontSize: 20, color: Colors.white),
-                    contentPadding: EdgeInsets.only(bottom: 0),
+                    labelStyle: TextStyle(fontSize: 20, color: textColor),
+                    contentPadding: const EdgeInsets.only(bottom: 0),
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
                   ),
@@ -8559,10 +8608,10 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   autofocus: true,
                   keyboardType: TextInputType.number,
                   textAlignVertical: TextAlignVertical.bottom,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Sets",
-                    labelStyle: TextStyle(fontSize: 20, color: Colors.white),
-                    contentPadding: EdgeInsets.only(bottom: 0),
+                    labelStyle: TextStyle(fontSize: 20, color: textColor),
+                    contentPadding: const EdgeInsets.only(bottom: 0),
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
                   ),
@@ -8581,10 +8630,10 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   autofocus: true,
                   keyboardType: TextInputType.number,
                   textAlignVertical: TextAlignVertical.bottom,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Reps",
-                    labelStyle: TextStyle(fontSize: 20, color: Colors.white),
-                    contentPadding: EdgeInsets.only(bottom: 0),
+                    labelStyle: TextStyle(fontSize: 20, color: textColor),
+                    contentPadding: const EdgeInsets.only(bottom: 0),
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
                   ),
