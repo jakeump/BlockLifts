@@ -98,6 +98,7 @@ int workoutIndex = 0;
 int exerciseIndex = 0;
 int setIndex = 0;
 late bool failed;
+bool changesMade = false;
 
 late Color headerColor;
 late Color backColor;
@@ -579,6 +580,9 @@ class MyApp extends StatelessWidget {
               useMaterial3: true,
               backgroundColor: Colors.white,
               brightness: Brightness.light,
+              dialogTheme: DialogTheme(
+                backgroundColor: tileColor,
+              ),
               outlinedButtonTheme: OutlinedButtonThemeData(
                 style: OutlinedButton.styleFrom(
                     side:
@@ -593,6 +597,9 @@ class MyApp extends StatelessWidget {
               useMaterial3: true,
               backgroundColor: Colors.black,
               brightness: Brightness.dark,
+              dialogTheme: DialogTheme(
+                backgroundColor: tileColor,
+              ),
               outlinedButtonTheme: OutlinedButtonThemeData(
                 style: OutlinedButton.styleFrom(
                     side:
@@ -826,18 +833,20 @@ class _HomePageState extends State<HomePage> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Allow Notifications', style: TextStyle(fontSize: 20)),
-              content: const Text(
-                  'BlockLifts would like to send you notifications during workouts', style: TextStyle(fontSize: 15)),
+              title: Text('Allow Notifications',
+                  style: TextStyle(fontSize: 20, color: textColor)),
+              content: Text(
+                  'BlockLifts would like to send you notifications during workouts',
+                  style: TextStyle(fontSize: 15, color: textColor)),
               actions: [
                 TextButton(
                   onPressed: () {
                     boolBox.putAt(4, true);
                     Navigator.pop(context);
                   },
-                  child: const Text(
+                  child: Text(
                     'Don\'t Allow',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    style: TextStyle(fontSize: 16, color: textColor),
                   ),
                 ),
                 TextButton(
@@ -846,19 +855,18 @@ class _HomePageState extends State<HomePage> {
                         .requestPermissionToSendNotifications()
                         .then((_) => Navigator.pop(context));
                   },
-                  child: const Text(
+                  child: Text(
                     'Allow',
                     style: TextStyle(
-                      color: Colors.white,
                       fontSize: 16,
+                      color: textColor,
                     ),
                   ),
                 ),
               ],
             ),
           );
-        }
-        else {
+        } else {
           boolBox.putAt(4, true);
         }
       },
@@ -1653,9 +1661,43 @@ class _SettingsState extends State<Settings> {
                     child: Text("Reset", style: TextStyle(color: redColor))),
               ),
               onPressed: () {
-                setState(() {
-                  defaultState();
-                });
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    backgroundColor: tileColor,
+                    title: Text('Reset All Data',
+                        style: TextStyle(fontSize: 20, color: textColor)),
+                    content: Text(
+                        'This will permanently erase all data from this device, including your workouts and settings. The app will return to defaults.',
+                        style: TextStyle(fontSize: 15, color: textColor)),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(fontSize: 16, color: redColor),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            defaultState();
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          'Reset',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: redColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
               }),
         )
       ]),
@@ -3752,6 +3794,7 @@ class _PostWorkoutNotesState extends State<PostWorkoutNotesPage> {
               focusNode: FocusNode(),
               controller: _myController,
               onChanged: (val) {
+                changesMade = true;
                 postWorkoutTempNote = _myController.text;
               },
             )));
@@ -4591,8 +4634,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                             child: MaterialButton(
                                               elevation: 0,
                                               splashColor: Colors.transparent,
-                                              animationDuration:
-                                                  const Duration(milliseconds: 0),
+                                              animationDuration: const Duration(
+                                                  milliseconds: 0),
                                               highlightColor:
                                                   Colors.transparent,
                                               shape: const CircleBorder(
@@ -7964,7 +8007,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
     dateinput.text = indivWorkoutsBox.getAt(widget.index)!.date.substring(5);
     dateChange = indivWorkoutsBox.getAt(widget.index)!.date;
     originalDate = indivWorkoutsBox.getAt(widget.index)!.date;
-    tempDate = DateTime.parse(indivWorkoutsBox.getAt(widget.index)!.sortableDate);
+    tempDate =
+        DateTime.parse(indivWorkoutsBox.getAt(widget.index)!.sortableDate);
     postTempBodyWeight = indivWorkoutsBox.getAt(widget.index)!.bodyWeight;
     // yet again roundabout way of making a copy
     for (int i = 0;
@@ -8018,7 +8062,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                 DateTime? pickedDate = await showDatePicker(
                                     context: context,
                                     helpText: "",
-                                    initialEntryMode: DatePickerEntryMode.calendarOnly,
+                                    initialEntryMode:
+                                        DatePickerEntryMode.calendarOnly,
                                     initialDate: tempDate,
                                     firstDate: DateTime(2000),
                                     lastDate: DateTime.now(),
@@ -8026,13 +8071,17 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                       return Theme(
                                         data: Theme.of(context).copyWith(
                                           colorScheme: ColorScheme.light(
-                                            primary: Colors.red, // header background color
-                                            onPrimary: Colors.white, // header text color
-                                            onSurface: textColor, // body text color
+                                            primary: Colors
+                                                .red, // header background color
+                                            onPrimary: Colors
+                                                .white, // header text color
+                                            onSurface:
+                                                textColor, // body text color
                                           ),
                                           textButtonTheme: TextButtonThemeData(
                                             style: TextButton.styleFrom(
-                                              primary: Colors.red, // button text color
+                                              primary: Colors
+                                                  .red, // button text color
                                             ),
                                           ),
                                         ),
@@ -8040,7 +8089,10 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                       );
                                     });
                                 setState(() {
-                                  tempDate = pickedDate!;
+                                  if (tempDate != pickedDate!) {
+                                    changesMade = true;
+                                  }
+                                  tempDate = pickedDate;
                                   dateinput.text = DateFormat('d MMM yyyy')
                                       .format(pickedDate);
                                   dateChange = DateFormat('E, d MMM yyyy')
@@ -8239,6 +8291,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                             ? emptyCircleTextColor
                                             : Colors.white,
                                         onPressed: () {
+                                          changesMade = true;
                                           final tempIndiv =
                                               Hive.box<IndivWorkout>(
                                                       'indivWorkoutsBox')
@@ -8507,6 +8560,14 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                         0.1 *
                                                                             scrollBodyWeightDec,
                                                               );
+                                                              if (postTempBodyWeight !=
+                                                                  indivWorkoutsBox
+                                                                      .getAt(widget
+                                                                          .index)!
+                                                                      .bodyWeight) {
+                                                                changesMade =
+                                                                    true;
+                                                              }
                                                               Navigator.of(
                                                                       context)
                                                                   .pop();
@@ -8552,9 +8613,45 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   alignment: Alignment.bottomRight,
                   child: TextButton(
                       onPressed: () {
-                        indivWorkoutsBox.deleteAt(widget.index);
-                        _calendarCounter.value++;
-                        Navigator.of(context).pop();
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Delete Workout',
+                                style:
+                                    TextStyle(fontSize: 20, color: textColor)),
+                            content: Text(
+                                'Are you sure you want to delete this workout?',
+                                style:
+                                    TextStyle(fontSize: 15, color: textColor)),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text(
+                                  'Cancel',
+                                  style:
+                                      TextStyle(fontSize: 16, color: redColor),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  indivWorkoutsBox.deleteAt(widget.index);
+                                  _calendarCounter.value++;
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text(
+                                  'Delete',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: redColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
                       },
                       child: const Text("Delete"),
                       style: TextButton.styleFrom(
@@ -8570,13 +8667,52 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
   }
 
   Future<bool> _onBackPressed() async {
-    // reverts to old reps completed, sets planned, reps planned, weights
-    indivWorkoutsBox.getAt(widget.index)!.repsCompleted =
-        widget.copyRepsCompleted;
-    indivWorkoutsBox.getAt(widget.index)!.setsPlanned = copySetsPlanned;
-    indivWorkoutsBox.getAt(widget.index)!.repsPlanned = copyRepsPlanned;
-    indivWorkoutsBox.getAt(widget.index)!.weights = copyWeights;
-    Navigator.of(context).pop();
+    if (changesMade) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Discard Changes',
+              style: TextStyle(fontSize: 20, color: textColor)),
+          content: Text(
+              'Going back will discard all the changes you\'ve made. Are you sure you want to proceed?',
+              style: TextStyle(fontSize: 15, color: textColor)),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'Cancel',
+                style: TextStyle(fontSize: 16, color: redColor),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                indivWorkoutsBox.getAt(widget.index)!.repsCompleted =
+                    widget.copyRepsCompleted;
+                indivWorkoutsBox.getAt(widget.index)!.setsPlanned =
+                    copySetsPlanned;
+                indivWorkoutsBox.getAt(widget.index)!.repsPlanned =
+                    copyRepsPlanned;
+                indivWorkoutsBox.getAt(widget.index)!.weights = copyWeights;
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Discard',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: redColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      Navigator.of(context).pop();
+    }
+    changesMade = false;
     return true;
   }
 
@@ -8708,6 +8844,10 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                             indivWorkoutsBox.getAt(idx)!.repsPlanned[exIdx];
                         int oldSets =
                             indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx];
+                        if (indivWorkoutsBox.getAt(idx)!.weights[exIdx] !=
+                            double.parse(_weightsController.text)) {
+                          changesMade = true;
+                        }
                         setState(() => {
                               indivWorkoutsBox.getAt(idx)!.weights[exIdx] =
                                   double.parse(_weightsController.text),
@@ -8720,6 +8860,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                       .getAt(idx)!
                                       .setsPlanned[exIdx])
                                 {
+                                  changesMade = true,
                                   for (int i = 0;
                                       i <
                                           indivWorkoutsBox
@@ -8742,6 +8883,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                       .getAt(idx)!
                                       .repsPlanned[exIdx])
                                 {
+                                  changesMade = true,
                                   indivWorkoutsBox
                                       .getAt(idx)!
                                       .repsCompleted[exIdx]
