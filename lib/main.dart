@@ -4590,6 +4590,11 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                             height: 50,
                                             child: MaterialButton(
                                               elevation: 0,
+                                              splashColor: Colors.transparent,
+                                              animationDuration:
+                                                  const Duration(milliseconds: 0),
+                                              highlightColor:
+                                                  Colors.transparent,
                                               shape: const CircleBorder(
                                                   side: BorderSide(
                                                       width: 1,
@@ -7948,6 +7953,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
   String originalDate = "";
   String dateChange = "";
   String sortableDateChange = "";
+  late DateTime tempDate;
 
   late final Box<IndivWorkout> indivWorkoutsBox;
 
@@ -7958,6 +7964,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
     dateinput.text = indivWorkoutsBox.getAt(widget.index)!.date.substring(5);
     dateChange = indivWorkoutsBox.getAt(widget.index)!.date;
     originalDate = indivWorkoutsBox.getAt(widget.index)!.date;
+    tempDate = DateTime.parse(indivWorkoutsBox.getAt(widget.index)!.sortableDate);
     postTempBodyWeight = indivWorkoutsBox.getAt(widget.index)!.bodyWeight;
     // yet again roundabout way of making a copy
     for (int i = 0;
@@ -8010,15 +8017,32 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                               onPressed: () async {
                                 DateTime? pickedDate = await showDatePicker(
                                     context: context,
-                                    initialDate: DateTime
-                                        .now(), // change to date of workout
-                                    firstDate: DateTime(
-                                        2000), // change to date of first workout
-                                    lastDate: DateTime.now());
-
+                                    helpText: "",
+                                    initialEntryMode: DatePickerEntryMode.calendarOnly,
+                                    initialDate: tempDate,
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime.now(),
+                                    builder: (context, child) {
+                                      return Theme(
+                                        data: Theme.of(context).copyWith(
+                                          colorScheme: ColorScheme.light(
+                                            primary: Colors.red, // header background color
+                                            onPrimary: Colors.white, // header text color
+                                            onSurface: textColor, // body text color
+                                          ),
+                                          textButtonTheme: TextButtonThemeData(
+                                            style: TextButton.styleFrom(
+                                              primary: Colors.red, // button text color
+                                            ),
+                                          ),
+                                        ),
+                                        child: child!,
+                                      );
+                                    });
                                 setState(() {
+                                  tempDate = pickedDate!;
                                   dateinput.text = DateFormat('d MMM yyyy')
-                                      .format(pickedDate!);
+                                      .format(pickedDate);
                                   dateChange = DateFormat('E, d MMM yyyy')
                                       .format(pickedDate);
                                   sortableDateChange =
@@ -8171,6 +8195,9 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                       height: 50,
                                       child: MaterialButton(
                                         elevation: 0,
+                                        splashColor: Colors.transparent,
+                                        animationDuration:
+                                            const Duration(milliseconds: 0),
                                         shape: const CircleBorder(
                                             side: BorderSide(
                                                 width: 1,
