@@ -99,6 +99,7 @@ int exerciseIndex = 0;
 int setIndex = 0;
 late bool failed;
 bool changesMade = false;
+bool workoutInProgress = false;
 
 late Color headerColor;
 late Color backColor;
@@ -660,35 +661,30 @@ class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
   @override
   _HomePageState createState() => _HomePageState();
-  // creating State Object of MyWidget
 }
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
   @override
   _HomeState createState() => _HomeState();
-  // creating State Object of MyWidget
 }
 
 class History extends StatefulWidget {
   const History({Key? key}) : super(key: key);
   @override
   _HistoryState createState() => _HistoryState();
-  // creating State Object of MyWidget
 }
 
 class Progress extends StatefulWidget {
   const Progress({Key? key}) : super(key: key);
   @override
   _ProgressState createState() => _ProgressState();
-  // creating State Object of MyWidget
 }
 
 class Settings extends StatefulWidget {
   const Settings({Key? key}) : super(key: key);
   @override
   _SettingsState createState() => _SettingsState();
-  // creating State Object of MyWidget
 }
 
 class GraphPage extends StatefulWidget {
@@ -711,7 +707,6 @@ class TimerPage extends StatefulWidget {
   const TimerPage({Key? key}) : super(key: key);
   @override
   _TimerState createState() => _TimerState();
-  // creating State Object of MyWidget
 }
 
 class SetTimerPage extends StatefulWidget {
@@ -720,42 +715,36 @@ class SetTimerPage extends StatefulWidget {
   const SetTimerPage(this.index, {Key? key}) : super(key: key);
   @override
   _SetTimerState createState() => _SetTimerState();
-  // creating State Object of MyWidget
 }
 
 class PlatesPage extends StatefulWidget {
   const PlatesPage({Key? key}) : super(key: key);
   @override
   _PlatesState createState() => _PlatesState();
-  // creating State Object of MyWidget
 }
 
 class ListPage extends StatefulWidget {
   const ListPage({Key? key}) : super(key: key);
   @override
   _ListState createState() => _ListState();
-  // creating State Object of MyWidget
 }
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({Key? key}) : super(key: key);
   @override
   _CalendarState createState() => _CalendarState();
-  // creating State Object of MyWidget
 }
 
 class NotesPage extends StatefulWidget {
   const NotesPage({Key? key}) : super(key: key);
   @override
   _NotesState createState() => _NotesState();
-  // creating State Object of MyWidget
 }
 
 class WorkoutNotesPage extends StatefulWidget {
   const WorkoutNotesPage({Key? key}) : super(key: key);
   @override
   _WorkoutNotesState createState() => _WorkoutNotesState();
-  // creating State Object of MyWidget
 }
 
 class PostWorkoutNotesPage extends StatefulWidget {
@@ -763,14 +752,12 @@ class PostWorkoutNotesPage extends StatefulWidget {
   const PostWorkoutNotesPage(this.index, {Key? key}) : super(key: key);
   @override
   _PostWorkoutNotesState createState() => _PostWorkoutNotesState();
-  // creating State Object of MyWidget
 }
 
 class Edit extends StatefulWidget {
   const Edit({Key? key}) : super(key: key);
   @override
   _EditState createState() => _EditState();
-  // creating State Object of MyWidget
 }
 
 class WorkoutPage extends StatefulWidget {
@@ -778,7 +765,6 @@ class WorkoutPage extends StatefulWidget {
   const WorkoutPage(this.index, {Key? key}) : super(key: key);
   @override
   _WorkoutPageState createState() => _WorkoutPageState();
-  // creating State Object of MyWidget
 }
 
 class EditWorkoutPage extends StatefulWidget {
@@ -786,7 +772,6 @@ class EditWorkoutPage extends StatefulWidget {
   const EditWorkoutPage(this.index, {Key? key}) : super(key: key);
   @override
   _EditWorkoutPageState createState() => _EditWorkoutPageState();
-  // creating State Object of MyWidget
 }
 
 class EditExercisePage extends StatefulWidget {
@@ -795,7 +780,6 @@ class EditExercisePage extends StatefulWidget {
   const EditExercisePage(this.index, {Key? key}) : super(key: key);
   @override
   _EditExercisePageState createState() => _EditExercisePageState();
-  // creating State Object of MyWidget
 }
 
 class IncrementsPage extends StatefulWidget {
@@ -804,7 +788,6 @@ class IncrementsPage extends StatefulWidget {
   const IncrementsPage(this.index, {Key? key}) : super(key: key);
   @override
   _IncrementsPageState createState() => _IncrementsPageState();
-  // creating State Object of MyWidget
 }
 
 class PostWorkoutEditPage extends StatefulWidget {
@@ -815,7 +798,6 @@ class PostWorkoutEditPage extends StatefulWidget {
       : super(key: key);
   @override
   _PostWorkoutEditState createState() => _PostWorkoutEditState();
-  // creating State Object of MyWidget
 }
 
 class _HomePageState extends State<HomePage> {
@@ -1030,7 +1012,9 @@ class _HomeState extends State<Home> {
               width: 150,
               height: 50,
               child: OutlinedButton(
-                child: const Text("Start Workout"),
+                child: workoutInProgress
+                    ? const Text("Workout In Progress")
+                    : const Text("Start Workout"),
                 style: OutlinedButton.styleFrom(
                   primary: Colors.white,
                   backgroundColor: redColor,
@@ -4222,878 +4206,984 @@ class _WorkoutPageState extends State<WorkoutPage> {
     }
   }
 
+  void checkWorkoutInProgress(int idx) {
+    workoutInProgress = false;
+    final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(idx);
+    if (tempNoteBox.getAt(0) != "") {
+      workoutInProgress = true;
+    }
+    for (int i = 0; i < workoutsBox.getAt(idx)!.exercises.length; ++i) {
+      for (int j = 0; j < workoutsBox.getAt(idx)!.exercises[i].sets; j++) {
+        if (tempWorkout!.exercises[i].repsCompleted[j] !=
+            tempWorkout.exercises[i].reps + 1) {
+          workoutInProgress = true;
+        }
+      }
+    }
+  }
+
+  void switchWorkout(int idx) {
+    setState(() {
+      tempNoteBox.putAt(0, "");
+      for (int j = 0; j < workoutsBox.getAt(idx)!.exercises.length; ++j) {
+        final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(idx);
+        tempWorkout!.exercises[j].repsCompleted.clear();
+        for (int k = 0; k < tempWorkout.exercises[j].sets; k++) {
+          // repsCompleted initialized with initial reps value
+          tempWorkout.exercises[j].repsCompleted
+              .add(workoutsBox.getAt(idx)!.exercises[j].reps + 1);
+          tempWorkout.save();
+        }
+        showTimer = false;
+      }
+      Navigator.of(context).pop();
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => WorkoutPage(idx)));
+    });
+    workoutInProgress = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     Workout? selectVal = workoutsBox.getAt(0);
-    return Scaffold(
-        backgroundColor: backColor,
-        appBar: AppBar(
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios),
-            iconSize: 18,
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          backgroundColor: headerColor,
-          title: Center(
-              child: SizedBox(
-                  height: 40,
-                  child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: circleColor,
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: Padding(
-                          padding: const EdgeInsets.only(left: 15, right: 10),
-                          child: DropdownButton(
-                            underline: const SizedBox(),
-                            isExpanded: false,
-                            items: workoutsList.map((Workout workout) {
-                              return DropdownMenuItem<Workout>(
-                                  value: workout, child: Text(workout.name));
-                            }).toList(),
-                            value: selectVal,
-                            selectedItemBuilder: (context) {
-                              return [
-                                SizedBox(
-                                    width: 200,
-                                    child: Align(
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                          workoutsList[widget.index].name,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis),
-                                    ))
-                              ];
-                            },
-                            onChanged: (Workout? w) {
-                              setState(() {
-                                // index of selection
-                                selectVal = w;
-                                int idx = workoutsList.indexOf(selectVal!);
-                                // do nothing if same selection
-                                if (idx == widget.index) {
-                                } else {
-                                  for (int j = 0;
-                                      j < workoutsList[idx].exercises.length;
-                                      ++j) {
-                                    final tempWorkout =
-                                        Hive.box<Workout>('workoutsBox')
-                                            .getAt(idx);
-                                    tempWorkout!.exercises[j].repsCompleted
-                                        .clear();
-                                    for (int k = 0;
-                                        k < tempWorkout.exercises[j].sets;
-                                        k++) {
-                                      // repsCompleted initialized with initial reps value
-                                      tempWorkout.exercises[j].repsCompleted
-                                          .add(workoutsBox
-                                                  .getAt(idx)!
-                                                  .exercises[j]
-                                                  .reps +
-                                              1);
-                                      tempWorkout.save();
-                                    }
-                                    showTimer = false;
-                                  }
-                                  Navigator.of(context).pop();
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => WorkoutPage(idx)));
-                                }
-                              });
-                            },
-                          ))))),
-          actions: <Widget>[
-            TextButton(
-              style: TextButton.styleFrom(
-                primary: redColor,
-                textStyle:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                alignment: Alignment.center,
+    return WillPopScope(
+        onWillPop: _onBackPressed,
+        child: Scaffold(
+            backgroundColor: backColor,
+            appBar: AppBar(
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios),
+                iconSize: 18,
+                onPressed: () {
+                  checkWorkoutInProgress(widget.index);
+                  Navigator.of(context).pop();
+                },
               ),
-              child: const Text("Finish"),
-              onPressed: () {
-                AwesomeNotifications().cancelAll();
-                widget.index == workoutsBox.length - 1
-                    ? counterBox.putAt(0, 0)
-                    : counterBox.putAt(
-                        0,
-                        widget.index +
-                            1); // loops counter according to selected workout
-                showTimer = false;
-                timer?.cancel();
+              backgroundColor: headerColor,
+              title: Center(
+                  child: SizedBox(
+                      height: 40,
+                      child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: circleColor,
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 15, right: 10),
+                              child: DropdownButton(
+                                underline: const SizedBox(),
+                                isExpanded: false,
+                                items: workoutsList.map((Workout workout) {
+                                  return DropdownMenuItem<Workout>(
+                                      value: workout,
+                                      child: Text(workout.name));
+                                }).toList(),
+                                value: selectVal,
+                                selectedItemBuilder: (context) {
+                                  return [
+                                    SizedBox(
+                                        width: 200,
+                                        child: Align(
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                              workoutsList[widget.index].name,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis),
+                                        ))
+                                  ];
+                                },
+                                onChanged: (Workout? w) {
+                                  checkWorkoutInProgress(widget.index);
+                                  selectVal = w;
+                                  int idx = workoutsList.indexOf(selectVal!);
+                                  if (idx != widget.index) {
+                                    if (workoutInProgress) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          backgroundColor: tileColor,
+                                          title: Text('Switch Workout?',
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: textColor)),
+                                          content: Text(
+                                              'This will delete this workout, erasing all sets and notes entered.',
+                                              style: TextStyle(
+                                                  fontSize: 15,
+                                                  color: textColor)),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              },
+                                              child: const Text(
+                                                'Cancel',
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: redColor),
+                                              ),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                                switchWorkout(idx);
+                                              },
+                                              child: const Text(
+                                                'Switch',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: redColor,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    } else {
+                                      switchWorkout(idx);
+                                    }
+                                  }
+                                },
+                              ))))),
+              actions: <Widget>[
+                TextButton(
+                  style: TextButton.styleFrom(
+                    primary: redColor,
+                    textStyle: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                    alignment: Alignment.center,
+                  ),
+                  child: const Text("Finish"),
+                  onPressed: () {
+                    AwesomeNotifications().cancelAll();
+                    widget.index == workoutsBox.length - 1
+                        ? counterBox.putAt(0, 0)
+                        : counterBox.putAt(
+                            0,
+                            widget.index +
+                                1); // loops counter according to selected workout
+                    showTimer = false;
+                    timer?.cancel();
 
-                String name = workoutsBox.getAt(widget.index)!.name;
-                DateTime now = DateTime.now();
-                String date = DateFormat('E, d MMM yyyy').format(now);
-                String sortableDate = DateFormat('yyyyMMdd').format(now);
-                List<String> exercisesCompleted = [];
-                List<double> weights = [];
-                List<int> repsPlanned = [];
-                List<int> setsPlanned = [];
-                List<List<int>> repsCompleted = [];
+                    String name = workoutsBox.getAt(widget.index)!.name;
+                    DateTime now = DateTime.now();
+                    String date = DateFormat('E, d MMM yyyy').format(now);
+                    String sortableDate = DateFormat('yyyyMMdd').format(now);
+                    List<String> exercisesCompleted = [];
+                    List<double> weights = [];
+                    List<int> repsPlanned = [];
+                    List<int> setsPlanned = [];
+                    List<List<int>> repsCompleted = [];
 
-                for (int i = 0;
-                    i < workoutsBox.getAt(widget.index)!.exercises.length;
-                    i++) {
-                  bool exerciseFailed = false;
-
-                  exercisesCompleted
-                      .add(workoutsBox.getAt(widget.index)!.exercises[i].name);
-                  weights.add(
-                      workoutsBox.getAt(widget.index)!.exercises[i].weight);
-                  repsPlanned
-                      .add(workoutsBox.getAt(widget.index)!.exercises[i].reps);
-                  setsPlanned
-                      .add(workoutsBox.getAt(widget.index)!.exercises[i].sets);
-
-                  // extremely weird error (appeared to be pass-by-reference
-                  // with the repsCompleted, despite that not being possible)
-                  // this is the roundabout solution I found
-                  repsCompleted.add([0]);
-                  repsCompleted[i].add(workoutsBox
-                      .getAt(widget.index)!
-                      .exercises[i]
-                      .repsCompleted[0]);
-                  repsCompleted[i].removeAt(0);
-
-                  final tempWorkout =
-                      Hive.box<Workout>('workoutsBox').getAt(widget.index);
-
-                  if (tempWorkout!.exercises[i].repsCompleted[0] !=
-                      tempWorkout.exercises[i].reps) {
-                    exerciseFailed = true;
-                  }
-                  for (int j = 1;
-                      j < tempWorkout.exercises[i].repsCompleted.length;
-                      j++) {
-                    repsCompleted[i]
-                        .add(tempWorkout.exercises[i].repsCompleted[j]);
-
-                    if (tempWorkout.exercises[i].repsCompleted[j] !=
-                        tempWorkout.exercises[i].reps) {
-                      exerciseFailed = true;
-                    }
-                  }
-
-                  tempWorkout.exercises[i].repsCompleted.clear();
-                  String name = tempWorkout.exercises[i].name;
-                  tempWorkout.save();
-
-                  int exIdx = 0;
-                  for (int i = 0; i < exercisesBox.length; i++) {
-                    if (exercisesBox.getAt(i)!.name == name) {
-                      exIdx = i;
-                    }
-                  }
-
-                  if (exerciseFailed == true) {
-                    // deloads
-                    if (exercisesBox.getAt(exIdx)!.deload &&
-                        exercisesBox.getAt(exIdx)!.failed + 1 >=
-                            exercisesBox.getAt(exIdx)!.deloadFrequency) {
-                      exercisesBox.getAt(exIdx)!.failed = 0;
-                      exercisesBox.getAt(exIdx)!.success = 0;
-                      decrementWeight(exIdx);
-                      exercisesBox.getAt(exIdx)!.save();
-
-                      // because of how Hive works, we also have to
-                      // go through each individual workout
-                      // inefficient, but I can't find a better way
-                      for (int i = 0; i < workoutsBox.length; i++) {
-                        final tempWorkout =
-                            Hive.box<Workout>('workoutsBox').getAt(i);
-                        for (int j = 0;
-                            j < tempWorkout!.exercises.length;
-                            j++) {
-                          if (tempWorkout.exercises[j].name == name) {
-                            tempWorkout.exercises[j].weight =
-                                exercisesBox.getAt(exIdx)!.weight;
-                          }
-                          tempWorkout.save();
-                        }
-                      }
-                    }
-                    // increments failure counter, not yet at deload
-                    else {
-                      exercisesBox.getAt(exIdx)!.success = 0;
-                      exercisesBox.getAt(exIdx)!.failed += 1;
-                      exercisesBox.getAt(exIdx)!.save();
-                    }
-                  }
-                  // increment for all exercises with the same name
-                  // if success count matches increment frequency
-                  // and overload is on
-                  else if (exerciseFailed == false) {
-                    // increments for all and resets success counter
-                    if (exercisesBox.getAt(exIdx)!.overload &&
-                        exercisesBox.getAt(exIdx)!.success + 1 >=
-                            exercisesBox.getAt(exIdx)!.incrementFrequency) {
-                      exercisesBox.getAt(exIdx)!.weight +=
-                          exercisesBox.getAt(exIdx)!.increment;
-                      exercisesBox.getAt(exIdx)!.success = 0;
-                      exercisesBox.getAt(exIdx)!.failed = 0;
-                      exercisesBox.getAt(exIdx)!.save();
-
-                      for (int i = 0; i < workoutsBox.length; i++) {
-                        final tempWorkout =
-                            Hive.box<Workout>('workoutsBox').getAt(i);
-                        for (int j = 0;
-                            j < tempWorkout!.exercises.length;
-                            j++) {
-                          if (tempWorkout.exercises[j].name == name) {
-                            tempWorkout.exercises[j].weight =
-                                exercisesBox.getAt(exIdx)!.weight;
-                          }
-                          tempWorkout.save();
-                        }
-                      }
-                    }
-                    // increments success counter, but does not add weight because
-                    // not at frequency to increment yet
-                    else {
-                      exercisesBox.getAt(exIdx)!.success += 1;
-                      exercisesBox.getAt(exIdx)!.failed = 0;
-                      exercisesBox.getAt(exIdx)!.save();
-                    }
-                  }
-                }
-
-                indivWorkoutsBox.add(IndivWorkout(
-                    name,
-                    date,
-                    sortableDate,
-                    exercisesCompleted,
-                    weights,
-                    repsPlanned,
-                    setsPlanned,
-                    repsCompleted,
-                    tempNoteBox.getAt(0)!,
-                    tempBodyWeightBox.getAt(0)!));
-
-                tempNoteBox.putAt(0, ""); // clears note for next workout
-
-                _counter.value++;
-                _progressCounter.value++;
-                _calendarCounter.value++;
-
-                for (int i = 0; i < workoutsBox.length; i++) {
-                  final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(i);
-                  tempWorkout!.isInitialized = false;
-
-                  for (int j = 0; j < tempWorkout.exercises.length; j++) {
-                    tempWorkout.exercises[j].repsCompleted.clear();
-                    tempWorkout.save();
-                  }
-                }
-
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        ),
-        body: Container(
-            padding: const EdgeInsets.all(10),
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.76,
-            ),
-            child: Column(children: <Widget>[
-              Flexible(
-                  child: ListView(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      children: <Widget>[
                     for (int i = 0;
                         i < workoutsBox.getAt(widget.index)!.exercises.length;
-                        i++)
-                      Column(children: <Widget>[
-                        Row(children: <Widget>[
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.only(left: 15),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                    workoutsBox
-                                        .getAt(widget.index)!
-                                        .exercises[i]
-                                        .name,
-                                    style: const TextStyle(
-                                      fontSize: 17,
-                                    )),
+                        i++) {
+                      bool exerciseFailed = false;
+
+                      exercisesCompleted.add(
+                          workoutsBox.getAt(widget.index)!.exercises[i].name);
+                      weights.add(
+                          workoutsBox.getAt(widget.index)!.exercises[i].weight);
+                      repsPlanned.add(
+                          workoutsBox.getAt(widget.index)!.exercises[i].reps);
+                      setsPlanned.add(
+                          workoutsBox.getAt(widget.index)!.exercises[i].sets);
+
+                      // extremely weird error (appeared to be pass-by-reference
+                      // with the repsCompleted, despite that not being possible)
+                      // this is the roundabout solution I found
+                      repsCompleted.add([0]);
+                      repsCompleted[i].add(workoutsBox
+                          .getAt(widget.index)!
+                          .exercises[i]
+                          .repsCompleted[0]);
+                      repsCompleted[i].removeAt(0);
+
+                      final tempWorkout =
+                          Hive.box<Workout>('workoutsBox').getAt(widget.index);
+
+                      if (tempWorkout!.exercises[i].repsCompleted[0] !=
+                          tempWorkout.exercises[i].reps) {
+                        exerciseFailed = true;
+                      }
+                      for (int j = 1;
+                          j < tempWorkout.exercises[i].repsCompleted.length;
+                          j++) {
+                        repsCompleted[i]
+                            .add(tempWorkout.exercises[i].repsCompleted[j]);
+
+                        if (tempWorkout.exercises[i].repsCompleted[j] !=
+                            tempWorkout.exercises[i].reps) {
+                          exerciseFailed = true;
+                        }
+                      }
+
+                      tempWorkout.exercises[i].repsCompleted.clear();
+                      String name = tempWorkout.exercises[i].name;
+                      tempWorkout.save();
+
+                      int exIdx = 0;
+                      for (int i = 0; i < exercisesBox.length; i++) {
+                        if (exercisesBox.getAt(i)!.name == name) {
+                          exIdx = i;
+                        }
+                      }
+
+                      if (exerciseFailed == true) {
+                        // deloads
+                        if (exercisesBox.getAt(exIdx)!.deload &&
+                            exercisesBox.getAt(exIdx)!.failed + 1 >=
+                                exercisesBox.getAt(exIdx)!.deloadFrequency) {
+                          exercisesBox.getAt(exIdx)!.failed = 0;
+                          exercisesBox.getAt(exIdx)!.success = 0;
+                          decrementWeight(exIdx);
+                          exercisesBox.getAt(exIdx)!.save();
+
+                          // because of how Hive works, we also have to
+                          // go through each individual workout
+                          // inefficient, but I can't find a better way
+                          for (int i = 0; i < workoutsBox.length; i++) {
+                            final tempWorkout =
+                                Hive.box<Workout>('workoutsBox').getAt(i);
+                            for (int j = 0;
+                                j < tempWorkout!.exercises.length;
+                                j++) {
+                              if (tempWorkout.exercises[j].name == name) {
+                                tempWorkout.exercises[j].weight =
+                                    exercisesBox.getAt(exIdx)!.weight;
+                              }
+                              tempWorkout.save();
+                            }
+                          }
+                        }
+                        // increments failure counter, not yet at deload
+                        else {
+                          exercisesBox.getAt(exIdx)!.success = 0;
+                          exercisesBox.getAt(exIdx)!.failed += 1;
+                          exercisesBox.getAt(exIdx)!.save();
+                        }
+                      }
+                      // increment for all exercises with the same name
+                      // if success count matches increment frequency
+                      // and overload is on
+                      else if (exerciseFailed == false) {
+                        // increments for all and resets success counter
+                        if (exercisesBox.getAt(exIdx)!.overload &&
+                            exercisesBox.getAt(exIdx)!.success + 1 >=
+                                exercisesBox.getAt(exIdx)!.incrementFrequency) {
+                          exercisesBox.getAt(exIdx)!.weight +=
+                              exercisesBox.getAt(exIdx)!.increment;
+                          exercisesBox.getAt(exIdx)!.success = 0;
+                          exercisesBox.getAt(exIdx)!.failed = 0;
+                          exercisesBox.getAt(exIdx)!.save();
+
+                          for (int i = 0; i < workoutsBox.length; i++) {
+                            final tempWorkout =
+                                Hive.box<Workout>('workoutsBox').getAt(i);
+                            for (int j = 0;
+                                j < tempWorkout!.exercises.length;
+                                j++) {
+                              if (tempWorkout.exercises[j].name == name) {
+                                tempWorkout.exercises[j].weight =
+                                    exercisesBox.getAt(exIdx)!.weight;
+                              }
+                              tempWorkout.save();
+                            }
+                          }
+                        }
+                        // increments success counter, but does not add weight because
+                        // not at frequency to increment yet
+                        else {
+                          exercisesBox.getAt(exIdx)!.success += 1;
+                          exercisesBox.getAt(exIdx)!.failed = 0;
+                          exercisesBox.getAt(exIdx)!.save();
+                        }
+                      }
+                    }
+
+                    indivWorkoutsBox.add(IndivWorkout(
+                        name,
+                        date,
+                        sortableDate,
+                        exercisesCompleted,
+                        weights,
+                        repsPlanned,
+                        setsPlanned,
+                        repsCompleted,
+                        tempNoteBox.getAt(0)!,
+                        tempBodyWeightBox.getAt(0)!));
+
+                    tempNoteBox.putAt(0, ""); // clears note for next workout
+
+                    _counter.value++;
+                    _progressCounter.value++;
+                    _calendarCounter.value++;
+
+                    for (int i = 0; i < workoutsBox.length; i++) {
+                      final tempWorkout =
+                          Hive.box<Workout>('workoutsBox').getAt(i);
+                      tempWorkout!.isInitialized = false;
+
+                      for (int j = 0; j < tempWorkout.exercises.length; j++) {
+                        tempWorkout.exercises[j].repsCompleted.clear();
+                        tempWorkout.save();
+                      }
+                    }
+
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+            body: Container(
+                padding: const EdgeInsets.all(10),
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.76,
+                ),
+                child: Column(children: <Widget>[
+                  Flexible(
+                      child: ListView(
+                          scrollDirection: Axis.vertical,
+                          shrinkWrap: true,
+                          children: <Widget>[
+                        for (int i = 0;
+                            i <
+                                workoutsBox
+                                    .getAt(widget.index)!
+                                    .exercises
+                                    .length;
+                            i++)
+                          Column(children: <Widget>[
+                            Row(children: <Widget>[
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.only(left: 15),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                        workoutsBox
+                                            .getAt(widget.index)!
+                                            .exercises[i]
+                                            .name,
+                                        style: const TextStyle(
+                                          fontSize: 17,
+                                        )),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                          Expanded(
-                              child: Align(
-                                  alignment: Alignment.centerRight,
-                                  child: GestureDetector(
-                                      onTap: () {
-                                        for (int j = 0;
-                                            j < exercisesBox.length;
-                                            j++) {
-                                          if (exercisesBox.getAt(j)!.name ==
+                              Expanded(
+                                  child: Align(
+                                      alignment: Alignment.centerRight,
+                                      child: GestureDetector(
+                                          onTap: () {
+                                            for (int j = 0;
+                                                j < exercisesBox.length;
+                                                j++) {
+                                              if (exercisesBox.getAt(j)!.name ==
+                                                  workoutsBox
+                                                      .getAt(widget.index)!
+                                                      .exercises[i]
+                                                      .name) {
+                                                Navigator.of(context)
+                                                    .push(MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            EditExercisePage(
+                                                                j)))
+                                                    .then((value) {
+                                                  setState(() {});
+                                                });
+                                              }
+                                            }
+                                          },
+                                          child: Row(children: <Widget>[
+                                            if (workoutsBox
+                                                        .getAt(widget.index)!
+                                                        .exercises[i]
+                                                        .weight %
+                                                    1 ==
+                                                0)
+                                              Flexible(
+                                                  child: Align(
+                                                      alignment:
+                                                          Alignment.centerRight,
+                                                      child: Text(
+                                                          "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight ~/ 1}lb",
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize: 17,
+                                                          ))))
+                                            else
+                                              Expanded(
+                                                  child: Align(
+                                                      alignment:
+                                                          Alignment.centerRight,
+                                                      child: Text(
+                                                          "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight.toString()}lb",
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize:
+                                                                      17)))),
+                                            SizedBox(
+                                              width: 17,
+                                              child: IconButton(
+                                                onPressed: () {
+                                                  for (int j = 0;
+                                                      j < exercisesBox.length;
+                                                      j++) {
+                                                    if (exercisesBox
+                                                            .getAt(j)!
+                                                            .name ==
+                                                        workoutsBox
+                                                            .getAt(
+                                                                widget.index)!
+                                                            .exercises[i]
+                                                            .name) {
+                                                      Navigator.of(context)
+                                                          .push(MaterialPageRoute(
+                                                              builder: (context) =>
+                                                                  EditExercisePage(
+                                                                      j)))
+                                                          .then((value) {
+                                                        setState(() {});
+                                                      });
+                                                    }
+                                                  }
+                                                },
+                                                alignment: Alignment.centerLeft,
+                                                padding:
+                                                    const EdgeInsets.all(0),
+                                                splashColor: Colors.transparent,
+                                                highlightColor:
+                                                    Colors.transparent,
+                                                icon: const Icon(
+                                                    Icons.arrow_right_sharp),
+                                                color: redColor,
+                                                iconSize: 20,
+                                              ),
+                                            ),
+                                          ])))),
+                            ]),
+                            Container(
+                              height: 50,
+                              alignment: Alignment.centerLeft,
+                              child: ListView(
+                                  scrollDirection: Axis.horizontal,
+                                  children: <Widget>[
+                                    Row(children: <Widget>[
+                                      // one circle for each set, initialized with number of reps
+                                      for (int j = 0;
+                                          j <
                                               workoutsBox
                                                   .getAt(widget.index)!
                                                   .exercises[i]
-                                                  .name) {
-                                            Navigator.of(context)
-                                                .push(MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        EditExercisePage(j)))
-                                                .then((value) {
-                                              setState(() {});
-                                            });
-                                          }
-                                        }
-                                      },
-                                      child: Row(children: <Widget>[
-                                        if (workoutsBox
-                                                    .getAt(widget.index)!
-                                                    .exercises[i]
-                                                    .weight %
-                                                1 ==
-                                            0)
-                                          Flexible(
-                                              child: Align(
-                                                  alignment:
-                                                      Alignment.centerRight,
-                                                  child: Text(
-                                                      "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight ~/ 1}lb",
-                                                      style: const TextStyle(
-                                                        fontSize: 17,
-                                                      ))))
-                                        else
-                                          Expanded(
-                                              child: Align(
-                                                  alignment:
-                                                      Alignment.centerRight,
-                                                  child: Text(
-                                                      "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight.toString()}lb",
-                                                      style: const TextStyle(
-                                                          fontSize: 17)))),
-                                        SizedBox(
-                                          width: 17,
-                                          child: IconButton(
-                                            onPressed: () {
-                                              for (int j = 0;
-                                                  j < exercisesBox.length;
-                                                  j++) {
-                                                if (exercisesBox
-                                                        .getAt(j)!
-                                                        .name ==
-                                                    workoutsBox
-                                                        .getAt(widget.index)!
-                                                        .exercises[i]
-                                                        .name) {
-                                                  Navigator.of(context)
-                                                      .push(MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              EditExercisePage(
-                                                                  j)))
-                                                      .then((value) {
-                                                    setState(() {});
-                                                  });
-                                                }
-                                              }
-                                            },
-                                            alignment: Alignment.centerLeft,
-                                            padding: const EdgeInsets.all(0),
-                                            splashColor: Colors.transparent,
-                                            highlightColor: Colors.transparent,
-                                            icon: const Icon(
-                                                Icons.arrow_right_sharp),
-                                            color: redColor,
-                                            iconSize: 20,
-                                          ),
-                                        ),
-                                      ])))),
-                        ]),
-                        Container(
-                          height: 50,
-                          alignment: Alignment.centerLeft,
-                          child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: <Widget>[
-                                Row(children: <Widget>[
-                                  // one circle for each set, initialized with number of reps
-                                  for (int j = 0;
-                                      j <
-                                          workoutsBox
-                                              .getAt(widget.index)!
-                                              .exercises[i]
-                                              .sets;
-                                      j++)
-                                    // circle, onTap decrement, loops back to rep number
-                                    ValueListenableBuilder(
-                                        valueListenable: _circleCounter,
-                                        builder: (context, value, child) {
-                                          return SizedBox(
-                                            width: 78,
-                                            height: 50,
-                                            child: MaterialButton(
-                                              elevation: 0,
-                                              splashColor: Colors.transparent,
-                                              animationDuration: const Duration(
-                                                  milliseconds: 0),
-                                              highlightColor:
-                                                  Colors.transparent,
-                                              shape: const CircleBorder(
-                                                  side: BorderSide(
-                                                      width: 1,
-                                                      style: BorderStyle.none)),
-                                              child: workoutsBox
-                                                          .getAt(widget.index)!
-                                                          .exercises[i]
-                                                          .repsCompleted[j] >
-                                                      workoutsBox
-                                                          .getAt(widget.index)!
-                                                          .exercises[i]
-                                                          .reps
-                                                  ? Text(
-                                                      workoutsBox
-                                                          .getAt(widget.index)!
-                                                          .exercises[i]
-                                                          .reps
-                                                          .toString(),
-                                                      style: const TextStyle(
-                                                          fontSize: 18))
-                                                  : Text(
-                                                      workoutsBox
-                                                          .getAt(widget.index)!
-                                                          .exercises[i]
-                                                          .repsCompleted[j]
-                                                          .toString(),
-                                                      style: const TextStyle(
-                                                          fontSize: 18)),
-                                              color: workoutsBox
-                                                          .getAt(widget.index)!
-                                                          .exercises[i]
-                                                          .repsCompleted[j] >
-                                                      workoutsBox
-                                                          .getAt(widget.index)!
-                                                          .exercises[i]
-                                                          .reps
-                                                  ? circleColor
-                                                  : redColor,
-                                              textColor: workoutsBox
-                                                          .getAt(widget.index)!
-                                                          .exercises[i]
-                                                          .repsCompleted[j] >
-                                                      workoutsBox
-                                                          .getAt(widget.index)!
-                                                          .exercises[i]
-                                                          .reps
-                                                  ? emptyCircleTextColor
-                                                  : Colors.white,
-                                              onPressed: () {
-                                                workoutIndex = widget.index;
-                                                exerciseIndex = i;
-                                                setIndex = j - 1;
-                                                incrementCircles(
-                                                    widget.index, i, j, false);
-                                              },
-                                            ),
-                                          );
-                                        })
-                                ]),
-                              ]),
-                        ),
-                        const SizedBox(height: 10),
-                      ]),
-                  ])),
-              Container(
-                  padding: const EdgeInsets.only(top: 15, bottom: 15, left: 15),
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        const Expanded(
-                            child: Center(
-                                child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text("Body Weight",
-                                        style: TextStyle(
-                                          fontSize: 17,
-                                        ))))),
-                        Expanded(
-                            child: Center(
-                                child: GestureDetector(
-                                    onTap: () {
-                                      // sets initial scroll to weight
-                                      final _intController =
-                                          FixedExtentScrollController(
-                                              initialItem:
-                                                  tempBodyWeightBox.getAt(0)! ~/
+                                                  .sets;
+                                          j++)
+                                        // circle, onTap decrement, loops back to rep number
+                                        ValueListenableBuilder(
+                                            valueListenable: _circleCounter,
+                                            builder: (context, value, child) {
+                                              return SizedBox(
+                                                width: 78,
+                                                height: 50,
+                                                child: MaterialButton(
+                                                  elevation: 0,
+                                                  splashColor:
+                                                      Colors.transparent,
+                                                  animationDuration:
+                                                      const Duration(
+                                                          milliseconds: 0),
+                                                  highlightColor:
+                                                      Colors.transparent,
+                                                  shape: const CircleBorder(
+                                                      side: BorderSide(
+                                                          width: 1,
+                                                          style: BorderStyle
+                                                              .none)),
+                                                  child: workoutsBox
+                                                                  .getAt(widget
+                                                                      .index)!
+                                                                  .exercises[i]
+                                                                  .repsCompleted[
+                                                              j] >
+                                                          workoutsBox
+                                                              .getAt(
+                                                                  widget.index)!
+                                                              .exercises[i]
+                                                              .reps
+                                                      ? Text(
+                                                          workoutsBox
+                                                              .getAt(
+                                                                  widget.index)!
+                                                              .exercises[i]
+                                                              .reps
+                                                              .toString(),
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 18))
+                                                      : Text(
+                                                          workoutsBox
+                                                              .getAt(
+                                                                  widget.index)!
+                                                              .exercises[i]
+                                                              .repsCompleted[j]
+                                                              .toString(),
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize:
+                                                                      18)),
+                                                  color: workoutsBox
+                                                                  .getAt(widget
+                                                                      .index)!
+                                                                  .exercises[i]
+                                                                  .repsCompleted[
+                                                              j] >
+                                                          workoutsBox
+                                                              .getAt(
+                                                                  widget.index)!
+                                                              .exercises[i]
+                                                              .reps
+                                                      ? circleColor
+                                                      : redColor,
+                                                  textColor: workoutsBox
+                                                                  .getAt(widget
+                                                                      .index)!
+                                                                  .exercises[i]
+                                                                  .repsCompleted[
+                                                              j] >
+                                                          workoutsBox
+                                                              .getAt(
+                                                                  widget.index)!
+                                                              .exercises[i]
+                                                              .reps
+                                                      ? emptyCircleTextColor
+                                                      : Colors.white,
+                                                  onPressed: () {
+                                                    workoutIndex = widget.index;
+                                                    exerciseIndex = i;
+                                                    setIndex = j - 1;
+                                                    incrementCircles(
+                                                        widget.index,
+                                                        i,
+                                                        j,
+                                                        false);
+                                                  },
+                                                ),
+                                              );
+                                            })
+                                    ]),
+                                  ]),
+                            ),
+                            const SizedBox(height: 10),
+                          ]),
+                      ])),
+                  Container(
+                      padding:
+                          const EdgeInsets.only(top: 15, bottom: 15, left: 15),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            const Expanded(
+                                child: Center(
+                                    child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text("Body Weight",
+                                            style: TextStyle(
+                                              fontSize: 17,
+                                            ))))),
+                            Expanded(
+                                child: Center(
+                                    child: GestureDetector(
+                                        onTap: () {
+                                          // sets initial scroll to weight
+                                          final _intController =
+                                              FixedExtentScrollController(
+                                                  initialItem: tempBodyWeightBox
+                                                              .getAt(0)! ~/
                                                           1 -
                                                       50);
-                                      // annoying floating point precision: 100.6 - 100 = 0.599
-                                      // the +0.05 is a way around it
-                                      final _decController =
-                                          FixedExtentScrollController(
-                                              initialItem:
-                                                  (tempBodyWeightBox.getAt(0)! -
-                                                          (tempBodyWeightBox
-                                                                  .getAt(0)! ~/
-                                                              1) +
-                                                          0.05) *
-                                                      10 ~/
-                                                      1);
-                                      int scrollBodyWeightInt =
-                                          tempBodyWeightBox.getAt(0)! ~/ 1;
-                                      int scrollBodyWeightDec =
-                                          (tempBodyWeightBox.getAt(0)! -
-                                                  (tempBodyWeightBox
-                                                          .getAt(0)! ~/
-                                                      1)) *
-                                              10 ~/
-                                              1;
-                                      showDialog(
-                                          context: context,
-                                          builder: (context) => Dialog(
-                                              insetPadding:
-                                                  const EdgeInsets.all(10),
-                                              child: Container(
-                                                  padding:
-                                                      const EdgeInsets.all(20),
-                                                  child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: <Widget>[
-                                                        const Text("Weight",
-                                                            style: TextStyle(
-                                                              fontSize: 18,
-                                                            )),
-                                                        const SizedBox(
-                                                            height: 30),
-                                                        Flexible(
-                                                            child: Row(
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .center,
-                                                                children: <
-                                                                    Widget>[
-                                                              SizedBox(
-                                                                  height: 120,
-                                                                  width: 70,
-                                                                  child:
-                                                                      CupertinoPicker(
-                                                                    scrollController:
-                                                                        _intController,
-                                                                    children:
-                                                                        nums,
-                                                                    looping:
-                                                                        true,
-                                                                    diameterRatio:
-                                                                        1.25,
-                                                                    selectionOverlay:
-                                                                        Column(children: <
-                                                                            Widget>[
-                                                                      Container(
-                                                                          decoration: BoxDecoration(
-                                                                              border: Border(
-                                                                                  top: BorderSide(
-                                                                        color:
-                                                                            textColor,
-                                                                        width:
-                                                                            2,
-                                                                      )))),
-                                                                      const SizedBox(
-                                                                          height:
-                                                                              50),
-                                                                      Container(
-                                                                          decoration: BoxDecoration(
-                                                                              border: Border(
-                                                                                  top: BorderSide(
-                                                                        color:
-                                                                            textColor,
-                                                                        width:
-                                                                            2,
-                                                                      ))))
-                                                                    ]),
-                                                                    itemExtent:
-                                                                        75,
-                                                                    onSelectedItemChanged:
-                                                                        (index) =>
-                                                                            {
-                                                                      scrollBodyWeightInt =
-                                                                          index +
-                                                                              50,
-                                                                    },
-                                                                  )),
+                                          // annoying floating point precision: 100.6 - 100 = 0.599
+                                          // the +0.05 is a way around it
+                                          final _decController =
+                                              FixedExtentScrollController(
+                                                  initialItem:
+                                                      (tempBodyWeightBox
+                                                                  .getAt(0)! -
+                                                              (tempBodyWeightBox
+                                                                      .getAt(
+                                                                          0)! ~/
+                                                                  1) +
+                                                              0.05) *
+                                                          10 ~/
+                                                          1);
+                                          int scrollBodyWeightInt =
+                                              tempBodyWeightBox.getAt(0)! ~/ 1;
+                                          int scrollBodyWeightDec =
+                                              (tempBodyWeightBox.getAt(0)! -
+                                                      (tempBodyWeightBox
+                                                              .getAt(0)! ~/
+                                                          1)) *
+                                                  10 ~/
+                                                  1;
+                                          showDialog(
+                                              context: context,
+                                              builder: (context) => Dialog(
+                                                  insetPadding:
+                                                      const EdgeInsets.all(10),
+                                                  child: Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              20),
+                                                      child: Column(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: <Widget>[
+                                                            const Text("Weight",
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontSize: 18,
+                                                                )),
+                                                            const SizedBox(
+                                                                height: 30),
+                                                            Flexible(
+                                                                child: Row(
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .center,
+                                                                    children: <
+                                                                        Widget>[
+                                                                  SizedBox(
+                                                                      height:
+                                                                          120,
+                                                                      width: 70,
+                                                                      child:
+                                                                          CupertinoPicker(
+                                                                        scrollController:
+                                                                            _intController,
+                                                                        children:
+                                                                            nums,
+                                                                        looping:
+                                                                            true,
+                                                                        diameterRatio:
+                                                                            1.25,
+                                                                        selectionOverlay:
+                                                                            Column(
+                                                                                children: <Widget>[
+                                                                              Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                      border: Border(
+                                                                                          top: BorderSide(
+                                                                                color: textColor,
+                                                                                width: 2,
+                                                                              )))),
+                                                                              const SizedBox(height: 50),
+                                                                              Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                      border: Border(
+                                                                                          top: BorderSide(
+                                                                                color: textColor,
+                                                                                width: 2,
+                                                                              ))))
+                                                                            ]),
+                                                                        itemExtent:
+                                                                            75,
+                                                                        onSelectedItemChanged:
+                                                                            (index) =>
+                                                                                {
+                                                                          scrollBodyWeightInt =
+                                                                              index + 50,
+                                                                        },
+                                                                      )),
+                                                                  const SizedBox(
+                                                                    width: 20,
+                                                                    height: 45,
+                                                                    child:
+                                                                        Align(
+                                                                      alignment:
+                                                                          Alignment
+                                                                              .topCenter,
+                                                                      child: Text(
+                                                                          ".",
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontSize:
+                                                                                17,
+                                                                          )),
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(
+                                                                      height:
+                                                                          120,
+                                                                      width: 70,
+                                                                      child:
+                                                                          CupertinoPicker(
+                                                                        scrollController:
+                                                                            _decController,
+                                                                        children:
+                                                                            decs,
+                                                                        looping:
+                                                                            true,
+                                                                        diameterRatio:
+                                                                            1.25,
+                                                                        selectionOverlay:
+                                                                            Column(
+                                                                                children: <Widget>[
+                                                                              Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                      border: Border(
+                                                                                          top: BorderSide(
+                                                                                color: textColor,
+                                                                                width: 2,
+                                                                              )))),
+                                                                              const SizedBox(height: 50),
+                                                                              Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                      border: Border(
+                                                                                          top: BorderSide(
+                                                                                color: textColor,
+                                                                                width: 2,
+                                                                              ))))
+                                                                            ]),
+                                                                        itemExtent:
+                                                                            75,
+                                                                        onSelectedItemChanged:
+                                                                            (index) =>
+                                                                                {
+                                                                          scrollBodyWeightDec =
+                                                                              index,
+                                                                        },
+                                                                      )),
+                                                                  const SizedBox(
+                                                                    width: 20,
+                                                                    height: 40,
+                                                                    child:
+                                                                        Align(
+                                                                      alignment:
+                                                                          Alignment
+                                                                              .topCenter,
+                                                                      child: Text(
+                                                                          "lb",
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontSize:
+                                                                                14,
+                                                                          )),
+                                                                    ),
+                                                                  ),
+                                                                ])),
+                                                            const SizedBox(
+                                                                height: 30),
+                                                            Row(children: <
+                                                                Widget>[
                                                               const SizedBox(
-                                                                width: 20,
-                                                                height: 45,
-                                                                child: Align(
+                                                                  width: 187.4),
+                                                              TextButton(
+                                                                style: TextButton
+                                                                    .styleFrom(
+                                                                  primary:
+                                                                      redColor,
+                                                                  textStyle: const TextStyle(
+                                                                      fontSize:
+                                                                          16,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold),
                                                                   alignment:
                                                                       Alignment
-                                                                          .topCenter,
-                                                                  child: Text(
-                                                                      ".",
-                                                                      style:
-                                                                          TextStyle(
-                                                                        fontSize:
-                                                                            17,
-                                                                      )),
+                                                                          .center,
                                                                 ),
+                                                                child: const Text(
+                                                                    "Cancel"),
+                                                                onPressed: () {
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop();
+                                                                },
                                                               ),
-                                                              SizedBox(
-                                                                  height: 120,
-                                                                  width: 70,
-                                                                  child:
-                                                                      CupertinoPicker(
-                                                                    scrollController:
-                                                                        _decController,
-                                                                    children:
-                                                                        decs,
-                                                                    looping:
-                                                                        true,
-                                                                    diameterRatio:
-                                                                        1.25,
-                                                                    selectionOverlay:
-                                                                        Column(children: <
-                                                                            Widget>[
-                                                                      Container(
-                                                                          decoration: BoxDecoration(
-                                                                              border: Border(
-                                                                                  top: BorderSide(
-                                                                        color:
-                                                                            textColor,
-                                                                        width:
-                                                                            2,
-                                                                      )))),
-                                                                      const SizedBox(
-                                                                          height:
-                                                                              50),
-                                                                      Container(
-                                                                          decoration: BoxDecoration(
-                                                                              border: Border(
-                                                                                  top: BorderSide(
-                                                                        color:
-                                                                            textColor,
-                                                                        width:
-                                                                            2,
-                                                                      ))))
-                                                                    ]),
-                                                                    itemExtent:
-                                                                        75,
-                                                                    onSelectedItemChanged:
-                                                                        (index) =>
-                                                                            {
-                                                                      scrollBodyWeightDec =
-                                                                          index,
-                                                                    },
-                                                                  )),
                                                               const SizedBox(
-                                                                width: 20,
-                                                                height: 40,
-                                                                child: Align(
+                                                                  width: 20),
+                                                              TextButton(
+                                                                style: TextButton
+                                                                    .styleFrom(
+                                                                  primary:
+                                                                      redColor,
+                                                                  textStyle: const TextStyle(
+                                                                      fontSize:
+                                                                          16,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold),
                                                                   alignment:
                                                                       Alignment
-                                                                          .topCenter,
-                                                                  child: Text(
-                                                                      "lb",
-                                                                      style:
-                                                                          TextStyle(
-                                                                        fontSize:
-                                                                            14,
-                                                                      )),
+                                                                          .center,
                                                                 ),
+                                                                child:
+                                                                    const Text(
+                                                                        "OK"),
+                                                                onPressed: () {
+                                                                  tempBodyWeightBox.putAt(
+                                                                      0,
+                                                                      scrollBodyWeightInt +
+                                                                          0.1 *
+                                                                              scrollBodyWeightDec);
+                                                                  setState(
+                                                                      () {});
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop();
+                                                                },
                                                               ),
-                                                            ])),
-                                                        const SizedBox(
-                                                            height: 30),
-                                                        Row(children: <Widget>[
-                                                          const SizedBox(
-                                                              width: 187.4),
-                                                          TextButton(
-                                                            style: TextButton
-                                                                .styleFrom(
-                                                              primary: redColor,
-                                                              textStyle: const TextStyle(
-                                                                  fontSize: 16,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold),
-                                                              alignment:
-                                                                  Alignment
-                                                                      .center,
-                                                            ),
-                                                            child: const Text(
-                                                                "Cancel"),
-                                                            onPressed: () {
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop();
-                                                            },
-                                                          ),
-                                                          const SizedBox(
-                                                              width: 20),
-                                                          TextButton(
-                                                            style: TextButton
-                                                                .styleFrom(
-                                                              primary: redColor,
-                                                              textStyle: const TextStyle(
-                                                                  fontSize: 16,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold),
-                                                              alignment:
-                                                                  Alignment
-                                                                      .center,
-                                                            ),
-                                                            child: const Text(
-                                                                "OK"),
-                                                            onPressed: () {
-                                                              tempBodyWeightBox.putAt(
-                                                                  0,
-                                                                  scrollBodyWeightInt +
-                                                                      0.1 *
-                                                                          scrollBodyWeightDec);
-                                                              setState(() {});
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop();
-                                                            },
-                                                          ),
-                                                        ]),
-                                                      ]))));
-                                    },
-                                    child: Align(
-                                        alignment: Alignment.centerRight,
-                                        child: Text(
-                                            "${tempBodyWeightBox.getAt(0)!.toString()}lb",
-                                            style: const TextStyle(
-                                              fontSize: 17,
-                                              color: redColor,
-                                              fontWeight: FontWeight.bold,
-                                            )))))),
-                      ])),
-            ])),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-        floatingActionButton: ValueListenableBuilder(
-            valueListenable: _timerCounter,
-            builder: (context, value, child) {
-              return Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    showTimer
-                        ? Container(
-                            width: double.infinity,
-                            height: MediaQuery.of(context).size.height * 0.1,
+                                                            ]),
+                                                          ]))));
+                                        },
+                                        child: Align(
+                                            alignment: Alignment.centerRight,
+                                            child: Text(
+                                                "${tempBodyWeightBox.getAt(0)!.toString()}lb",
+                                                style: const TextStyle(
+                                                  fontSize: 17,
+                                                  color: redColor,
+                                                  fontWeight: FontWeight.bold,
+                                                )))))),
+                          ])),
+                ])),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.endDocked,
+            floatingActionButton: ValueListenableBuilder(
+                valueListenable: _timerCounter,
+                builder: (context, value, child) {
+                  return Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        showTimer
+                            ? Container(
+                                width: double.infinity,
+                                height:
+                                    MediaQuery.of(context).size.height * 0.1,
+                                padding: const EdgeInsets.only(left: 25),
+                                child: Align(
+                                    alignment: Alignment.center,
+                                    child: Container(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.1,
+                                        width: double.infinity,
+                                        child: Row(children: <Widget>[
+                                          Flexible(
+                                              child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: [
+                                                buildTime(),
+                                              ])),
+                                          Flexible(
+                                            child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                children: [
+                                                  failed
+                                                      ? failureTimes.isEmpty
+                                                          ? const Text(
+                                                              "No failure timer")
+                                                          : failureTimes.last %
+                                                                      60 ==
+                                                                  0
+                                                              ? Text(
+                                                                  "Rest ${(failureTimes.last ~/ 60).toString()}min",
+                                                                  style: TextStyle(
+                                                                      color:
+                                                                          textColor))
+                                                              : Text(
+                                                                  "Rest ${(failureTimes.last ~/ 60).toString()}min ${(failureTimes.last % 60).toString()}s",
+                                                                  style: TextStyle(
+                                                                      color:
+                                                                          textColor))
+                                                      : successTimes.isEmpty
+                                                          ? const Text(
+                                                              "No success timer")
+                                                          : successTimes.last %
+                                                                      60 ==
+                                                                  0
+                                                              ? Text(
+                                                                  "Rest ${(successTimes.last ~/ 60).toString()}min",
+                                                                  style: TextStyle(
+                                                                      color:
+                                                                          textColor))
+                                                              : Text(
+                                                                  "Rest ${(successTimes.last ~/ 60).toString()}min ${(successTimes.last % 60).toString()}s",
+                                                                  style: TextStyle(
+                                                                      color:
+                                                                          textColor)),
+                                                  IconButton(
+                                                      icon: const Icon(
+                                                          Icons.close),
+                                                      onPressed: () => setState(
+                                                          () => showTimer =
+                                                              false)),
+                                                ]),
+                                          ),
+                                        ]),
+                                        decoration: BoxDecoration(
+                                          color: circleColor,
+                                        ))))
+                            : Container(),
+                        Container(
                             padding: const EdgeInsets.only(left: 25),
-                            child: Align(
-                                alignment: Alignment.center,
-                                child: Container(
-                                    height: MediaQuery.of(context).size.height *
-                                        0.1,
-                                    width: double.infinity,
-                                    child: Row(children: <Widget>[
-                                      Flexible(
-                                          child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                            buildTime(),
-                                          ])),
-                                      Flexible(
-                                        child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.end,
-                                            children: [
-                                              failed
-                                                  ? failureTimes.isEmpty
-                                                      ? const Text(
-                                                          "No failure timer")
-                                                      : failureTimes.last %
-                                                                  60 ==
-                                                              0
-                                                          ? Text(
-                                                              "Rest ${(failureTimes.last ~/ 60).toString()}min",
-                                                              style: TextStyle(
-                                                                  color:
-                                                                      textColor))
-                                                          : Text(
-                                                              "Rest ${(failureTimes.last ~/ 60).toString()}min ${(failureTimes.last % 60).toString()}s",
-                                                              style: TextStyle(
-                                                                  color:
-                                                                      textColor))
-                                                  : successTimes.isEmpty
-                                                      ? const Text(
-                                                          "No success timer")
-                                                      : successTimes.last %
-                                                                  60 ==
-                                                              0
-                                                          ? Text(
-                                                              "Rest ${(successTimes.last ~/ 60).toString()}min",
-                                                              style: TextStyle(
-                                                                  color:
-                                                                      textColor))
-                                                          : Text(
-                                                              "Rest ${(successTimes.last ~/ 60).toString()}min ${(successTimes.last % 60).toString()}s",
-                                                              style: TextStyle(
-                                                                  color:
-                                                                      textColor)),
-                                              IconButton(
-                                                  icon: const Icon(Icons.close),
-                                                  onPressed: () => setState(
-                                                      () => showTimer = false)),
-                                            ]),
-                                      ),
-                                    ]),
-                                    decoration: BoxDecoration(
-                                      color: circleColor,
-                                    ))))
-                        : Container(),
-                    Container(
-                        padding: const EdgeInsets.only(left: 25),
-                        child: Row(children: <Widget>[
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.bottomLeft,
-                              child: TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const WorkoutNotesPage()));
-                                  },
-                                  child: const Text("Note"),
-                                  style: TextButton.styleFrom(
-                                    primary: redColor,
-                                    textStyle: const TextStyle(
-                                        fontWeight: FontWeight.bold),
-                                    alignment: Alignment.bottomCenter,
-                                  )),
-                            ),
-                          ),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.bottomRight,
-                              child: TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .push(MaterialPageRoute(
-                                            builder: (context) =>
-                                                EditWorkoutPage(widget.index)))
-                                        .then((value) {
-                                      setState(() {});
-                                    });
-                                  },
-                                  child: const Text("Edit"),
-                                  style: TextButton.styleFrom(
-                                    primary: redColor,
-                                    textStyle: const TextStyle(
-                                        fontWeight: FontWeight.bold),
-                                    alignment: Alignment.bottomCenter,
-                                  )),
-                            ),
-                          ),
-                        ])),
-                  ]);
-            }));
+                            child: Row(children: <Widget>[
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.bottomLeft,
+                                  child: TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    const WorkoutNotesPage()));
+                                      },
+                                      child: const Text("Note"),
+                                      style: TextButton.styleFrom(
+                                        primary: redColor,
+                                        textStyle: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                        alignment: Alignment.bottomCenter,
+                                      )),
+                                ),
+                              ),
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context)
+                                            .push(MaterialPageRoute(
+                                                builder: (context) =>
+                                                    EditWorkoutPage(
+                                                        widget.index)))
+                                            .then((value) {
+                                          setState(() {});
+                                        });
+                                      },
+                                      child: const Text("Edit"),
+                                      style: TextButton.styleFrom(
+                                        primary: redColor,
+                                        textStyle: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                        alignment: Alignment.bottomCenter,
+                                      )),
+                                ),
+                              ),
+                            ])),
+                      ]);
+                })));
+  }
+
+  Future<bool> _onBackPressed() async {
+    checkWorkoutInProgress(widget.index);
+    return true;
   }
 
   Widget buildTime() {
