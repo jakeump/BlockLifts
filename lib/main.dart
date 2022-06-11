@@ -12,6 +12,7 @@ import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:paged_vertical_calendar/paged_vertical_calendar.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:wakelock/wakelock.dart';
 
 part 'main.g.dart';
 
@@ -35,7 +36,7 @@ void main() async {
   // idx 0 is actual counter, 1 is temp counter
   await Hive.openBox<int>('counterBox');
   // boolBox contains: theme, timer, ring, vibration,
-  // deload, notifications, workout in progres
+  // notifications, workout in progres, keep awake
   await Hive.openBox<bool>('boolBox');
   await Hive.openBox<TimerMap>('successTimerBox');
   await Hive.openBox<TimerMap>('failTimerBox');
@@ -330,6 +331,7 @@ void defaultState() async {
   boolBox.add(true);
   boolBox.add(false);
   boolBox.add(false);
+  boolBox.add(true);
 
   Box<TimerMap> successTimerBox = Hive.box<TimerMap>('successTimerBox');
   successTimerBox.deleteAll(successTimerBox.keys);
@@ -1606,6 +1608,20 @@ class _SettingsState extends State<Settings> {
     }
   }
 
+  void toggleSwitch2(bool value) {
+    if (boolBox.getAt(6) == false) {
+      setState(() {
+        boolBox.putAt(6, true);
+      });
+      _themeCounter.value++;
+      _calendarCounter.value++;
+    } else {
+      setState(() {
+        boolBox.putAt(6, false);
+      });
+    }
+  }
+
   String platesToString() {
     String output = '';
     for (int i = 0; i < platesBox.length; ++i) {
@@ -2073,6 +2089,42 @@ class _SettingsState extends State<Settings> {
             },
           ),
         ),        
+        SizedBox(
+          height: 80,
+          width: double.infinity,
+          child: TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child:
+                        Text("Keep Screen Awake", style: TextStyle(color: textColor)),
+                  ),
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Switch(
+                      inactiveThumbColor: greyColor,
+                      inactiveTrackColor:
+                          const Color.fromARGB(255, 207, 207, 207),
+                      activeColor: activeSwitchColor,
+                      activeTrackColor: greyColor,
+                      value: boolBox.getAt(6)!,
+                      onChanged: toggleSwitch2,
+                    ),
+                  ),
+                ),
+              ]),
+            ),
+            onPressed: (() => toggleSwitch2(false)),
+          ),
+        ),
         SizedBox(
           height: 80,
           width: double.infinity,
@@ -4696,6 +4748,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
   @override
   Widget build(BuildContext context) {
+    boolBox.getAt(6)! ? Wakelock.enable() : Wakelock.disable();
     Workout? selectVal = workoutsBox.getAt(0);
     return WillPopScope(
         onWillPop: _onBackPressed,
