@@ -3241,238 +3241,222 @@ class _ListState extends State<ListPage> {
               body: ValueListenableBuilder(
                   valueListenable: _counter,
                   builder: (context, value, child) {
-                    return ListView(
-                        padding: const EdgeInsets.all(10),
-                        scrollDirection: Axis.vertical,
-                        children: <Widget>[
-                          for (int i = indivWorkoutsBox.length - 1; i >= 0; i--)
-                            Column(children: <Widget>[
-                              GestureDetector(
-                                  onTap: () {
-                                    // workaround to fill (seems to be pass-by-reference, strangely again)
-                                    List<List<int>> copyRepsCompleted = [];
+                    return indivWorkoutsBox.length == 0
+                        ? Align(
+                            alignment: Alignment.topCenter,
+                            child: Container(
+                                padding: const EdgeInsets.only(top: 100),
+                                child: Text("No workouts logged",
+                                    style: TextStyle(color: textColor))))
+                        : ListView(
+                            padding: const EdgeInsets.all(10),
+                            scrollDirection: Axis.vertical,
+                            children: <Widget>[
+                                for (int i = indivWorkoutsBox.length - 1;
+                                    i >= 0;
+                                    i--)
+                                  Column(children: <Widget>[
+                                    GestureDetector(
+                                        onTap: () {
+                                          // workaround to fill (seems to be pass-by-reference, strangely again)
+                                          List<List<int>> copyRepsCompleted =
+                                              [];
 
-                                    for (int j = 0;
-                                        j <
-                                            indivWorkoutsBox
-                                                .getAt(i)!
-                                                .repsCompleted
-                                                .length;
-                                        j++) {
-                                      copyRepsCompleted.add([0]);
-                                      copyRepsCompleted[j].add(indivWorkoutsBox
-                                          .getAt(i)!
-                                          .repsCompleted[j][0]);
-                                      copyRepsCompleted[j].removeAt(0);
-                                      for (int k = 1;
-                                          k <
-                                              indivWorkoutsBox
-                                                  .getAt(i)!
-                                                  .repsCompleted[j]
-                                                  .length;
-                                          k++) {
-                                        copyRepsCompleted[j].add(
-                                            indivWorkoutsBox
-                                                .getAt(i)!
-                                                .repsCompleted[j][k]);
-                                      }
-                                    }
-                                    postWorkoutTempNote =
-                                        indivWorkoutsBox.getAt(i)!.note;
-                                    Navigator.of(context)
-                                        .push(MaterialPageRoute(
-                                            builder: (context) =>
-                                                PostWorkoutEditPage(
-                                                    i, copyRepsCompleted)))
-                                        .then((value) {
-                                      setState(() {});
-                                    });
-                                  },
-                                  child: Flexible(
-                                      child: Container(
-                                          padding: const EdgeInsets.all(20),
-                                          decoration: BoxDecoration(
-                                            border:
-                                                Border.all(color: borderColor),
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                            color: tileColor,
-                                          ),
-                                          alignment: Alignment.topLeft,
-                                          child: Column(children: [
-                                            Row(children: <Widget>[
-                                              Expanded(
-                                                child: Align(
-                                                  alignment:
-                                                      Alignment.centerLeft,
-                                                  child: Text(
-                                                      indivWorkoutsBox
-                                                          .getAt(i)!
-                                                          .name,
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        color: greyColor,
-                                                      )),
+                                          for (int j = 0;
+                                              j <
+                                                  indivWorkoutsBox
+                                                      .getAt(i)!
+                                                      .repsCompleted
+                                                      .length;
+                                              j++) {
+                                            copyRepsCompleted.add([0]);
+                                            copyRepsCompleted[j].add(
+                                                indivWorkoutsBox
+                                                    .getAt(i)!
+                                                    .repsCompleted[j][0]);
+                                            copyRepsCompleted[j].removeAt(0);
+                                            for (int k = 1;
+                                                k <
+                                                    indivWorkoutsBox
+                                                        .getAt(i)!
+                                                        .repsCompleted[j]
+                                                        .length;
+                                                k++) {
+                                              copyRepsCompleted[j].add(
+                                                  indivWorkoutsBox
+                                                      .getAt(i)!
+                                                      .repsCompleted[j][k]);
+                                            }
+                                          }
+                                          postWorkoutTempNote =
+                                              indivWorkoutsBox.getAt(i)!.note;
+                                          Navigator.of(context)
+                                              .push(MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      PostWorkoutEditPage(i,
+                                                          copyRepsCompleted)))
+                                              .then((value) {
+                                            setState(() {});
+                                          });
+                                        },
+                                        child: Flexible(
+                                            child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(20),
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                      color: borderColor),
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                  color: tileColor,
                                                 ),
-                                              ),
-                                              Expanded(
-                                                child: Align(
-                                                  alignment:
-                                                      Alignment.centerRight,
-                                                  child: Text(
-                                                      indivWorkoutsBox
-                                                          .getAt(i)!
-                                                          .date,
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        color: greyColor,
-                                                      )),
-                                                ),
-                                              ),
-                                            ]),
-                                            const Divider(
-                                                height: 15,
-                                                color: Colors.transparent),
-                                            Column(children: [
-                                              for (int j = 0;
-                                                  j <
-                                                      indivWorkoutsBox
-                                                          .getAt(i)!
-                                                          .exercisesCompleted
-                                                          .length;
-                                                  j++)
-                                                Column(children: <Widget>[
+                                                alignment: Alignment.topLeft,
+                                                child: Column(children: [
                                                   Row(children: <Widget>[
                                                     Expanded(
-                                                      flex: 3,
                                                       child: Align(
                                                         alignment: Alignment
                                                             .centerLeft,
                                                         child: Text(
                                                             indivWorkoutsBox
                                                                 .getAt(i)!
-                                                                .exercisesCompleted[j],
+                                                                .name,
                                                             style: TextStyle(
                                                               fontSize: 16,
-                                                              color: textColor,
+                                                              color: greyColor,
                                                             )),
                                                       ),
                                                     ),
                                                     Expanded(
-                                                        flex: 4,
-                                                        child: Align(
-                                                            alignment: Alignment
-                                                                .centerRight,
-                                                            child: Row(
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .end,
-                                                                children: <
-                                                                    Widget>[
-                                                                  for (int k = 0;
-                                                                      k <
-                                                                          indivWorkoutsBox.getAt(i)!.setsPlanned[
-                                                                              j];
-                                                                      k++)
-                                                                    if (k == 5 &&
-                                                                        indivWorkoutsBox.getAt(i)!.weights[j] % 1 ==
-                                                                            0)
-                                                                      Text(
-                                                                          "... ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
-                                                                          style:
-                                                                              TextStyle(
-                                                                            fontSize:
-                                                                                16,
-                                                                            color:
-                                                                                textColor,
-                                                                          ))
-                                                                    else if (k ==
-                                                                            5 &&
-                                                                        indivWorkoutsBox.getAt(i)!.weights[j] % 1 !=
-                                                                            0)
-                                                                      Text(
-                                                                          "... ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
-                                                                          style:
-                                                                              TextStyle(
-                                                                            fontSize:
-                                                                                16,
-                                                                            color:
-                                                                                textColor,
-                                                                          ))
-                                                                    else if (k >
-                                                                        5)
-                                                                      const SizedBox(
-                                                                          width:
-                                                                              0)
-                                                                    else if (k ==
-                                                                            indivWorkoutsBox.getAt(i)!.setsPlanned[j] -
-                                                                                1 &&
-                                                                        indivWorkoutsBox.getAt(i)!.weights[j] % 1 ==
-                                                                            0)
-                                                                      indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
-                                                                              indivWorkoutsBox.getAt(i)!.repsPlanned[j] +
-                                                                                  1
-                                                                          ? Text(
-                                                                              "0 ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
-                                                                              style:
-                                                                                  TextStyle(
-                                                                                fontSize: 16,
-                                                                                color: textColor,
-                                                                              ))
-                                                                          : Text(
-                                                                              "${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
-                                                                              style:
-                                                                                  TextStyle(
-                                                                                fontSize: 16,
-                                                                                color: textColor,
-                                                                              ))
-                                                                    else if (k ==
-                                                                            indivWorkoutsBox.getAt(i)!.setsPlanned[j] -
-                                                                                1 &&
-                                                                        indivWorkoutsBox.getAt(i)!.weights[j] %
-                                                                                1 !=
-                                                                            0)
-                                                                      indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
-                                                                              indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
-                                                                          ? Text("0 ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
-                                                                              style: const TextStyle(
-                                                                                fontSize: 16,
-                                                                              ))
-                                                                          : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
-                                                                              style: const TextStyle(
-                                                                                fontSize: 16,
-                                                                              ))
-                                                                    else
-                                                                      indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] == indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
-                                                                          ? const Text("0/",
-                                                                              style: TextStyle(
-                                                                                fontSize: 16,
-                                                                              ))
-                                                                          : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]}/",
-                                                                              style: const TextStyle(
-                                                                                fontSize: 16,
-                                                                              ))
-                                                                ])))
+                                                      child: Align(
+                                                        alignment: Alignment
+                                                            .centerRight,
+                                                        child: Text(
+                                                            indivWorkoutsBox
+                                                                .getAt(i)!
+                                                                .date,
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              color: greyColor,
+                                                            )),
+                                                      ),
+                                                    ),
                                                   ]),
-                                                  Divider(
-                                                      // larger divider if not at end of list
-                                                      height: j !=
-                                                              indivWorkoutsBox
-                                                                      .getAt(i)!
-                                                                      .exercisesCompleted
-                                                                      .length -
-                                                                  1
-                                                          ? 15
-                                                          : 0,
+                                                  const Divider(
+                                                      height: 15,
                                                       color:
                                                           Colors.transparent),
-                                                ])
-                                            ]),
-                                          ])))),
-                              const Divider(
-                                  height: 5, color: Colors.transparent),
-                            ])
-                        ]);
+                                                  Column(children: [
+                                                    for (int j = 0;
+                                                        j <
+                                                            indivWorkoutsBox
+                                                                .getAt(i)!
+                                                                .exercisesCompleted
+                                                                .length;
+                                                        j++)
+                                                      Column(children: <Widget>[
+                                                        Row(children: <Widget>[
+                                                          Expanded(
+                                                            flex: 3,
+                                                            child: Align(
+                                                              alignment: Alignment
+                                                                  .centerLeft,
+                                                              child: Text(
+                                                                  indivWorkoutsBox
+                                                                      .getAt(i)!
+                                                                      .exercisesCompleted[j],
+                                                                  style: TextStyle(
+                                                                    fontSize:
+                                                                        16,
+                                                                    color:
+                                                                        textColor,
+                                                                  )),
+                                                            ),
+                                                          ),
+                                                          Expanded(
+                                                              flex: 4,
+                                                              child: Align(
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .centerRight,
+                                                                  child: Row(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .end,
+                                                                      children: <
+                                                                          Widget>[
+                                                                        for (int k =
+                                                                                0;
+                                                                            k < indivWorkoutsBox.getAt(i)!.setsPlanned[j];
+                                                                            k++)
+                                                                          if (k == 5 && indivWorkoutsBox.getAt(i)!.weights[j] % 1 == 0)
+                                                                            Text("... ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
+                                                                                style: TextStyle(
+                                                                                  fontSize: 16,
+                                                                                  color: textColor,
+                                                                                ))
+                                                                          else if (k == 5 && indivWorkoutsBox.getAt(i)!.weights[j] % 1 != 0)
+                                                                            Text("... ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
+                                                                                style: TextStyle(
+                                                                                  fontSize: 16,
+                                                                                  color: textColor,
+                                                                                ))
+                                                                          else if (k > 5)
+                                                                            const SizedBox(width: 0)
+                                                                          else if (k == indivWorkoutsBox.getAt(i)!.setsPlanned[j] - 1 && indivWorkoutsBox.getAt(i)!.weights[j] % 1 == 0)
+                                                                            indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] == indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
+                                                                                ? Text("0 ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
+                                                                                    style: TextStyle(
+                                                                                      fontSize: 16,
+                                                                                      color: textColor,
+                                                                                    ))
+                                                                                : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
+                                                                                    style: TextStyle(
+                                                                                      fontSize: 16,
+                                                                                      color: textColor,
+                                                                                    ))
+                                                                          else if (k == indivWorkoutsBox.getAt(i)!.setsPlanned[j] - 1 && indivWorkoutsBox.getAt(i)!.weights[j] % 1 != 0)
+                                                                            indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] == indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
+                                                                                ? Text("0 ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
+                                                                                    style: const TextStyle(
+                                                                                      fontSize: 16,
+                                                                                    ))
+                                                                                : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
+                                                                                    style: const TextStyle(
+                                                                                      fontSize: 16,
+                                                                                    ))
+                                                                          else
+                                                                            indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] == indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
+                                                                                ? const Text("0/",
+                                                                                    style: TextStyle(
+                                                                                      fontSize: 16,
+                                                                                    ))
+                                                                                : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]}/",
+                                                                                    style: const TextStyle(
+                                                                                      fontSize: 16,
+                                                                                    ))
+                                                                      ])))
+                                                        ]),
+                                                        Divider(
+                                                            // larger divider if not at end of list
+                                                            height: j !=
+                                                                    indivWorkoutsBox
+                                                                            .getAt(
+                                                                                i)!
+                                                                            .exercisesCompleted
+                                                                            .length -
+                                                                        1
+                                                                ? 15
+                                                                : 0,
+                                                            color: Colors
+                                                                .transparent),
+                                                      ])
+                                                  ]),
+                                                ])))),
+                                    const Divider(
+                                        height: 5, color: Colors.transparent),
+                                  ]),
+                              ]);
                   }));
         });
   }
@@ -3674,114 +3658,134 @@ class _NotesState extends State<NotesPage> {
     return ValueListenableBuilder<int>(
         valueListenable: _themeCounter,
         builder: (context, index, child) {
+          int noteCounter = 0;
+          for (int i = indivWorkoutsBox.length - 1; i >= 0; i--) {
+            if (indivWorkoutsBox.getAt(i)!.note != "") {
+              noteCounter++;
+            }
+          }
           return Scaffold(
               backgroundColor: backColor,
-              body: ListView(
-                  padding: const EdgeInsets.all(10),
-                  scrollDirection: Axis.vertical,
-                  children: <Widget>[
-                    for (int i = indivWorkoutsBox.length - 1; i >= 0; i--)
-                      if (indivWorkoutsBox.getAt(i)!.note !=
-                          "") // doesn't show empty notes
-                        Column(children: <Widget>[
-                          GestureDetector(
-                              onTap: () {
-                                // workaround to fill (seems to be pass-by-reference, strangely again)
-                                List<List<int>> copyRepsCompleted = [];
+              body: noteCounter == 0
+                  ? Align(
+                      alignment: Alignment.topCenter,
+                      child: Container(
+                          padding: const EdgeInsets.only(top: 100),
+                          child: Text("No notes logged",
+                              style: TextStyle(color: textColor))))
+                  : ListView(
+                      padding: const EdgeInsets.all(10),
+                      scrollDirection: Axis.vertical,
+                      children: <Widget>[
+                          for (int i = indivWorkoutsBox.length - 1; i >= 0; i--)
+                            if (indivWorkoutsBox.getAt(i)!.note !=
+                                "") // doesn't show empty notes
+                              Column(children: <Widget>[
+                                GestureDetector(
+                                    onTap: () {
+                                      // workaround to fill (seems to be pass-by-reference, strangely again)
+                                      List<List<int>> copyRepsCompleted = [];
 
-                                for (int j = 0;
-                                    j <
-                                        indivWorkoutsBox
-                                            .getAt(i)!
-                                            .repsCompleted
-                                            .length;
-                                    j++) {
-                                  copyRepsCompleted.add([0]);
-                                  copyRepsCompleted[j].add(indivWorkoutsBox
-                                      .getAt(i)!
-                                      .repsCompleted[j][0]);
-                                  copyRepsCompleted[j].removeAt(0);
-                                  for (int k = 1;
-                                      k <
-                                          indivWorkoutsBox
-                                              .getAt(i)!
-                                              .repsCompleted[j]
-                                              .length;
-                                      k++) {
-                                    copyRepsCompleted[j].add(indivWorkoutsBox
-                                        .getAt(i)!
-                                        .repsCompleted[j][k]);
-                                  }
-                                }
-                                postWorkoutTempNote =
-                                    indivWorkoutsBox.getAt(i)!.note;
-                                Navigator.of(context)
-                                    .push(MaterialPageRoute(
-                                        builder: (context) =>
-                                            PostWorkoutEditPage(
-                                                i, copyRepsCompleted)))
-                                    .then((value) {
-                                  setState(() {});
-                                });
-                              },
-                              child: Flexible(
-                                  child: Container(
-                                      padding: const EdgeInsets.all(20),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(color: borderColor),
-                                        borderRadius: BorderRadius.circular(6),
-                                        color: tileColor,
-                                      ),
-                                      alignment: Alignment.topLeft,
-                                      child: Column(
-                                        children: [
-                                          Row(children: <Widget>[
-                                            Expanded(
-                                              child: Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Text(
-                                                    indivWorkoutsBox
-                                                        .getAt(i)!
-                                                        .name,
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      color: greyColor,
-                                                    )),
-                                              ),
+                                      for (int j = 0;
+                                          j <
+                                              indivWorkoutsBox
+                                                  .getAt(i)!
+                                                  .repsCompleted
+                                                  .length;
+                                          j++) {
+                                        copyRepsCompleted.add([0]);
+                                        copyRepsCompleted[j].add(
+                                            indivWorkoutsBox
+                                                .getAt(i)!
+                                                .repsCompleted[j][0]);
+                                        copyRepsCompleted[j].removeAt(0);
+                                        for (int k = 1;
+                                            k <
+                                                indivWorkoutsBox
+                                                    .getAt(i)!
+                                                    .repsCompleted[j]
+                                                    .length;
+                                            k++) {
+                                          copyRepsCompleted[j].add(
+                                              indivWorkoutsBox
+                                                  .getAt(i)!
+                                                  .repsCompleted[j][k]);
+                                        }
+                                      }
+                                      postWorkoutTempNote =
+                                          indivWorkoutsBox.getAt(i)!.note;
+                                      Navigator.of(context)
+                                          .push(MaterialPageRoute(
+                                              builder: (context) =>
+                                                  PostWorkoutEditPage(
+                                                      i, copyRepsCompleted)))
+                                          .then((value) {
+                                        setState(() {});
+                                      });
+                                    },
+                                    child: Flexible(
+                                        child: Container(
+                                            padding: const EdgeInsets.all(20),
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                  color: borderColor),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              color: tileColor,
                                             ),
-                                            Expanded(
-                                              child: Align(
-                                                alignment:
-                                                    Alignment.centerRight,
-                                                child: Text(
-                                                    indivWorkoutsBox
-                                                        .getAt(i)!
-                                                        .date,
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      color: greyColor,
-                                                    )),
-                                              ),
-                                            ),
-                                          ]),
-                                          const Divider(
-                                              height: 15,
-                                              color: Colors.transparent),
-                                          Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: Text(
-                                                  indivWorkoutsBox
-                                                      .getAt(i)!
-                                                      .note,
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    color: textColor,
-                                                  ))),
-                                        ],
-                                      )))),
-                          const Divider(height: 5, color: Colors.transparent),
-                        ])
-                  ]));
+                                            alignment: Alignment.topLeft,
+                                            child: Column(
+                                              children: [
+                                                Row(children: <Widget>[
+                                                  Expanded(
+                                                    child: Align(
+                                                      alignment:
+                                                          Alignment.centerLeft,
+                                                      child: Text(
+                                                          indivWorkoutsBox
+                                                              .getAt(i)!
+                                                              .name,
+                                                          style: TextStyle(
+                                                            fontSize: 16,
+                                                            color: greyColor,
+                                                          )),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Align(
+                                                      alignment:
+                                                          Alignment.centerRight,
+                                                      child: Text(
+                                                          indivWorkoutsBox
+                                                              .getAt(i)!
+                                                              .date,
+                                                          style: TextStyle(
+                                                            fontSize: 16,
+                                                            color: greyColor,
+                                                          )),
+                                                    ),
+                                                  ),
+                                                ]),
+                                                const Divider(
+                                                    height: 15,
+                                                    color: Colors.transparent),
+                                                Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                        indivWorkoutsBox
+                                                            .getAt(i)!
+                                                            .note,
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          color: textColor,
+                                                        ))),
+                                              ],
+                                            )))),
+                                const Divider(
+                                    height: 5, color: Colors.transparent),
+                              ])
+                        ]));
         });
   }
 }
@@ -4322,7 +4326,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
     } else if (!boolBox.getAt(5)!) {
       counterBox.putAt(0, counterBox.getAt(1)!);
     }
-    _counter.value++;
   }
 
   void switchWorkout(int idx) {
@@ -4360,6 +4363,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                 iconSize: 18,
                 onPressed: () {
                   checkWorkoutInProgress(widget.index);
+                  _counter.value++;
                   Navigator.of(context).pop();
                 },
               ),
@@ -4874,6 +4878,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                         i,
                                                         j,
                                                         false);
+                                                    checkWorkoutInProgress(
+                                                      widget.index);
                                                   },
                                                 ),
                                               );
@@ -5289,6 +5295,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
   Future<bool> _onBackPressed() async {
     checkWorkoutInProgress(widget.index);
+    _counter.value++;
     return true;
   }
 
