@@ -42,6 +42,7 @@ void main() async {
   await Hive.openBox<Plate>('platesBox');
   await Hive.openBox<String>('tempNoteBox');
   await Hive.openBox<double>('tempBodyWeightBox');
+  await Hive.openBox<double>('defaultsBox'); // bar weight, sets, reps
 
   // on first time opening app, sets to default state
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -174,13 +175,13 @@ class Exercise extends HiveObject {
   @HiveField(1)
   double weight = 45;
   @HiveField(2)
-  double barWeight = 45;
+  double barWeight;
   @HiveField(3)
   double increment = 5;
   @HiveField(4)
-  int sets = 5;
+  int sets;
   @HiveField(5)
-  int reps = 5;
+  int reps;
   @HiveField(6)
   List<int> repsCompleted = [];
   @HiveField(7)
@@ -202,7 +203,8 @@ class Exercise extends HiveObject {
   @HiveField(15)
   bool bookmarked = false;
 
-  Exercise(this.name);
+  // sets, reps, barWeight are optional parameters
+  Exercise(this.name, this.barWeight, this.sets, this.reps);
 }
 
 // used for the edit page, stores all relevant single-workout data
@@ -242,7 +244,7 @@ class IndivWorkout extends HiveObject {
       this.bodyWeight);
 }
 
-Exercise customxyz = Exercise("Custom Exercise");
+Exercise customxyz = Exercise("Custom Exercise", 0, 0, 0);
 
 void defaultState() async {
   showTimer = false;
@@ -252,13 +254,24 @@ void defaultState() async {
   _themeCounter.value++;
   AwesomeNotifications().cancelAll();
 
+  Box<double> defaultsBox = Hive.box<double>('defaultsBox');
+  defaultsBox.deleteAll(defaultsBox.keys);
+  defaultsBox.add(45);
+  defaultsBox.add(5);
+  defaultsBox.add(5);
+
   Workout defaultA = Workout("BlockLifts A");
   Workout defaultB = Workout("BlockLifts B");
-  Exercise squat = Exercise("Squat");
-  Exercise benchPress = Exercise("Bench Press");
-  Exercise barbellRow = Exercise("Barbell Row");
-  Exercise overheadPress = Exercise("Overhead Press");
-  Exercise deadlift = Exercise("Deadlift");
+  Exercise squat = Exercise("Squat", defaultsBox.getAt(0)!,
+      defaultsBox.getAt(1)!.toInt(), defaultsBox.getAt(2)!.toInt());
+  Exercise benchPress = Exercise("Bench Press", defaultsBox.getAt(0)!,
+      defaultsBox.getAt(1)!.toInt(), defaultsBox.getAt(2)!.toInt());
+  Exercise barbellRow = Exercise("Barbell Row", defaultsBox.getAt(0)!,
+      defaultsBox.getAt(1)!.toInt(), defaultsBox.getAt(2)!.toInt());
+  Exercise overheadPress = Exercise("Overhead Press", defaultsBox.getAt(0)!,
+      defaultsBox.getAt(1)!.toInt(), defaultsBox.getAt(2)!.toInt());
+  Exercise deadlift = Exercise("Deadlift", defaultsBox.getAt(0)!,
+      defaultsBox.getAt(1)!.toInt(), defaultsBox.getAt(2)!.toInt());
   squat.bookmarked = true;
   benchPress.bookmarked = true;
   deadlift.bookmarked = true;
@@ -592,6 +605,9 @@ class MyApp extends StatelessWidget {
                     side:
                         const BorderSide(width: 0.0, style: BorderStyle.none)),
               ),
+              popupMenuTheme: PopupMenuThemeData(
+                color: tileColor,
+              ),
               textSelectionTheme: const TextSelectionThemeData(
                 selectionHandleColor: Colors.black,
                 cursorColor: Colors.black,
@@ -608,6 +624,9 @@ class MyApp extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                     side:
                         const BorderSide(width: 0.0, style: BorderStyle.none)),
+              ),
+              popupMenuTheme: PopupMenuThemeData(
+                color: tileColor,
               ),
               textSelectionTheme: TextSelectionThemeData(
                 selectionHandleColor: Colors.white.withOpacity(.5),
@@ -1088,6 +1107,7 @@ class _HomeState extends State<Home> {
                         insetPadding: const EdgeInsets.all(10),
                         child: Flexible(
                             child: Container(
+                          color: tileColor,
                           padding: const EdgeInsets.all(20),
                           child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -1566,7 +1586,9 @@ class _ProgressState extends State<Progress> {
 class _SettingsState extends State<Settings> {
   late final Box<bool> boolBox;
   late final Box<Plate> platesBox;
+  late final Box<double> defaultsBox;
   String platesString = "";
+  final _myController = TextEditingController();
 
   void toggleSwitch(bool value) {
     if (boolBox.getAt(0) == false) {
@@ -1602,6 +1624,7 @@ class _SettingsState extends State<Settings> {
     super.initState();
     boolBox = Hive.box<bool>('boolBox');
     platesBox = Hive.box<Plate>('platesBox');
+    defaultsBox = Hive.box<double>('defaultsBox');
   }
 
   @override
@@ -1728,6 +1751,328 @@ class _SettingsState extends State<Settings> {
             },
           ),
         ),
+        SizedBox(
+          height: 90,
+          width: double.infinity,
+          child: TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Column(children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Default Bar Weight", style: TextStyle(color: textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: defaultsBox.getAt(0)! % 1 == 0
+                      ? Text(defaultsBox.getAt(0)!.toInt().toString() + "lb",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: greyColor)) 
+                      : Text(defaultsBox.getAt(0)!.toString() + "lb",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: greyColor)),
+                    ),
+                  ]),
+                ),
+              ]),
+            ),
+            onPressed: () {
+              defaultsBox.getAt(0)! % 1 == 0
+              ? _myController.text = defaultsBox.getAt(0)!.toInt().toString()
+              : _myController.text = defaultsBox.getAt(0)!.toString();
+              showDialog(
+                  context: context,
+                  builder: (context) => Dialog(
+                        insetPadding: const EdgeInsets.all(10),
+                        child: Flexible(
+                            child: Container(
+                          color: tileColor,
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("Default Bar Weight",
+                                        style: TextStyle(
+                                            fontSize: 20, color: textColor))),
+                                const SizedBox(height: 20),
+                                TextField(
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter(RegExp(r'[0-9.]'), allow: true)
+                                  ],
+                                  style: TextStyle(color: textColor),
+                                  controller: _myController,
+                                  autofocus: true,
+                                  keyboardType: TextInputType.number,
+                                  textAlignVertical: TextAlignVertical.bottom,
+                                  decoration: const InputDecoration(
+                                    contentPadding: EdgeInsets.only(bottom: 10),
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                  ),
+                                ),
+                                Divider(
+                                  color: underlineColor,
+                                  height: 2,
+                                  thickness: 2,
+                                ),
+                                const SizedBox(height: 20),
+                                Row(mainAxisAlignment: MainAxisAlignment.end,
+                                  children: <Widget>[
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      primary: redColor,
+                                      textStyle: const TextStyle(
+                                          fontSize: 16, fontWeight: FontWeight.bold),
+                                      alignment: Alignment.center,
+                                    ),
+                                    child: const Text("Cancel"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  const SizedBox(width: 20),
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      primary: redColor,
+                                      textStyle: const TextStyle(
+                                          fontSize: 16, fontWeight: FontWeight.bold),
+                                      alignment: Alignment.center,
+                                    ),
+                                    child: const Text("OK"),
+                                    onPressed: () {
+                                      setState(() {
+                                        defaultsBox.putAt(0, double.parse(_myController.text));
+                                      });
+                                      Navigator.of(context).pop();
+                                    },
+                                  )
+                                ]),
+                              ]),
+                        )),
+                      ));
+            },
+          ),
+        ),
+        SizedBox(
+          height: 90,
+          width: double.infinity,
+          child: TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Column(children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Default Sets", style: TextStyle(color: textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(defaultsBox.getAt(1)!.toInt().toString() + " sets",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: greyColor)),
+                    ),
+                  ]),
+                ),
+              ]),
+            ),
+            onPressed: () {
+              _myController.text = defaultsBox.getAt(1)!.toInt().toString();
+              showDialog(
+                  context: context,
+                  builder: (context) => Dialog(
+                        insetPadding: const EdgeInsets.all(10),
+                        child: Flexible(
+                            child: Container(
+                          color: tileColor,
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("Default Sets",
+                                        style: TextStyle(
+                                            fontSize: 20, color: textColor))),
+                                const SizedBox(height: 20),
+                                TextField(
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter(RegExp(r'[0-99]'), allow: true)
+                                  ],
+                                  style: TextStyle(color: textColor),
+                                  controller: _myController,
+                                  autofocus: true,
+                                  keyboardType: TextInputType.number,
+                                  textAlignVertical: TextAlignVertical.bottom,
+                                  decoration: const InputDecoration(
+                                    contentPadding: EdgeInsets.only(bottom: 10),
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                  ),
+                                ),
+                                Divider(
+                                  color: underlineColor,
+                                  height: 2,
+                                  thickness: 2,
+                                ),
+                                const SizedBox(height: 20),
+                                Row(mainAxisAlignment: MainAxisAlignment.end,
+                                  children: <Widget>[
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      primary: redColor,
+                                      textStyle: const TextStyle(
+                                          fontSize: 16, fontWeight: FontWeight.bold),
+                                      alignment: Alignment.center,
+                                    ),
+                                    child: const Text("Cancel"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  const SizedBox(width: 20),
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      primary: redColor,
+                                      textStyle: const TextStyle(
+                                          fontSize: 16, fontWeight: FontWeight.bold),
+                                      alignment: Alignment.center,
+                                    ),
+                                    child: const Text("OK"),
+                                    onPressed: () {
+                                      setState(() {
+                                        defaultsBox.putAt(1, double.parse(_myController.text));
+                                      });
+                                      Navigator.of(context).pop();
+                                    },
+                                  )
+                                ]),
+                              ]),
+                        )),
+                      ));
+            },
+          ),
+        ),
+        SizedBox(
+          height: 90,
+          width: double.infinity,
+          child: TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Column(children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Default Reps", style: TextStyle(color: textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(defaultsBox.getAt(2)!.toInt().toString() + " reps",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: greyColor)),
+                    ),
+                  ]),
+                ),
+              ]),
+            ),
+            onPressed: () {
+              _myController.text = defaultsBox.getAt(2)!.toInt().toString();
+              showDialog(
+                  context: context,
+                  builder: (context) => Dialog(
+                        insetPadding: const EdgeInsets.all(10),
+                        child: Flexible(
+                            child: Container(
+                          color: tileColor,
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("Default Reps",
+                                        style: TextStyle(
+                                            fontSize: 20, color: textColor))),
+                                const SizedBox(height: 20),
+                                TextField(
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter(RegExp(r'[0-99]'), allow: true)
+                                  ],
+                                  style: TextStyle(color: textColor),
+                                  controller: _myController,
+                                  autofocus: true,
+                                  keyboardType: TextInputType.number,
+                                  textAlignVertical: TextAlignVertical.bottom,
+                                  decoration: const InputDecoration(
+                                    contentPadding: EdgeInsets.only(bottom: 10),
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                  ),
+                                ),
+                                Divider(
+                                  color: underlineColor,
+                                  height: 2,
+                                  thickness: 2,
+                                ),
+                                const SizedBox(height: 20),
+                                Row(mainAxisAlignment: MainAxisAlignment.end,
+                                  children: <Widget>[
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      primary: redColor,
+                                      textStyle: const TextStyle(
+                                          fontSize: 16, fontWeight: FontWeight.bold),
+                                      alignment: Alignment.center,
+                                    ),
+                                    child: const Text("Cancel"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  const SizedBox(width: 20),
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      primary: redColor,
+                                      textStyle: const TextStyle(
+                                          fontSize: 16, fontWeight: FontWeight.bold),
+                                      alignment: Alignment.center,
+                                    ),
+                                    child: const Text("OK"),
+                                    onPressed: () {
+                                      setState(() {
+                                        defaultsBox.putAt(2, double.parse(_myController.text));
+                                      });
+                                      Navigator.of(context).pop();
+                                    },
+                                  )
+                                ]),
+                              ]),
+                        )),
+                      ));
+            },
+          ),
+        ),        
         SizedBox(
           height: 80,
           width: double.infinity,
@@ -4879,7 +5224,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                         j,
                                                         false);
                                                     checkWorkoutInProgress(
-                                                      widget.index);
+                                                        widget.index);
                                                   },
                                                 ),
                                               );
@@ -5353,12 +5698,14 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
   late List<Exercise> exercisesList;
   late List<Exercise> copyExercisesList;
   late final Box<Workout> workoutsBox;
+  late final Box<double> defaultsBox;
 
   @override
   void initState() {
     super.initState();
     exercisesBox = Hive.box<Exercise>('exercisesBox');
     workoutsBox = Hive.box<Workout>('workoutsBox');
+    defaultsBox = Hive.box<double>('defaultsBox');
   }
 
   @override
@@ -5938,11 +6285,12 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                 }
                                                               }
                                                               if (duplicate ==
-                                                                  false) {
-                                                                Exercise newEx =
-                                                                    Exercise(
-                                                                        _myController
-                                                                            .text);
+                                                                  false) {Exercise newEx = 
+                                                                  Exercise(_myController.text, 
+                                                                  defaultsBox.getAt(0)!, 
+                                                                  defaultsBox.getAt(1)!.toInt(), 
+                                                                  defaultsBox.getAt(2)!.toInt());
+                                                                newEx.weight =  defaultsBox.getAt(0)!;
                                                                 // Adds to Hive local storage
                                                                 exercisesBox
                                                                     .add(newEx);

@@ -132,12 +132,12 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
     };
     return Exercise(
       fields[0] as String,
+      fields[2] as double,
+      fields[4] as int,
+      fields[5] as int,
     )
       ..weight = fields[1] as double
-      ..barWeight = fields[2] as double
       ..increment = fields[3] as double
-      ..sets = fields[4] as int
-      ..reps = fields[5] as int
       ..repsCompleted = (fields[6] as List).cast<int>()
       ..failed = fields[7] as int
       ..overload = fields[8] as bool
