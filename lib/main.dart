@@ -8,11 +8,11 @@ import 'package:path_provider/path_provider.dart' as pathprovider;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:paged_vertical_calendar/paged_vertical_calendar.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:wakelock/wakelock.dart';
+import 'dart:typed_data';
 
 part 'main.g.dart';
 
@@ -54,6 +54,9 @@ void main() async {
     defaultState();
   }
 
+  Int64List highVibrationPatterns =
+      Int64List.fromList([0, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000]);
+
   AwesomeNotifications().initialize(
     // set the icon to null if you want to use the default app icon
     // android->app->src->main->res->drawable
@@ -70,18 +73,18 @@ void main() async {
         playSound: false,
         importance: NotificationImportance.Default,
       ),
-      /*NotificationChannel(
+      NotificationChannel(
         channelGroupKey: 'workout_channel_group',
         channelKey: 'timer_channel',
         channelName: 'Timer notifications',
         channelDescription: 'Timer notifications',
-        defaultColor: Color(0xFF9D50DD),
+        defaultColor: const Color(0xFF9D50DD),
         ledColor: Colors.white,
         enableVibration: true,
-        vibrationPattern: lowVibrationPattern,
+        vibrationPattern: highVibrationPatterns,
         playSound: false,
         importance: NotificationImportance.Default,
-      ),*/
+      ),
     ],
     // Channel groups are only visual and are not required
     channelGroups: [
@@ -119,7 +122,6 @@ late Color borderColor;
 late Color navIconColor;
 const Color redColor = Color.fromARGB(255, 210, 45, 45);
 
-bool _canVibrate = true;
 ValueNotifier<int> _counter = ValueNotifier<int>(0); // to update list page
 ValueNotifier<int> _circleCounter = ValueNotifier<int>(0); // to update circles
 ValueNotifier<int> _timerCounter =
@@ -448,13 +450,14 @@ void checkTime(int seconds) {
   Box<TimerMap> successTimerBox = Hive.box<TimerMap>('successTimerBox');
   Box<TimerMap> failTimerBox = Hive.box<TimerMap>('failTimerBox');
   Box<bool> boolBox = Hive.box<bool>('boolBox');
+  AwesomeNotifications().cancel(1234);
 
   if (!failed) {
     for (int i = 0; i < successTimerBox.length; i++) {
       if (seconds == successTimerBox.getAt(i)!.time) {
         if (successTimerBox.getAt(i)!.isChecked) {
-          if (_canVibrate && boolBox.getAt(3)!) {
-            Vibrate.vibrate();
+          if (boolBox.getAt(3)!) {
+            vibrateNotification();
           }
           if (boolBox.getAt(2)!) {
             playRemoteFile();
@@ -466,20 +469,8 @@ void checkTime(int seconds) {
   for (int i = 0; i < failTimerBox.length; i++) {
     if (seconds == failTimerBox.getAt(i)!.time) {
       if (failTimerBox.getAt(i)!.isChecked) {
-        if (_canVibrate && boolBox.getAt(3)!) {
-          /*AwesomeNotifications().createNotification(
-              content: NotificationContent(
-            id: 1234,
-            channelKey: 'timer_channel',
-            title: "Timer",
-            payload: {"name": "BlockLifts"},
-            autoDismissible: true,
-            locked: false,
-            largeIcon: 'resource://drawable/notification_icon',
-            roundedLargeIcon: false,
-            notificationLayout: NotificationLayout.Default,
-          ));*/
-          Vibrate.vibrate();
+        if (boolBox.getAt(3)!) {
+          vibrateNotification();
         }
         if (boolBox.getAt(2)!) {
           playRemoteFile();
@@ -537,6 +528,21 @@ void createNotification(int exIdx, int setIdx) {
           buttonType: ActionButtonType.KeepOnTop,
         )
       ]);
+}
+
+void vibrateNotification() {
+  AwesomeNotifications().createNotification(
+      content: NotificationContent(
+    id: 1234,
+    channelKey: 'timer_channel',
+    title: "Timer",
+    payload: {"name": "BlockLifts"},
+    autoDismissible: true,
+    locked: false,
+    largeIcon: 'resource://drawable/notification_icon',
+    roundedLargeIcon: false,
+    notificationLayout: NotificationLayout.Default,
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -832,7 +838,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     boolBox = Hive.box<bool>('boolBox');
-    _init();
     AwesomeNotifications().isNotificationAllowed().then(
       (isAllowed) {
         if (!isAllowed && boolBox.getAt(4)! == false) {
@@ -878,13 +883,6 @@ class _HomePageState extends State<HomePage> {
       },
     );
     super.initState();
-  }
-
-  Future<void> _init() async {
-    bool canVibrate = await Vibrate.canVibrate;
-    setState(() {
-      _canVibrate = canVibrate;
-    });
   }
 
   @override
@@ -976,7 +974,7 @@ class _HomeState extends State<Home> {
     } else {
       duration = Duration(seconds: seconds);
       // create notif every second, display time
-      if (showTimer == true) {
+      if (showTimer) {
         createNotification(exerciseIndex, setIndex);
       }
       // checks every second if sound should be played
@@ -1380,23 +1378,18 @@ class _ProgressState extends State<Progress> {
                         // i = 0 is "Custom Exercise"
                         for (int i = 1; i < exercisesBox.length; i++)
                           if (exercisesBox.getAt(i)!.bookmarked)
-                            SizedBox(
-                              height: 80,
-                              width: double.infinity,
-                              child: TextButton(
+                            TextButton(
                                   style: TextButton.styleFrom(
                                       primary: Colors.white,
                                       textStyle: const TextStyle(fontSize: 16)),
                                   child: Container(
                                     padding:
                                         const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                                    child: Row(children: <Widget>[
-                                      Column(
+                                    child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Flexible(
-                                              child: Row(children: <Widget>[
+                                            Row(children: <Widget>[
                                                 Container(
                                                   constraints: BoxConstraints(
                                                       maxWidth:
@@ -1426,7 +1419,6 @@ class _ProgressState extends State<Progress> {
                                                   ),
                                                 ),
                                               ]),
-                                            ),
                                             const SizedBox(height: 8),
                                             Align(
                                               alignment: Alignment.centerLeft,
@@ -1445,7 +1437,6 @@ class _ProgressState extends State<Progress> {
                                                           color: greyColor)),
                                             ),
                                           ]),
-                                    ]),
                                   ),
                                   onPressed: () {
                                     Navigator.of(context)
@@ -1455,7 +1446,6 @@ class _ProgressState extends State<Progress> {
                                       setState(() {});
                                     });
                                   }),
-                            ),
                         if (bookmarkCounter > 0)
                           Divider(
                               height: 10,
@@ -1464,10 +1454,7 @@ class _ProgressState extends State<Progress> {
                               indent: 10,
                               endIndent: 10),
                         // body weight
-                        SizedBox(
-                            height: 80,
-                            width: double.infinity,
-                            child: TextButton(
+                        TextButton(
                               style: TextButton.styleFrom(
                                   primary: Colors.white,
                                   textStyle: const TextStyle(fontSize: 16)),
@@ -1517,7 +1504,7 @@ class _ProgressState extends State<Progress> {
                                 Navigator.of(context).push(MaterialPageRoute(
                                     builder: (context) => const GraphPage(-1)));
                               },
-                            )),
+                            ),
                         if (bookmarkCounter < exercisesBox.length - 1)
                           Divider(
                               height: 10,
@@ -1527,10 +1514,7 @@ class _ProgressState extends State<Progress> {
                               endIndent: 10),
                         for (int i = 1; i < exercisesBox.length; i++)
                           if (!exercisesBox.getAt(i)!.bookmarked)
-                            SizedBox(
-                              height: 80,
-                              width: double.infinity,
-                              child: TextButton(
+                            TextButton(
                                   style: TextButton.styleFrom(
                                       primary: Colors.white,
                                       textStyle: const TextStyle(fontSize: 16)),
@@ -1538,8 +1522,9 @@ class _ProgressState extends State<Progress> {
                                     padding:
                                         const EdgeInsets.fromLTRB(10, 5, 10, 5),
                                     child: Row(children: <Widget>[
-                                      Expanded(
-                                        child: Column(children: [
+                                        Column(crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                          children: [
                                           Align(
                                             alignment: Alignment.centerLeft,
                                             child: Text(
@@ -1568,7 +1553,6 @@ class _ProgressState extends State<Progress> {
                                                         color: greyColor)),
                                           ),
                                         ]),
-                                      ),
                                     ]),
                                   ),
                                   onPressed: () {
@@ -1577,7 +1561,6 @@ class _ProgressState extends State<Progress> {
                                             builder: (context) =>
                                                 GraphPage(i)));
                                   }),
-                            ),
                       ],
                     );
                   }));
@@ -1656,46 +1639,37 @@ class _SettingsState extends State<Settings> {
         titleTextStyle: TextStyle(fontSize: 22, color: textColor),
       ),
       body: ListView(children: <Widget>[
-        SizedBox(
-          height: 80,
-          width: double.infinity,
-          child: TextButton(
-            style: TextButton.styleFrom(
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 16)),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              child: Row(children: <Widget>[
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child:
-                        Text("Dark Mode", style: TextStyle(color: textColor)),
+        TextButton(
+          style: TextButton.styleFrom(
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Row(children: <Widget>[
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text("Dark Mode", style: TextStyle(color: textColor)),
+                ),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Switch(
+                    inactiveThumbColor: greyColor,
+                    inactiveTrackColor:
+                        const Color.fromARGB(255, 207, 207, 207),
+                    activeColor: activeSwitchColor,
+                    activeTrackColor: greyColor,
+                    value: boolBox.getAt(0)!,
+                    onChanged: toggleSwitch,
                   ),
                 ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Switch(
-                      inactiveThumbColor: greyColor,
-                      inactiveTrackColor:
-                          const Color.fromARGB(255, 207, 207, 207),
-                      activeColor: activeSwitchColor,
-                      activeTrackColor: greyColor,
-                      value: boolBox.getAt(0)!,
-                      onChanged: toggleSwitch,
-                    ),
-                  ),
-                ),
-              ]),
-            ),
-            onPressed: (() => toggleSwitch(false)),
+              ),
+            ]),
           ),
+          onPressed: (() => toggleSwitch(false)),
         ),
-        SizedBox(
-          height: 88,
-          width: double.infinity,
-          child: TextButton(
+        TextButton(
             style: TextButton.styleFrom(
                 primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
@@ -1727,12 +1701,8 @@ class _SettingsState extends State<Settings> {
                 setState(() {});
               });
             },
-          ),
         ),
-        SizedBox(
-          height: 92,
-          width: double.infinity,
-          child: TextButton(
+        TextButton(
             style: TextButton.styleFrom(
                 primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
@@ -1765,12 +1735,8 @@ class _SettingsState extends State<Settings> {
                 setState(() {});
               });
             },
-          ),
         ),
-        SizedBox(
-          height: 90,
-          width: double.infinity,
-          child: TextButton(
+        TextButton(
             style: TextButton.styleFrom(
                 primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
@@ -1781,20 +1747,22 @@ class _SettingsState extends State<Settings> {
                   child: Column(children: [
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text("Default Bar Weight", style: TextStyle(color: textColor)),
+                      child: Text("Default Bar Weight",
+                          style: TextStyle(color: textColor)),
                     ),
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: defaultsBox.getAt(0)! % 1 == 0
-                      ? Text(defaultsBox.getAt(0)!.toInt().toString() + "lb",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: greyColor)) 
-                      : Text(defaultsBox.getAt(0)!.toString() + "lb",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: greyColor)),
+                          ? Text(
+                              defaultsBox.getAt(0)!.toInt().toString() + "lb",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: greyColor))
+                          : Text(defaultsBox.getAt(0)!.toString() + "lb",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: greyColor)),
                     ),
                   ]),
                 ),
@@ -1802,8 +1770,9 @@ class _SettingsState extends State<Settings> {
             ),
             onPressed: () {
               defaultsBox.getAt(0)! % 1 == 0
-              ? _myController.text = defaultsBox.getAt(0)!.toInt().toString()
-              : _myController.text = defaultsBox.getAt(0)!.toString();
+                  ? _myController.text =
+                      defaultsBox.getAt(0)!.toInt().toString()
+                  : _myController.text = defaultsBox.getAt(0)!.toString();
               showDialog(
                   context: context,
                   builder: (context) => Dialog(
@@ -1823,7 +1792,9 @@ class _SettingsState extends State<Settings> {
                                 const SizedBox(height: 20),
                                 TextField(
                                   inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter(RegExp(r'[0-9.]'), allow: true)
+                                    FilteringTextInputFormatter(
+                                        RegExp(r'[0-9.]'),
+                                        allow: true)
                                   ],
                                   style: TextStyle(color: textColor),
                                   controller: _myController,
@@ -1842,47 +1813,49 @@ class _SettingsState extends State<Settings> {
                                   thickness: 2,
                                 ),
                                 const SizedBox(height: 20),
-                                Row(mainAxisAlignment: MainAxisAlignment.end,
-                                  children: <Widget>[
-                                  TextButton(
-                                    style: TextButton.styleFrom(
-                                      primary: redColor,
-                                      textStyle: const TextStyle(
-                                          fontSize: 16, fontWeight: FontWeight.bold),
-                                      alignment: Alignment.center,
-                                    ),
-                                    child: const Text("Cancel"),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  const SizedBox(width: 20),
-                                  TextButton(
-                                    style: TextButton.styleFrom(
-                                      primary: redColor,
-                                      textStyle: const TextStyle(
-                                          fontSize: 16, fontWeight: FontWeight.bold),
-                                      alignment: Alignment.center,
-                                    ),
-                                    child: const Text("OK"),
-                                    onPressed: () {
-                                      setState(() {
-                                        defaultsBox.putAt(0, double.parse(_myController.text));
-                                      });
-                                      Navigator.of(context).pop();
-                                    },
-                                  )
-                                ]),
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: <Widget>[
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text("Cancel"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      const SizedBox(width: 20),
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text("OK"),
+                                        onPressed: () {
+                                          setState(() {
+                                            defaultsBox.putAt(
+                                                0,
+                                                double.parse(
+                                                    _myController.text));
+                                          });
+                                          Navigator.of(context).pop();
+                                        },
+                                      )
+                                    ]),
                               ]),
                         )),
                       ));
             },
-          ),
         ),
-        SizedBox(
-          height: 90,
-          width: double.infinity,
-          child: TextButton(
+        TextButton(
             style: TextButton.styleFrom(
                 primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
@@ -1893,12 +1866,14 @@ class _SettingsState extends State<Settings> {
                   child: Column(children: [
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text("Default Sets", style: TextStyle(color: textColor)),
+                      child: Text("Default Sets",
+                          style: TextStyle(color: textColor)),
                     ),
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(defaultsBox.getAt(1)!.toInt().toString() + " sets",
+                      child: Text(
+                          defaultsBox.getAt(1)!.toInt().toString() + " sets",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(color: greyColor)),
@@ -1928,7 +1903,9 @@ class _SettingsState extends State<Settings> {
                                 const SizedBox(height: 20),
                                 TextField(
                                   inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter(RegExp(r'[0-99]'), allow: true)
+                                    FilteringTextInputFormatter(
+                                        RegExp(r'[0-99]'),
+                                        allow: true)
                                   ],
                                   style: TextStyle(color: textColor),
                                   controller: _myController,
@@ -1947,47 +1924,49 @@ class _SettingsState extends State<Settings> {
                                   thickness: 2,
                                 ),
                                 const SizedBox(height: 20),
-                                Row(mainAxisAlignment: MainAxisAlignment.end,
-                                  children: <Widget>[
-                                  TextButton(
-                                    style: TextButton.styleFrom(
-                                      primary: redColor,
-                                      textStyle: const TextStyle(
-                                          fontSize: 16, fontWeight: FontWeight.bold),
-                                      alignment: Alignment.center,
-                                    ),
-                                    child: const Text("Cancel"),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  const SizedBox(width: 20),
-                                  TextButton(
-                                    style: TextButton.styleFrom(
-                                      primary: redColor,
-                                      textStyle: const TextStyle(
-                                          fontSize: 16, fontWeight: FontWeight.bold),
-                                      alignment: Alignment.center,
-                                    ),
-                                    child: const Text("OK"),
-                                    onPressed: () {
-                                      setState(() {
-                                        defaultsBox.putAt(1, double.parse(_myController.text));
-                                      });
-                                      Navigator.of(context).pop();
-                                    },
-                                  )
-                                ]),
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: <Widget>[
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text("Cancel"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      const SizedBox(width: 20),
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text("OK"),
+                                        onPressed: () {
+                                          setState(() {
+                                            defaultsBox.putAt(
+                                                1,
+                                                double.parse(
+                                                    _myController.text));
+                                          });
+                                          Navigator.of(context).pop();
+                                        },
+                                      )
+                                    ]),
                               ]),
                         )),
                       ));
             },
-          ),
         ),
-        SizedBox(
-          height: 90,
-          width: double.infinity,
-          child: TextButton(
+        TextButton(
             style: TextButton.styleFrom(
                 primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
@@ -1998,12 +1977,14 @@ class _SettingsState extends State<Settings> {
                   child: Column(children: [
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text("Default Reps", style: TextStyle(color: textColor)),
+                      child: Text("Default Reps",
+                          style: TextStyle(color: textColor)),
                     ),
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(defaultsBox.getAt(2)!.toInt().toString() + " reps",
+                      child: Text(
+                          defaultsBox.getAt(2)!.toInt().toString() + " reps",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(color: greyColor)),
@@ -2033,7 +2014,9 @@ class _SettingsState extends State<Settings> {
                                 const SizedBox(height: 20),
                                 TextField(
                                   inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter(RegExp(r'[0-99]'), allow: true)
+                                    FilteringTextInputFormatter(
+                                        RegExp(r'[0-99]'),
+                                        allow: true)
                                   ],
                                   style: TextStyle(color: textColor),
                                   controller: _myController,
@@ -2052,47 +2035,49 @@ class _SettingsState extends State<Settings> {
                                   thickness: 2,
                                 ),
                                 const SizedBox(height: 20),
-                                Row(mainAxisAlignment: MainAxisAlignment.end,
-                                  children: <Widget>[
-                                  TextButton(
-                                    style: TextButton.styleFrom(
-                                      primary: redColor,
-                                      textStyle: const TextStyle(
-                                          fontSize: 16, fontWeight: FontWeight.bold),
-                                      alignment: Alignment.center,
-                                    ),
-                                    child: const Text("Cancel"),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  const SizedBox(width: 20),
-                                  TextButton(
-                                    style: TextButton.styleFrom(
-                                      primary: redColor,
-                                      textStyle: const TextStyle(
-                                          fontSize: 16, fontWeight: FontWeight.bold),
-                                      alignment: Alignment.center,
-                                    ),
-                                    child: const Text("OK"),
-                                    onPressed: () {
-                                      setState(() {
-                                        defaultsBox.putAt(2, double.parse(_myController.text));
-                                      });
-                                      Navigator.of(context).pop();
-                                    },
-                                  )
-                                ]),
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: <Widget>[
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text("Cancel"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      const SizedBox(width: 20),
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text("OK"),
+                                        onPressed: () {
+                                          setState(() {
+                                            defaultsBox.putAt(
+                                                2,
+                                                double.parse(
+                                                    _myController.text));
+                                          });
+                                          Navigator.of(context).pop();
+                                        },
+                                      )
+                                    ]),
                               ]),
                         )),
                       ));
             },
-          ),
-        ),        
-        SizedBox(
-          height: 80,
-          width: double.infinity,
-          child: TextButton(
+        ),
+        TextButton(
             style: TextButton.styleFrom(
                 primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
@@ -2102,8 +2087,8 @@ class _SettingsState extends State<Settings> {
                 Expanded(
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child:
-                        Text("Keep Screen Awake", style: TextStyle(color: textColor)),
+                    child: Text("Keep Screen Awake",
+                        style: TextStyle(color: textColor)),
                   ),
                 ),
                 Expanded(
@@ -2123,12 +2108,8 @@ class _SettingsState extends State<Settings> {
               ]),
             ),
             onPressed: (() => toggleSwitch2(false)),
-          ),
         ),
-        SizedBox(
-          height: 80,
-          width: double.infinity,
-          child: TextButton(
+        TextButton(
               style: TextButton.styleFrom(
                   primary: redColor, textStyle: const TextStyle(fontSize: 16)),
               child: Container(
@@ -2176,7 +2157,6 @@ class _SettingsState extends State<Settings> {
                   ),
                 );
               }),
-        )
       ]),
     );
   }
@@ -2569,12 +2549,10 @@ class _TimerState extends State<TimerPage> {
       setState(() {
         boolBox.putAt(1, true);
       });
-      // set dark theme
     } else {
       setState(() {
         boolBox.putAt(1, false);
       });
-      // set light theme
     }
   }
 
@@ -2597,12 +2575,10 @@ class _TimerState extends State<TimerPage> {
       setState(() {
         boolBox.putAt(3, true);
       });
-      // set dark theme
     } else {
       setState(() {
         boolBox.putAt(3, false);
       });
-      // set light theme
     }
   }
 
@@ -2664,235 +2640,218 @@ class _TimerState extends State<TimerPage> {
         titleTextStyle: TextStyle(fontSize: 22, color: textColor),
       ),
       body: ListView(children: <Widget>[
-        SizedBox(
-          height: 88,
-          width: double.infinity,
-          child: TextButton(
-            style: TextButton.styleFrom(
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 16)),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              child: Column(children: <Widget>[
-                Row(children: <Widget>[
-                  Expanded(
-                    child: Column(children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child:
-                            Text("Timer", style: TextStyle(color: textColor)),
-                      ),
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: boolBox.getAt(1)! == true
-                            ? Text("On", style: TextStyle(color: greyColor))
-                            : Text("Off", style: TextStyle(color: greyColor)),
-                      ),
-                    ]),
-                  ),
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Switch(
-                        inactiveThumbColor: greyColor,
-                        inactiveTrackColor:
-                            const Color.fromARGB(255, 207, 207, 207),
-                        activeColor: activeSwitchColor,
-                        activeTrackColor: greyColor,
-                        value: boolBox.getAt(1)!,
-                        onChanged: toggleSwitch,
-                      ),
+        TextButton(
+          style: TextButton.styleFrom(
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Column(children: <Widget>[
+              Row(children: <Widget>[
+                Expanded(
+                  child: Column(children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Timer", style: TextStyle(color: textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: boolBox.getAt(1)! == true
+                          ? Text("On", style: TextStyle(color: greyColor))
+                          : Text("Off", style: TextStyle(color: greyColor)),
+                    ),
+                  ]),
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Switch(
+                      inactiveThumbColor: greyColor,
+                      inactiveTrackColor:
+                          const Color.fromARGB(255, 207, 207, 207),
+                      activeColor: activeSwitchColor,
+                      activeTrackColor: greyColor,
+                      value: boolBox.getAt(1)!,
+                      onChanged: toggleSwitch,
                     ),
                   ),
-                ]),
+                ),
               ]),
-            ),
-            onPressed: (() => toggleSwitch(false)),
+            ]),
           ),
+          onPressed: (() => toggleSwitch(false)),
         ),
         boolBox.getAt(1)!
-            ? SizedBox(
-                height: 88,
-                width: double.infinity,
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                      primary: Colors.white,
-                      textStyle: const TextStyle(fontSize: 16)),
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    child: ListView(children: <Widget>[
-                      Row(children: <Widget>[
-                        Expanded(
-                          child: Column(children: [
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text("Ring",
-                                  style: TextStyle(color: textColor)),
-                            ),
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: boolBox.getAt(2)! == true
-                                  ? Text("Enabled",
-                                      style: TextStyle(color: greyColor))
-                                  : Text("Disabled",
-                                      style: TextStyle(color: greyColor)),
-                            ),
-                          ]),
-                        ),
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: Switch(
-                              inactiveThumbColor: greyColor,
-                              inactiveTrackColor:
-                                  const Color.fromARGB(255, 207, 207, 207),
-                              activeColor: activeSwitchColor,
-                              activeTrackColor: greyColor,
-                              value: boolBox.getAt(2)!,
-                              onChanged: toggleSwitch2,
-                            ),
-                          ),
-                        ),
-                      ]),
-                    ]),
-                  ),
-                  onPressed: (() => toggleSwitch2(false)),
-                ),
-              )
-            : const SizedBox(),
-        boolBox.getAt(1)!
-            ? SizedBox(
-                height: 88,
-                width: double.infinity,
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                      primary: Colors.white,
-                      textStyle: const TextStyle(fontSize: 16)),
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(children: <Widget>[
-                      Row(children: <Widget>[
-                        Expanded(
-                          child: Column(children: [
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text("Vibration",
-                                  style: TextStyle(color: textColor)),
-                            ),
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: boolBox.getAt(3)! == true
-                                  ? Text("Enabled",
-                                      style: TextStyle(color: greyColor))
-                                  : Text("Disabled",
-                                      style: TextStyle(color: greyColor)),
-                            ),
-                          ]),
-                        ),
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: Switch(
-                              inactiveThumbColor: greyColor,
-                              inactiveTrackColor:
-                                  const Color.fromARGB(255, 207, 207, 207),
-                              activeColor: activeSwitchColor,
-                              activeTrackColor: greyColor,
-                              value: boolBox.getAt(3)!,
-                              onChanged: toggleSwitch3,
-                            ),
-                          ),
-                        ),
-                      ]),
-                    ]),
-                  ),
-                  onPressed: (() => toggleSwitch3(false)),
-                ),
-              )
-            : const SizedBox(),
-        boolBox.getAt(1)!
-            ? SizedBox(
-                height: 88,
-                width: double.infinity,
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                      primary: Colors.white,
-                      textStyle: const TextStyle(fontSize: 16)),
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(children: <Widget>[
+            ? TextButton(
+                style: TextButton.styleFrom(
+                    primary: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16)),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(children: <Widget>[
+                    Row(children: <Widget>[
                       Expanded(
                         child: Column(children: [
                           Align(
                             alignment: Alignment.centerLeft,
-                            child: Text("Success Timer",
+                            child: Text("Ring",
                                 style: TextStyle(color: textColor)),
                           ),
                           const SizedBox(height: 8),
                           Align(
                             alignment: Alignment.centerLeft,
-                            child: Text(successTimes,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: greyColor)),
+                            child: boolBox.getAt(2)! == true
+                                ? Text("Enabled",
+                                    style: TextStyle(color: greyColor))
+                                : Text("Disabled",
+                                    style: TextStyle(color: greyColor)),
                           ),
                         ]),
                       ),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Switch(
+                            inactiveThumbColor: greyColor,
+                            inactiveTrackColor:
+                                const Color.fromARGB(255, 207, 207, 207),
+                            activeColor: activeSwitchColor,
+                            activeTrackColor: greyColor,
+                            value: boolBox.getAt(2)!,
+                            onChanged: toggleSwitch2,
+                          ),
+                        ),
+                      ),
                     ]),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(
-                            builder: (context) => const SetTimerPage(0)))
-                        .then((value) {
-                      setState(() {});
-                    });
-                  },
+                  ]),
                 ),
+                onPressed: (() => toggleSwitch2(false)),
               )
             : const SizedBox(),
         boolBox.getAt(1)!
-            ? SizedBox(
-                height: 88,
-                width: double.infinity,
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                      primary: Colors.white,
-                      textStyle: const TextStyle(fontSize: 16)),
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(children: <Widget>[
-                      Expanded(
+            ? TextButton(
+                style: TextButton.styleFrom(
+                    primary: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16)),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(children: <Widget>[
+                    Row(children: <Widget>[
+                      Flexible(
+                        flex: 3,
                         child: Column(children: [
                           Align(
                             alignment: Alignment.centerLeft,
-                            child: Text("Fail Timer",
+                            child: Text("Vibration",
                                 style: TextStyle(color: textColor)),
                           ),
                           const SizedBox(height: 8),
                           Align(
                             alignment: Alignment.centerLeft,
-                            child: Text(failTimes,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: greyColor)),
+                            child: boolBox.getAt(3)! == true
+                                ? Text("Enabled",
+                                    style: TextStyle(color: greyColor))
+                                : Text("Disabled",
+                                    style: TextStyle(color: greyColor)),
                           ),
+                          boolBox.getAt(3)!
+                              ? const SizedBox(height: 8)
+                              : const SizedBox(),
+                          boolBox.getAt(3)!
+                              ? Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                      "Notification vibrations must be enabled",
+                                      style: TextStyle(
+                                          color: greyColor, fontSize: 12)),
+                                )
+                              : const SizedBox(),
                         ]),
                       ),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Switch(
+                            inactiveThumbColor: greyColor,
+                            inactiveTrackColor:
+                                const Color.fromARGB(255, 207, 207, 207),
+                            activeColor: activeSwitchColor,
+                            activeTrackColor: greyColor,
+                            value: boolBox.getAt(3)!,
+                            onChanged: toggleSwitch3,
+                          ),
+                        ),
+                      ),
                     ]),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(
-                            builder: (context) => const SetTimerPage(1)))
-                        .then((value) {
-                      setState(() {});
-                    });
-                  },
+                  ]),
                 ),
+                onPressed: (() => toggleSwitch3(false)),
+              )
+            : const SizedBox(),
+        boolBox.getAt(1)!
+            ? TextButton(
+                style: TextButton.styleFrom(
+                    primary: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16)),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(children: <Widget>[
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Success Timer",
+                          style: TextStyle(color: textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(successTimes,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: greyColor)),
+                    ),
+                  ]),
+                ),
+                onPressed: () {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(
+                          builder: (context) => const SetTimerPage(0)))
+                      .then((value) {
+                    setState(() {});
+                  });
+                },
+              )
+            : const SizedBox(),
+        boolBox.getAt(1)!
+            ? TextButton(
+                style: TextButton.styleFrom(
+                    primary: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16)),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(children: <Widget>[
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Fail Timer",
+                          style: TextStyle(color: textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(failTimes,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: greyColor)),
+                    ),
+                  ]),
+                ),
+                onPressed: () {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(
+                          builder: (context) => const SetTimerPage(1)))
+                      .then((value) {
+                    setState(() {});
+                  });
+                },
               )
             : const SizedBox(),
       ]),
@@ -4463,10 +4422,9 @@ class _EditState extends State<Edit> {
               },
             ),
           ),
-          const Divider(height: 10, color: Colors.transparent),
+          const Divider(height: 20, color: Colors.transparent),
           if (workoutsBox.isNotEmpty)
             SizedBox(
-              height: 55,
               width: double.infinity,
               child: TextButton(
                 style: TextButton.styleFrom(
@@ -4479,12 +4437,46 @@ class _EditState extends State<Edit> {
                       style: TextStyle(color: textColor)),
                 ),
                 onPressed: () {
-                  setState(() {
-                    counterBox.putAt(0, 0);
-                    counterBox.putAt(1, 0);
-                    workoutsBox.deleteAll(workoutsBox.keys);
-                    workoutsBox.clear();
-                  });
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: tileColor,
+                      title: Text('Delete All Workouts',
+                          style: TextStyle(fontSize: 20, color: textColor)),
+                      content: Text(
+                          'Are you sure you want to delete all workouts?',
+                          style: TextStyle(fontSize: 15, color: textColor)),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(fontSize: 16, color: redColor),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              counterBox.putAt(0, 0);
+                              counterBox.putAt(1, 0);
+                              workoutsBox.deleteAll(workoutsBox.keys);
+                              workoutsBox.clear();
+                            });
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text(
+                            'Delete',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: redColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 },
               ),
             ),
@@ -5631,9 +5623,12 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                   IconButton(
                                                       icon: const Icon(
                                                           Icons.close),
-                                                      onPressed: () => setState(
-                                                          () => showTimer =
-                                                              false)),
+                                                      onPressed: () =>
+                                                          setState(() {
+                                                            showTimer = false;
+                                                            AwesomeNotifications()
+                                                                .cancelAll();
+                                                          })),
                                                 ]),
                                           ),
                                         ]),
@@ -5899,52 +5894,95 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                   tempWorkout?.save();
                                 });
                               } else if (value == 'deleteAll') {
-                                setState(() {
-                                  for (int k = 0;
-                                      k < exercisesBox.length;
-                                      k++) {
-                                    if (exercisesBox.getAt(k)!.name ==
-                                        workoutsBox
-                                            .getAt(widget.index)!
-                                            .exercises[i]
-                                            .name) {
-                                      exercisesBox.deleteAt(k);
-                                    }
-                                  }
-                                  for (int j = 0; j < workoutsBox.length; j++) {
-                                    if (workoutsBox.getAt(j)! ==
-                                        workoutsBox.getAt(widget.index)!) {
-                                    } else {
-                                      for (int k = 0;
-                                          k <
-                                              workoutsBox
-                                                  .getAt(j)!
-                                                  .exercises
-                                                  .length;
-                                          k++) {
-                                        if (workoutsBox
-                                                .getAt(j)!
-                                                .exercises[k]
-                                                .name ==
-                                            workoutsBox
-                                                .getAt(widget.index)!
-                                                .exercises[i]
-                                                .name) {
-                                          final tempWorkout =
-                                              Hive.box<Workout>('workoutsBox')
-                                                  .getAt(j);
-                                          tempWorkout?.exercises.removeAt(i);
-                                          tempWorkout?.save();
-                                        }
-                                      }
-                                    }
-                                  }
-                                  final tempWorkout =
-                                      Hive.box<Workout>('workoutsBox')
-                                          .getAt(widget.index);
-                                  tempWorkout?.exercises.removeAt(i);
-                                  tempWorkout?.save();
-                                });
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    backgroundColor: tileColor,
+                                    title: Text('Delete From All Workouts',
+                                        style: TextStyle(
+                                            fontSize: 20, color: textColor)),
+                                    content: Text(
+                                        'This will remove the exercise from all workouts and clear its statistics. It will not be visible on the progress page. Are you sure you want to delete?',
+                                        style: TextStyle(
+                                            fontSize: 15, color: textColor)),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text(
+                                          'Cancel',
+                                          style: TextStyle(
+                                              fontSize: 16, color: redColor),
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            for (int k = 0;
+                                                k < exercisesBox.length;
+                                                k++) {
+                                              if (exercisesBox.getAt(k)!.name ==
+                                                  workoutsBox
+                                                      .getAt(widget.index)!
+                                                      .exercises[i]
+                                                      .name) {
+                                                exercisesBox.deleteAt(k);
+                                              }
+                                            }
+                                            for (int j = 0;
+                                                j < workoutsBox.length;
+                                                j++) {
+                                              if (workoutsBox.getAt(j)! ==
+                                                  workoutsBox
+                                                      .getAt(widget.index)!) {
+                                              } else {
+                                                for (int k = 0;
+                                                    k <
+                                                        workoutsBox
+                                                            .getAt(j)!
+                                                            .exercises
+                                                            .length;
+                                                    k++) {
+                                                  if (workoutsBox
+                                                          .getAt(j)!
+                                                          .exercises[k]
+                                                          .name ==
+                                                      workoutsBox
+                                                          .getAt(widget.index)!
+                                                          .exercises[i]
+                                                          .name) {
+                                                    final tempWorkout =
+                                                        Hive.box<Workout>(
+                                                                'workoutsBox')
+                                                            .getAt(j);
+                                                    tempWorkout?.exercises
+                                                        .removeAt(i);
+                                                    tempWorkout?.save();
+                                                  }
+                                                }
+                                              }
+                                            }
+                                            final tempWorkout =
+                                                Hive.box<Workout>('workoutsBox')
+                                                    .getAt(widget.index);
+                                            tempWorkout?.exercises.removeAt(i);
+                                            tempWorkout?.save();
+                                          });
+                                          _progressCounter.value++;
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text(
+                                          'Delete',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: redColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
                               }
                             },
                             itemBuilder: (BuildContext bc) {
@@ -5984,7 +6022,6 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
               ),
             ),
             SizedBox(
-              height: 55,
               width: double.infinity,
               child: TextButton(
                 style: TextButton.styleFrom(
@@ -6079,7 +6116,6 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
             ),
             if (workoutsBox.getAt(widget.index)!.exercises.isNotEmpty)
               SizedBox(
-                height: 55,
                 width: double.infinity,
                 child: TextButton(
                   style: TextButton.styleFrom(
@@ -6092,14 +6128,51 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                         style: TextStyle(color: textColor)),
                   ),
                   onPressed: () {
-                    // add confirmation "would you like to delete all exercises?""
-                    setState(() {
-                      final tempWorkout =
-                          Hive.box<Workout>('workoutsBox').getAt(widget.index);
-                      tempWorkout?.exercises.clear();
-                      tempWorkout?.save();
-                      workoutsBox.getAt(widget.index)!.exercises.clear();
-                    });
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        backgroundColor: tileColor,
+                        title: Text('Delete All Exercises',
+                            style: TextStyle(fontSize: 20, color: textColor)),
+                        content: Text(
+                            'Are you sure you want to delete all exercises in this workout?',
+                            style: TextStyle(fontSize: 15, color: textColor)),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(fontSize: 16, color: redColor),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                final tempWorkout =
+                                    Hive.box<Workout>('workoutsBox')
+                                        .getAt(widget.index);
+                                tempWorkout?.exercises.clear();
+                                tempWorkout?.save();
+                                workoutsBox
+                                    .getAt(widget.index)!
+                                    .exercises
+                                    .clear();
+                              });
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text(
+                              'Delete',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: redColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                   },
                 ),
               ),
@@ -6338,12 +6411,25 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                 }
                                                               }
                                                               if (duplicate ==
-                                                                  false) {Exercise newEx = 
-                                                                  Exercise(_myController.text, 
-                                                                  defaultsBox.getAt(0)!, 
-                                                                  defaultsBox.getAt(1)!.toInt(), 
-                                                                  defaultsBox.getAt(2)!.toInt());
-                                                                newEx.weight =  defaultsBox.getAt(0)!;
+                                                                  false) {
+                                                                Exercise newEx = Exercise(
+                                                                    _myController
+                                                                        .text,
+                                                                    defaultsBox
+                                                                        .getAt(
+                                                                            0)!,
+                                                                    defaultsBox
+                                                                        .getAt(
+                                                                            1)!
+                                                                        .toInt(),
+                                                                    defaultsBox
+                                                                        .getAt(
+                                                                            2)!
+                                                                        .toInt());
+                                                                newEx.weight =
+                                                                    defaultsBox
+                                                                        .getAt(
+                                                                            0)!;
                                                                 // Adds to Hive local storage
                                                                 exercisesBox
                                                                     .add(newEx);
@@ -6890,7 +6976,6 @@ class _EditExercisePageState extends State<EditExercisePage> {
             },
             child: Container(
                 padding: const EdgeInsets.all(10),
-                height: 80,
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -7157,7 +7242,6 @@ class _EditExercisePageState extends State<EditExercisePage> {
             },
             child: Container(
                 padding: const EdgeInsets.all(10),
-                height: 80,
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -7502,7 +7586,6 @@ class _EditExercisePageState extends State<EditExercisePage> {
               primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
           child: Container(
             padding: const EdgeInsets.all(10),
-            height: 55,
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text("Change Exercise Name",
@@ -7754,10 +7837,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
           ),
         ),
         exercisesBox.getAt(widget.index)!.overload
-            ? SizedBox(
-                height: 80,
-                width: double.infinity,
-                child: ValueListenableBuilder(
+            ? ValueListenableBuilder(
                     valueListenable: _incrementsCounter,
                     builder: (context, value, child) {
                       return TextButton(
@@ -7802,13 +7882,10 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                 context: context,
                                 builder: (context) => incrementSelector());
                           });
-                    }))
+                    })
             : const SizedBox(),
         exercisesBox.getAt(widget.index)!.overload
-            ? SizedBox(
-                height: 80,
-                width: double.infinity,
-                child: ValueListenableBuilder(
+            ?  ValueListenableBuilder(
                     valueListenable: _incrementsCounter,
                     builder: (context, value, child) {
                       return TextButton(
@@ -7851,9 +7928,10 @@ class _IncrementsPageState extends State<IncrementsPage> {
                               builder: (context) => frequencySelector());
                         },
                       );
-                    }),
+                    },
               )
             : const SizedBox(),
+        const SizedBox(height: 10),
         exercisesBox.getAt(widget.index)!.overload
             ? Flexible(
                 child: Container(
@@ -7899,10 +7977,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                     }),
               ))
             : const SizedBox(),
-        SizedBox(
-          height: 91,
-          width: double.infinity,
-          child: TextButton(
+        TextButton(
             style: TextButton.styleFrom(
                 primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
@@ -7944,13 +8019,9 @@ class _IncrementsPageState extends State<IncrementsPage> {
               ]),
             ),
             onPressed: (() => toggleSwitch2(false)),
-          ),
         ),
         exercisesBox.getAt(widget.index)!.deload
-            ? SizedBox(
-                height: 80,
-                width: double.infinity,
-                child: ValueListenableBuilder(
+            ? ValueListenableBuilder(
                     valueListenable: _incrementsCounter,
                     builder: (context, value, child) {
                       return TextButton(
@@ -7985,13 +8056,10 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                 context: context,
                                 builder: (context) => percentageSelector());
                           });
-                    }))
+                    })
             : const SizedBox(),
         exercisesBox.getAt(widget.index)!.deload
-            ? SizedBox(
-                height: 80,
-                width: double.infinity,
-                child: ValueListenableBuilder(
+            ? ValueListenableBuilder(
                     valueListenable: _incrementsCounter,
                     builder: (context, value, child) {
                       return TextButton(
@@ -8034,9 +8102,10 @@ class _IncrementsPageState extends State<IncrementsPage> {
                               builder: (context) => deloadFrequencySelector());
                         },
                       );
-                    }),
+                    },
               )
             : const SizedBox(),
+        const SizedBox(height: 10),
         exercisesBox.getAt(widget.index)!.deload
             ? Flexible(
                 child: Container(
