@@ -1341,16 +1341,6 @@ class _HistoryState extends State<History> {
   }
 }
 
-class _MyData {
-  final double xval;
-  final double weight;
-
-  _MyData({
-    required this.xval,
-    required this.weight,
-  });
-}
-
 class _ProgressState extends State<Progress> {
   late final Box<Exercise> exercisesBox;
   late final Box<IndivWorkout> indivWorkoutsBox;
@@ -2246,6 +2236,18 @@ class _SettingsState extends State<Settings> {
   }
 }
 
+class _MyData {
+  final double xval;
+  final double weight;
+  final String completionString;
+
+  _MyData({
+    required this.xval,
+    required this.weight,
+    required this.completionString,
+  });
+}
+
 class _GraphPageState extends State<GraphPage> {
   // widget.index of -1 means body weight
   late final Box<Exercise> exercisesBox;
@@ -2346,6 +2348,7 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
   double date = 0;
   double graphWeight = 0;
   String graphDate = "";
+  String completeString = "";
   double minWeight = 0;
   double maxWeight = 0;
 
@@ -2380,7 +2383,9 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
             DateTime.fromMillisecondsSinceEpoch(date.toInt());
         if (widget.exIndex == -1) {
           data.add(_MyData(
-              xval: date, weight: indivWorkoutsBox.getAt(i)!.bodyWeight));
+              xval: date,
+              weight: indivWorkoutsBox.getAt(i)!.bodyWeight,
+              completionString: ""));
           graphWeight = indivWorkoutsBox.getAt(i)!.bodyWeight;
           graphDate = DateFormat('d MMM yyyy').format(dateToFormat);
           if (indivWorkoutsBox.getAt(i)!.bodyWeight > maxWeight ||
@@ -2397,17 +2402,32 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
               j++) {
             if (indivWorkoutsBox.getAt(i)!.exercisesCompleted[j] ==
                 exercisesBox.getAt(widget.exIndex)!.name) {
-              data.add(_MyData(
-                  xval: date, weight: indivWorkoutsBox.getAt(i)!.weights[j]));
-              graphWeight = indivWorkoutsBox.getAt(i)!.weights[j];
-              graphDate = DateFormat('d MMM yyyy').format(dateToFormat);
-              if (indivWorkoutsBox.getAt(i)!.weights[j] > maxWeight ||
-                  maxWeight == 0) {
-                maxWeight = indivWorkoutsBox.getAt(i)!.weights[j];
+              bool skipped = true;
+              // checks to see if exercise was skipped
+              for (int k = 0;
+                  k < indivWorkoutsBox.getAt(i)!.repsCompleted[j].length;
+                  k++) {
+                if (indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1 !=
+                    indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]) {
+                  skipped = false;
+                }
               }
-              if (indivWorkoutsBox.getAt(i)!.weights[j] < minWeight ||
-                  minWeight == 0) {
-                minWeight = indivWorkoutsBox.getAt(i)!.weights[j];
+              if (!skipped) {
+                data.add(_MyData(
+                    xval: date,
+                    weight: indivWorkoutsBox.getAt(i)!.weights[j],
+                    completionString: completionString(i, j)));
+                graphWeight = indivWorkoutsBox.getAt(i)!.weights[j];
+                graphDate = DateFormat('d MMM yyyy').format(dateToFormat);
+                completeString = completionString(i, j);
+                if (indivWorkoutsBox.getAt(i)!.weights[j] > maxWeight ||
+                    maxWeight == 0) {
+                  maxWeight = indivWorkoutsBox.getAt(i)!.weights[j];
+                }
+                if (indivWorkoutsBox.getAt(i)!.weights[j] < minWeight ||
+                    minWeight == 0) {
+                  minWeight = indivWorkoutsBox.getAt(i)!.weights[j];
+                }
               }
             }
           }
@@ -2453,6 +2473,14 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
                                   style: TextStyle(
                                       fontSize: 14, color: greyColor)),
                             ),
+                            widget.exIndex != -1
+                                ? Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(completeString,
+                                        style: TextStyle(
+                                            fontSize: 14, color: greyColor)),
+                                  )
+                                : const SizedBox(),
                           ]));
                     }),
                 Align(
@@ -2575,6 +2603,8 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
                     DateTime tempDate =
                         DateTime.fromMillisecondsSinceEpoch(dateInt);
                     graphDate = DateFormat('d MMM yyyy').format(tempDate);
+                    completeString =
+                        _data[touchedSpot.spotIndex].completionString;
                   },
                 ).toList();
               },
@@ -2618,6 +2648,36 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
       space: 6,
       child: text,
     );
+  }
+
+  String completionString(int i, int j) {
+    String output = "";
+    int successCounter = 0;
+
+    for (int k = 0; k < indivWorkoutsBox.getAt(i)!.setsPlanned[j]; k++) {
+      if (indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
+          indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1) {
+        output += "0";
+      } else {
+        if (indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
+            indivWorkoutsBox.getAt(i)!.repsPlanned[j]) {
+          successCounter++;
+        }
+        output += indivWorkoutsBox.getAt(i)!.repsCompleted[j][k].toString();
+      }
+
+      if (k != indivWorkoutsBox.getAt(i)!.setsPlanned[j] - 1) {
+        output += "/";
+      } else {
+        if (successCounter == indivWorkoutsBox.getAt(i)!.setsPlanned[j]) {
+          output = "";
+          output += indivWorkoutsBox.getAt(i)!.setsPlanned[j].toString();
+          output += "×";
+          output += indivWorkoutsBox.getAt(i)!.repsPlanned[j].toString();
+        }
+      }
+    }
+    return output;
   }
 }
 
@@ -3855,15 +3915,15 @@ class _ListState extends State<ListPage> {
 
   String makeCompletionString(int i, int j) {
     String output = "";
-    int skippedCounter = 0;
+    bool allSkipped = true;
     int successCounter = 0;
 
     for (int k = 0; k < indivWorkoutsBox.getAt(i)!.setsPlanned[j]; k++) {
       if (indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
           indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1) {
         output += "0";
-        skippedCounter++;
       } else {
+        allSkipped = false;
         if (indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
             indivWorkoutsBox.getAt(i)!.repsPlanned[j]) {
           successCounter++;
@@ -3893,7 +3953,7 @@ class _ListState extends State<ListPage> {
         output += lbKg;
       }
 
-      if (skippedCounter == indivWorkoutsBox.getAt(i)!.setsPlanned[j]) {
+      if (allSkipped) {
         output = "";
         output += "Skipped";
       }
@@ -4965,44 +5025,46 @@ class _WorkoutPageState extends State<WorkoutPage> {
                     }
                     if (!complete) {
                       showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          backgroundColor: tileColor,
-                          title: Text('Finish Workout?',
-                              style: TextStyle(fontSize: 20, color: textColor)),
-                          content: Text(
-                              'You haven\'t logged all sets. Are you sure you want to finish this workout?',
-                              style: TextStyle(fontSize: 15, color: textColor)),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text(
-                                'Cancel',
-                                style: TextStyle(fontSize: 16, color: redColor),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                                if (allIncomplete) {}
-                                else {
-                                  workoutFinish();
-                                }
-                              },
-                              child: const Text(
-                                'Finish',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: redColor,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ));
-                    }
-                    else {
+                          context: context,
+                          builder: (context) => AlertDialog(
+                                backgroundColor: tileColor,
+                                title: Text('Finish Workout?',
+                                    style: TextStyle(
+                                        fontSize: 20, color: textColor)),
+                                content: Text(
+                                    'You haven\'t logged all sets. Are you sure you want to finish this workout?',
+                                    style: TextStyle(
+                                        fontSize: 15, color: textColor)),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text(
+                                      'Cancel',
+                                      style: TextStyle(
+                                          fontSize: 16, color: redColor),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      if (allIncomplete) {
+                                      } else {
+                                        workoutFinish();
+                                      }
+                                    },
+                                    child: const Text(
+                                      'Finish',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: redColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ));
+                    } else {
                       workoutFinish();
                     }
                   },
@@ -7069,6 +7131,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                         }
                                       }
                                     });
+                                    _progressCounter.value++;
                                     Navigator.of(context).pop();
                                   },
                                 ),
