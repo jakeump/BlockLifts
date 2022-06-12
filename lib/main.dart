@@ -1054,44 +1054,52 @@ class _HomeState extends State<Home> {
                         ]),
                   );
                 }),
-            floatingActionButton: SizedBox(
-              width: boolBox.getAt(5)! ? 220 : 180,
-              height: boolBox.getAt(5)! ? 75 : 50,
-              child: OutlinedButton(
-                child: boolBox.getAt(5)!
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                            const Text("Workout In Progress",
-                                style: TextStyle(fontSize: 16)),
-                            const Text("x min", style: TextStyle(fontSize: 14))
-                          ])
-                    : const Text("Start Workout",
-                        style: TextStyle(fontSize: 16)),
-                style: OutlinedButton.styleFrom(
-                  primary: Colors.white,
-                  backgroundColor: redColor,
-                  shape: boolBox.getAt(5)!
-                      ? RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10))
-                      : const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(50))),
-                ),
-                onPressed: () {
-                  if (boolBox.getAt(5)!) {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) =>
-                            WorkoutPage(counterBox.getAt(0)!)));
-                  } else {
-                    pushWorkout(counterBox.getAt(0)!);
-                  }
-                },
-              ),
-            ),
+            floatingActionButton: Align(
+                alignment: Alignment.bottomRight,
+                child: Container(
+                  padding: boolBox.getAt(5)!
+                      ? const EdgeInsets.only(right: 10)
+                      : const EdgeInsets.only(right: 10, bottom: 10),
+                  child: OutlinedButton(
+                    child: boolBox.getAt(5)!
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                                const Text("Workout In Progress",
+                                    style: TextStyle(fontSize: 16)),
+                                const Text("x min",
+                                    style: TextStyle(fontSize: 14))
+                              ])
+                        : const Text("Start Workout",
+                            style: TextStyle(fontSize: 16)),
+                    style: OutlinedButton.styleFrom(
+                      fixedSize: boolBox.getAt(5)!
+                          ? const Size.fromHeight(75)
+                          : const Size.fromHeight(50),
+                      primary: Colors.white,
+                      backgroundColor: redColor,
+                      shape: boolBox.getAt(5)!
+                          ? RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10))
+                          : const RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(50))),
+                    ),
+                    onPressed: () {
+                      if (boolBox.getAt(5)!) {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) =>
+                                WorkoutPage(counterBox.getAt(0)!)));
+                      } else {
+                        pushWorkout(counterBox.getAt(0)!);
+                      }
+                    },
+                  ),
+                )),
             floatingActionButtonLocation: boolBox.getAt(5)!
-                ? FloatingActionButtonLocation.endDocked
-                : FloatingActionButtonLocation.endFloat,
+                ? FloatingActionButtonLocation.centerDocked
+                : FloatingActionButtonLocation.centerDocked,
           );
         });
   }
@@ -1142,7 +1150,6 @@ class _HomeState extends State<Home> {
                                           pushWorkout(i);
                                         },
                                       )),
-                                  const SizedBox(width: 20),
                                   Align(
                                       alignment: Alignment.centerRight,
                                       child: TextButton(
@@ -1379,73 +1386,69 @@ class _ProgressState extends State<Progress> {
                         for (int i = 1; i < exercisesBox.length; i++)
                           if (exercisesBox.getAt(i)!.bookmarked)
                             TextButton(
-                                  style: TextButton.styleFrom(
-                                      primary: Colors.white,
-                                      textStyle: const TextStyle(fontSize: 16)),
-                                  child: Container(
-                                    padding:
-                                        const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                                    child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(children: <Widget>[
-                                                Container(
-                                                  constraints: BoxConstraints(
-                                                      maxWidth:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.7),
-                                                  child: RichText(
-                                                      text: TextSpan(
-                                                        text: exercisesBox
-                                                            .getAt(i)!
-                                                            .name,
-                                                        style: TextStyle(
-                                                            fontSize: 22,
-                                                            color: textColor),
-                                                      ),
-                                                      overflow: TextOverflow
-                                                          .ellipsis),
+                                style: TextButton.styleFrom(
+                                    primary: Colors.white,
+                                    textStyle: const TextStyle(fontSize: 16)),
+                                child: Container(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                  child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(children: <Widget>[
+                                          Container(
+                                            constraints: BoxConstraints(
+                                                maxWidth: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.7),
+                                            child: RichText(
+                                                text: TextSpan(
+                                                  text: exercisesBox
+                                                      .getAt(i)!
+                                                      .name,
+                                                  style: TextStyle(
+                                                      fontSize: 22,
+                                                      color: textColor),
                                                 ),
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          left: 10),
-                                                  child: const Icon(
-                                                    Icons.bookmark,
-                                                    color: Colors.orange,
-                                                  ),
-                                                ),
-                                              ]),
-                                            const SizedBox(height: 8),
-                                            Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: exercisesBox
-                                                              .getAt(i)!
-                                                              .weight %
-                                                          1 ==
-                                                      0
-                                                  ? Text(
-                                                      "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
-                                                      style: TextStyle(
-                                                          color: greyColor))
-                                                  : Text(
-                                                      "${exercisesBox.getAt(i)!.weight.toString()}lb",
-                                                      style: TextStyle(
-                                                          color: greyColor)),
+                                                overflow:
+                                                    TextOverflow.ellipsis),
+                                          ),
+                                          Container(
+                                            padding:
+                                                const EdgeInsets.only(left: 10),
+                                            child: const Icon(
+                                              Icons.bookmark,
+                                              color: Colors.orange,
                                             ),
-                                          ]),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .push(MaterialPageRoute(
-                                            builder: (context) => GraphPage(i)))
-                                        .then((value) {
-                                      setState(() {});
-                                    });
-                                  }),
+                                          ),
+                                        ]),
+                                        const SizedBox(height: 8),
+                                        Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: exercisesBox.getAt(i)!.weight %
+                                                      1 ==
+                                                  0
+                                              ? Text(
+                                                  "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
+                                                  style: TextStyle(
+                                                      color: greyColor))
+                                              : Text(
+                                                  "${exercisesBox.getAt(i)!.weight.toString()}lb",
+                                                  style: TextStyle(
+                                                      color: greyColor)),
+                                        ),
+                                      ]),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context)
+                                      .push(MaterialPageRoute(
+                                          builder: (context) => GraphPage(i)))
+                                      .then((value) {
+                                    setState(() {});
+                                  });
+                                }),
                         if (bookmarkCounter > 0)
                           Divider(
                               height: 10,
@@ -1455,56 +1458,53 @@ class _ProgressState extends State<Progress> {
                               endIndent: 10),
                         // body weight
                         TextButton(
-                              style: TextButton.styleFrom(
-                                  primary: Colors.white,
-                                  textStyle: const TextStyle(fontSize: 16)),
-                              child: Container(
-                                padding:
-                                    const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                                child: Row(children: <Widget>[
-                                  Expanded(
-                                    child: Column(children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          "Body Weight",
-                                          style: TextStyle(
-                                              fontSize: 17, color: textColor),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: indivWorkoutsBox.isEmpty
-                                            ? Text("150lb",
+                          style: TextButton.styleFrom(
+                              primary: Colors.white,
+                              textStyle: const TextStyle(fontSize: 16)),
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                            child: Row(children: <Widget>[
+                              Expanded(
+                                child: Column(children: [
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      "Body Weight",
+                                      style: TextStyle(
+                                          fontSize: 17, color: textColor),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: indivWorkoutsBox.isEmpty
+                                        ? Text("150lb",
+                                            style: TextStyle(color: greyColor))
+                                        : indivWorkoutsBox
+                                                        .getAt(indivWorkoutsBox
+                                                                .length -
+                                                            1)!
+                                                        .bodyWeight %
+                                                    1 ==
+                                                0
+                                            ? Text(
+                                                "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toInt().toString()}lb",
                                                 style:
                                                     TextStyle(color: greyColor))
-                                            : indivWorkoutsBox
-                                                            .getAt(
-                                                                indivWorkoutsBox
-                                                                        .length -
-                                                                    1)!
-                                                            .bodyWeight %
-                                                        1 ==
-                                                    0
-                                                ? Text(
-                                                    "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toInt().toString()}lb",
-                                                    style: TextStyle(
-                                                        color: greyColor))
-                                                : Text(
-                                                    "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toString()}lb",
-                                                    style: TextStyle(
-                                                        color: greyColor)),
-                                      ),
-                                    ]),
+                                            : Text(
+                                                "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toString()}lb",
+                                                style: TextStyle(
+                                                    color: greyColor)),
                                   ),
                                 ]),
                               ),
-                              onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) => const GraphPage(-1)));
-                              },
-                            ),
+                            ]),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => const GraphPage(-1)));
+                          },
+                        ),
                         if (bookmarkCounter < exercisesBox.length - 1)
                           Divider(
                               height: 10,
@@ -1515,16 +1515,17 @@ class _ProgressState extends State<Progress> {
                         for (int i = 1; i < exercisesBox.length; i++)
                           if (!exercisesBox.getAt(i)!.bookmarked)
                             TextButton(
-                                  style: TextButton.styleFrom(
-                                      primary: Colors.white,
-                                      textStyle: const TextStyle(fontSize: 16)),
-                                  child: Container(
-                                    padding:
-                                        const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                                    child: Row(children: <Widget>[
-                                        Column(crossAxisAlignment:
+                                style: TextButton.styleFrom(
+                                    primary: Colors.white,
+                                    textStyle: const TextStyle(fontSize: 16)),
+                                child: Container(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                  child: Row(children: <Widget>[
+                                    Column(
+                                        crossAxisAlignment:
                                             CrossAxisAlignment.start,
-                                          children: [
+                                        children: [
                                           Align(
                                             alignment: Alignment.centerLeft,
                                             child: Text(
@@ -1553,14 +1554,12 @@ class _ProgressState extends State<Progress> {
                                                         color: greyColor)),
                                           ),
                                         ]),
-                                    ]),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                GraphPage(i)));
-                                  }),
+                                  ]),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => GraphPage(i)));
+                                }),
                       ],
                     );
                   }));
@@ -1670,493 +1669,474 @@ class _SettingsState extends State<Settings> {
           onPressed: (() => toggleSwitch(false)),
         ),
         TextButton(
-            style: TextButton.styleFrom(
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 16)),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              child: Row(children: <Widget>[
-                Expanded(
-                  child: Column(children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Timer", style: TextStyle(color: textColor)),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: boolBox.getAt(1)! == true
-                          ? Text("On", style: TextStyle(color: greyColor))
-                          : Text("Off", style: TextStyle(color: greyColor)),
-                    ),
-                  ]),
-                ),
-              ]),
-            ),
-            onPressed: () {
-              Navigator.of(context)
-                  .push(MaterialPageRoute(
-                      builder: (context) => const TimerPage()))
-                  .then((value) {
-                setState(() {});
-              });
-            },
-        ),
-        TextButton(
-            style: TextButton.styleFrom(
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 16)),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              child: Row(children: <Widget>[
-                Expanded(
-                  child: Column(children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Plates", style: TextStyle(color: textColor)),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(platesString,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: greyColor)),
-                    ),
-                  ]),
-                ),
-              ]),
-            ),
-            onPressed: () {
-              Navigator.of(context)
-                  .push(MaterialPageRoute(
-                      builder: (context) => const PlatesPage()))
-                  .then((value) {
-                setState(() {});
-              });
-            },
-        ),
-        TextButton(
-            style: TextButton.styleFrom(
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 16)),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              child: Row(children: <Widget>[
-                Expanded(
-                  child: Column(children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Default Bar Weight",
-                          style: TextStyle(color: textColor)),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: defaultsBox.getAt(0)! % 1 == 0
-                          ? Text(
-                              defaultsBox.getAt(0)!.toInt().toString() + "lb",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: greyColor))
-                          : Text(defaultsBox.getAt(0)!.toString() + "lb",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: greyColor)),
-                    ),
-                  ]),
-                ),
-              ]),
-            ),
-            onPressed: () {
-              defaultsBox.getAt(0)! % 1 == 0
-                  ? _myController.text =
-                      defaultsBox.getAt(0)!.toInt().toString()
-                  : _myController.text = defaultsBox.getAt(0)!.toString();
-              showDialog(
-                  context: context,
-                  builder: (context) => Dialog(
-                        insetPadding: const EdgeInsets.all(10),
-                        child: Flexible(
-                            child: Container(
-                          color: tileColor,
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text("Default Bar Weight",
-                                        style: TextStyle(
-                                            fontSize: 20, color: textColor))),
-                                const SizedBox(height: 20),
-                                TextField(
-                                  inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter(
-                                        RegExp(r'[0-9.]'),
-                                        allow: true)
-                                  ],
-                                  style: TextStyle(color: textColor),
-                                  controller: _myController,
-                                  autofocus: true,
-                                  keyboardType: TextInputType.number,
-                                  textAlignVertical: TextAlignVertical.bottom,
-                                  decoration: const InputDecoration(
-                                    contentPadding: EdgeInsets.only(bottom: 10),
-                                    enabledBorder: InputBorder.none,
-                                    focusedBorder: InputBorder.none,
-                                  ),
-                                ),
-                                Divider(
-                                  color: underlineColor,
-                                  height: 2,
-                                  thickness: 2,
-                                ),
-                                const SizedBox(height: 20),
-                                Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: <Widget>[
-                                      TextButton(
-                                        style: TextButton.styleFrom(
-                                          primary: redColor,
-                                          textStyle: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
-                                          alignment: Alignment.center,
-                                        ),
-                                        child: const Text("Cancel"),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      const SizedBox(width: 20),
-                                      TextButton(
-                                        style: TextButton.styleFrom(
-                                          primary: redColor,
-                                          textStyle: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
-                                          alignment: Alignment.center,
-                                        ),
-                                        child: const Text("OK"),
-                                        onPressed: () {
-                                          setState(() {
-                                            defaultsBox.putAt(
-                                                0,
-                                                double.parse(
-                                                    _myController.text));
-                                          });
-                                          Navigator.of(context).pop();
-                                        },
-                                      )
-                                    ]),
-                              ]),
-                        )),
-                      ));
-            },
-        ),
-        TextButton(
-            style: TextButton.styleFrom(
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 16)),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              child: Row(children: <Widget>[
-                Expanded(
-                  child: Column(children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Default Sets",
-                          style: TextStyle(color: textColor)),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                          defaultsBox.getAt(1)!.toInt().toString() + " sets",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: greyColor)),
-                    ),
-                  ]),
-                ),
-              ]),
-            ),
-            onPressed: () {
-              _myController.text = defaultsBox.getAt(1)!.toInt().toString();
-              showDialog(
-                  context: context,
-                  builder: (context) => Dialog(
-                        insetPadding: const EdgeInsets.all(10),
-                        child: Flexible(
-                            child: Container(
-                          color: tileColor,
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text("Default Sets",
-                                        style: TextStyle(
-                                            fontSize: 20, color: textColor))),
-                                const SizedBox(height: 20),
-                                TextField(
-                                  inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter(
-                                        RegExp(r'[0-99]'),
-                                        allow: true)
-                                  ],
-                                  style: TextStyle(color: textColor),
-                                  controller: _myController,
-                                  autofocus: true,
-                                  keyboardType: TextInputType.number,
-                                  textAlignVertical: TextAlignVertical.bottom,
-                                  decoration: const InputDecoration(
-                                    contentPadding: EdgeInsets.only(bottom: 10),
-                                    enabledBorder: InputBorder.none,
-                                    focusedBorder: InputBorder.none,
-                                  ),
-                                ),
-                                Divider(
-                                  color: underlineColor,
-                                  height: 2,
-                                  thickness: 2,
-                                ),
-                                const SizedBox(height: 20),
-                                Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: <Widget>[
-                                      TextButton(
-                                        style: TextButton.styleFrom(
-                                          primary: redColor,
-                                          textStyle: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
-                                          alignment: Alignment.center,
-                                        ),
-                                        child: const Text("Cancel"),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      const SizedBox(width: 20),
-                                      TextButton(
-                                        style: TextButton.styleFrom(
-                                          primary: redColor,
-                                          textStyle: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
-                                          alignment: Alignment.center,
-                                        ),
-                                        child: const Text("OK"),
-                                        onPressed: () {
-                                          setState(() {
-                                            defaultsBox.putAt(
-                                                1,
-                                                double.parse(
-                                                    _myController.text));
-                                          });
-                                          Navigator.of(context).pop();
-                                        },
-                                      )
-                                    ]),
-                              ]),
-                        )),
-                      ));
-            },
-        ),
-        TextButton(
-            style: TextButton.styleFrom(
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 16)),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              child: Row(children: <Widget>[
-                Expanded(
-                  child: Column(children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Default Reps",
-                          style: TextStyle(color: textColor)),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                          defaultsBox.getAt(2)!.toInt().toString() + " reps",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: greyColor)),
-                    ),
-                  ]),
-                ),
-              ]),
-            ),
-            onPressed: () {
-              _myController.text = defaultsBox.getAt(2)!.toInt().toString();
-              showDialog(
-                  context: context,
-                  builder: (context) => Dialog(
-                        insetPadding: const EdgeInsets.all(10),
-                        child: Flexible(
-                            child: Container(
-                          color: tileColor,
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text("Default Reps",
-                                        style: TextStyle(
-                                            fontSize: 20, color: textColor))),
-                                const SizedBox(height: 20),
-                                TextField(
-                                  inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter(
-                                        RegExp(r'[0-99]'),
-                                        allow: true)
-                                  ],
-                                  style: TextStyle(color: textColor),
-                                  controller: _myController,
-                                  autofocus: true,
-                                  keyboardType: TextInputType.number,
-                                  textAlignVertical: TextAlignVertical.bottom,
-                                  decoration: const InputDecoration(
-                                    contentPadding: EdgeInsets.only(bottom: 10),
-                                    enabledBorder: InputBorder.none,
-                                    focusedBorder: InputBorder.none,
-                                  ),
-                                ),
-                                Divider(
-                                  color: underlineColor,
-                                  height: 2,
-                                  thickness: 2,
-                                ),
-                                const SizedBox(height: 20),
-                                Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: <Widget>[
-                                      TextButton(
-                                        style: TextButton.styleFrom(
-                                          primary: redColor,
-                                          textStyle: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
-                                          alignment: Alignment.center,
-                                        ),
-                                        child: const Text("Cancel"),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      const SizedBox(width: 20),
-                                      TextButton(
-                                        style: TextButton.styleFrom(
-                                          primary: redColor,
-                                          textStyle: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
-                                          alignment: Alignment.center,
-                                        ),
-                                        child: const Text("OK"),
-                                        onPressed: () {
-                                          setState(() {
-                                            defaultsBox.putAt(
-                                                2,
-                                                double.parse(
-                                                    _myController.text));
-                                          });
-                                          Navigator.of(context).pop();
-                                        },
-                                      )
-                                    ]),
-                              ]),
-                        )),
-                      ));
-            },
-        ),
-        TextButton(
-            style: TextButton.styleFrom(
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 16)),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              child: Row(children: <Widget>[
-                Expanded(
-                  child: Align(
+          style: TextButton.styleFrom(
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Row(children: <Widget>[
+              Expanded(
+                child: Column(children: [
+                  Align(
                     alignment: Alignment.centerLeft,
-                    child: Text("Keep Screen Awake",
+                    child: Text("Timer", style: TextStyle(color: textColor)),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: boolBox.getAt(1)! == true
+                        ? Text("On", style: TextStyle(color: greyColor))
+                        : Text("Off", style: TextStyle(color: greyColor)),
+                  ),
+                ]),
+              ),
+            ]),
+          ),
+          onPressed: () {
+            Navigator.of(context)
+                .push(
+                    MaterialPageRoute(builder: (context) => const TimerPage()))
+                .then((value) {
+              setState(() {});
+            });
+          },
+        ),
+        TextButton(
+          style: TextButton.styleFrom(
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Row(children: <Widget>[
+              Expanded(
+                child: Column(children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Plates", style: TextStyle(color: textColor)),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(platesString,
+                        style: TextStyle(color: greyColor)),
+                  ),
+                ]),
+              ),
+            ]),
+          ),
+          onPressed: () {
+            Navigator.of(context)
+                .push(
+                    MaterialPageRoute(builder: (context) => const PlatesPage()))
+                .then((value) {
+              setState(() {});
+            });
+          },
+        ),
+        TextButton(
+          style: TextButton.styleFrom(
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Row(children: <Widget>[
+              Expanded(
+                child: Column(children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Default Bar Weight",
                         style: TextStyle(color: textColor)),
                   ),
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Switch(
-                      inactiveThumbColor: greyColor,
-                      inactiveTrackColor:
-                          const Color.fromARGB(255, 207, 207, 207),
-                      activeColor: activeSwitchColor,
-                      activeTrackColor: greyColor,
-                      value: boolBox.getAt(6)!,
-                      onChanged: toggleSwitch2,
-                    ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: defaultsBox.getAt(0)! % 1 == 0
+                        ? Text(defaultsBox.getAt(0)!.toInt().toString() + "lb",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: greyColor))
+                        : Text(defaultsBox.getAt(0)!.toString() + "lb",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: greyColor)),
                   ),
-                ),
-              ]),
-            ),
-            onPressed: (() => toggleSwitch2(false)),
+                ]),
+              ),
+            ]),
+          ),
+          onPressed: () {
+            defaultsBox.getAt(0)! % 1 == 0
+                ? _myController.text = defaultsBox.getAt(0)!.toInt().toString()
+                : _myController.text = defaultsBox.getAt(0)!.toString();
+            showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                      insetPadding: const EdgeInsets.all(10),
+                      child: Flexible(
+                          child: Container(
+                        color: tileColor,
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text("Default Bar Weight",
+                                      style: TextStyle(
+                                          fontSize: 20, color: textColor))),
+                              const SizedBox(height: 20),
+                              TextField(
+                                inputFormatters: <TextInputFormatter>[
+                                  FilteringTextInputFormatter(RegExp(r'[0-9.]'),
+                                      allow: true)
+                                ],
+                                style: TextStyle(color: textColor),
+                                controller: _myController,
+                                autofocus: true,
+                                keyboardType: TextInputType.number,
+                                textAlignVertical: TextAlignVertical.bottom,
+                                decoration: const InputDecoration(
+                                  contentPadding: EdgeInsets.only(bottom: 10),
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                ),
+                              ),
+                              Divider(
+                                color: underlineColor,
+                                height: 2,
+                                thickness: 2,
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: <Widget>[
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        primary: redColor,
+                                        textStyle: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                        alignment: Alignment.center,
+                                      ),
+                                      child: const Text("Cancel"),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    const SizedBox(width: 20),
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        primary: redColor,
+                                        textStyle: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                        alignment: Alignment.center,
+                                      ),
+                                      child: const Text("OK"),
+                                      onPressed: () {
+                                        setState(() {
+                                          defaultsBox.putAt(0,
+                                              double.parse(_myController.text));
+                                        });
+                                        Navigator.of(context).pop();
+                                      },
+                                    )
+                                  ]),
+                            ]),
+                      )),
+                    ));
+          },
         ),
         TextButton(
-              style: TextButton.styleFrom(
-                  primary: redColor, textStyle: const TextStyle(fontSize: 16)),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                child: const Align(
+          style: TextButton.styleFrom(
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Row(children: <Widget>[
+              Expanded(
+                child: Column(children: [
+                  Align(
                     alignment: Alignment.centerLeft,
-                    child: Text("Reset", style: TextStyle(color: redColor))),
-              ),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    backgroundColor: tileColor,
-                    title: Text('Reset All Data',
-                        style: TextStyle(fontSize: 20, color: textColor)),
-                    content: Text(
-                        'This will permanently erase all data from this device, including your workouts and settings. The app will return to defaults.',
-                        style: TextStyle(fontSize: 15, color: textColor)),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(fontSize: 16, color: redColor),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            defaultState();
-                          });
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          'Reset',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: redColor,
-                          ),
-                        ),
-                      ),
-                    ],
+                    child: Text("Default Sets",
+                        style: TextStyle(color: textColor)),
                   ),
-                );
-              }),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                        defaultsBox.getAt(1)!.toInt().toString() + " sets",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: greyColor)),
+                  ),
+                ]),
+              ),
+            ]),
+          ),
+          onPressed: () {
+            _myController.text = defaultsBox.getAt(1)!.toInt().toString();
+            showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                      insetPadding: const EdgeInsets.all(10),
+                      child: Flexible(
+                          child: Container(
+                        color: tileColor,
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text("Default Sets",
+                                      style: TextStyle(
+                                          fontSize: 20, color: textColor))),
+                              const SizedBox(height: 20),
+                              TextField(
+                                inputFormatters: <TextInputFormatter>[
+                                  FilteringTextInputFormatter(RegExp(r'[0-99]'),
+                                      allow: true)
+                                ],
+                                style: TextStyle(color: textColor),
+                                controller: _myController,
+                                autofocus: true,
+                                keyboardType: TextInputType.number,
+                                textAlignVertical: TextAlignVertical.bottom,
+                                decoration: const InputDecoration(
+                                  contentPadding: EdgeInsets.only(bottom: 10),
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                ),
+                              ),
+                              Divider(
+                                color: underlineColor,
+                                height: 2,
+                                thickness: 2,
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: <Widget>[
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        primary: redColor,
+                                        textStyle: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                        alignment: Alignment.center,
+                                      ),
+                                      child: const Text("Cancel"),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    const SizedBox(width: 20),
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        primary: redColor,
+                                        textStyle: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                        alignment: Alignment.center,
+                                      ),
+                                      child: const Text("OK"),
+                                      onPressed: () {
+                                        setState(() {
+                                          defaultsBox.putAt(1,
+                                              double.parse(_myController.text));
+                                        });
+                                        Navigator.of(context).pop();
+                                      },
+                                    )
+                                  ]),
+                            ]),
+                      )),
+                    ));
+          },
+        ),
+        TextButton(
+          style: TextButton.styleFrom(
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Row(children: <Widget>[
+              Expanded(
+                child: Column(children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Default Reps",
+                        style: TextStyle(color: textColor)),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                        defaultsBox.getAt(2)!.toInt().toString() + " reps",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: greyColor)),
+                  ),
+                ]),
+              ),
+            ]),
+          ),
+          onPressed: () {
+            _myController.text = defaultsBox.getAt(2)!.toInt().toString();
+            showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                      insetPadding: const EdgeInsets.all(10),
+                      child: Flexible(
+                          child: Container(
+                        color: tileColor,
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text("Default Reps",
+                                      style: TextStyle(
+                                          fontSize: 20, color: textColor))),
+                              const SizedBox(height: 20),
+                              TextField(
+                                inputFormatters: <TextInputFormatter>[
+                                  FilteringTextInputFormatter(RegExp(r'[0-99]'),
+                                      allow: true)
+                                ],
+                                style: TextStyle(color: textColor),
+                                controller: _myController,
+                                autofocus: true,
+                                keyboardType: TextInputType.number,
+                                textAlignVertical: TextAlignVertical.bottom,
+                                decoration: const InputDecoration(
+                                  contentPadding: EdgeInsets.only(bottom: 10),
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                ),
+                              ),
+                              Divider(
+                                color: underlineColor,
+                                height: 2,
+                                thickness: 2,
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: <Widget>[
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        primary: redColor,
+                                        textStyle: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                        alignment: Alignment.center,
+                                      ),
+                                      child: const Text("Cancel"),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    const SizedBox(width: 20),
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        primary: redColor,
+                                        textStyle: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                        alignment: Alignment.center,
+                                      ),
+                                      child: const Text("OK"),
+                                      onPressed: () {
+                                        setState(() {
+                                          defaultsBox.putAt(2,
+                                              double.parse(_myController.text));
+                                        });
+                                        Navigator.of(context).pop();
+                                      },
+                                    )
+                                  ]),
+                            ]),
+                      )),
+                    ));
+          },
+        ),
+        TextButton(
+          style: TextButton.styleFrom(
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Row(children: <Widget>[
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text("Keep Screen Awake",
+                      style: TextStyle(color: textColor)),
+                ),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Switch(
+                    inactiveThumbColor: greyColor,
+                    inactiveTrackColor:
+                        const Color.fromARGB(255, 207, 207, 207),
+                    activeColor: activeSwitchColor,
+                    activeTrackColor: greyColor,
+                    value: boolBox.getAt(6)!,
+                    onChanged: toggleSwitch2,
+                  ),
+                ),
+              ),
+            ]),
+          ),
+          onPressed: (() => toggleSwitch2(false)),
+        ),
+        TextButton(
+            style: TextButton.styleFrom(
+                primary: redColor, textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text("Reset", style: TextStyle(color: redColor))),
+            ),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  backgroundColor: tileColor,
+                  title: Text('Reset All Data',
+                      style: TextStyle(fontSize: 20, color: textColor)),
+                  content: Text(
+                      'This will permanently erase all data from this device, including your workouts and settings. The app will return to defaults.',
+                      style: TextStyle(fontSize: 15, color: textColor)),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(fontSize: 16, color: redColor),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          defaultState();
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Reset',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: redColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
       ]),
     );
   }
@@ -2984,14 +2964,11 @@ class _SetTimerState extends State<SetTimerPage> {
             ),
           ),
       ]),
-      floatingActionButton: Align(
-        alignment: const Alignment(.93, 1), // custom alignment
-        child: SizedBox(
-          width: 130,
-          height: 50,
-          child: OutlinedButton(
-            child: const Text("Add Timer"),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: SizedBox(width: 150, child: OutlinedButton(
+            child: const Text("Add Timer", style: TextStyle(fontSize: 16)),
             style: OutlinedButton.styleFrom(
+              fixedSize: const Size.fromHeight(50),
               primary: Colors.white,
               backgroundColor: redColor,
               shape: const RoundedRectangleBorder(
@@ -3111,8 +3088,8 @@ class _SetTimerState extends State<SetTimerPage> {
                                       ),
                                     ])),
                                 const SizedBox(height: 30),
-                                Row(children: <Widget>[
-                                  const SizedBox(width: 187.4),
+                                Row(mainAxisAlignment: MainAxisAlignment.end,
+                                  children: <Widget>[
                                   TextButton(
                                     style: TextButton.styleFrom(
                                       primary: redColor,
@@ -3198,9 +3175,7 @@ class _SetTimerState extends State<SetTimerPage> {
                                 ]),
                               ]))));
             },
-          ),
-        ),
-      ),
+      )),
     );
   }
 }
@@ -3236,10 +3211,7 @@ class _PlatesState extends State<PlatesPage> {
             builder: (context, value, child) {
               return ListView(children: <Widget>[
                 for (int i = 0; i < platesBox.length; i++)
-                  SizedBox(
-                    height: 88,
-                    width: double.infinity,
-                    child: TextButton(
+                  TextButton(
                         style: TextButton.styleFrom(
                             primary: Colors.white,
                             textStyle: const TextStyle(fontSize: 16)),
@@ -3274,17 +3246,15 @@ class _PlatesState extends State<PlatesPage> {
                               context: context,
                               builder: (context) => plateSelector(i));
                         }),
-                  )
               ]);
             }),
-        floatingActionButton: Align(
-            alignment: const Alignment(.93, 1), // custom alignment
-            child: SizedBox(
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton: SizedBox(
               width: 100,
-              height: 50,
               child: OutlinedButton(
                   child: const Text("Add"),
                   style: OutlinedButton.styleFrom(
+                    fixedSize: const Size.fromHeight(50),
                     primary: Colors.white,
                     backgroundColor: redColor,
                     shape: const RoundedRectangleBorder(
@@ -3293,7 +3263,7 @@ class _PlatesState extends State<PlatesPage> {
                   onPressed: () {
                     showDialog(
                         context: context, builder: (context) => addPlate());
-                  }),
+                  },
             )));
   }
 
@@ -3301,8 +3271,9 @@ class _PlatesState extends State<PlatesPage> {
     int tempNumber = platesBox.getAt(i)!.number;
     return StatefulBuilder(builder: (context, _setState) {
       return Dialog(
-          insetPadding: const EdgeInsets.fromLTRB(10, 100, 10, 100),
+          insetPadding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
           child: Container(
+            height: MediaQuery.of(context).size.height * 0.75,
             padding: const EdgeInsets.fromLTRB(0, 10, 10, 10),
             child: Column(children: <Widget>[
               Container(
@@ -3334,10 +3305,12 @@ class _PlatesState extends State<PlatesPage> {
                         });
                       }),
               ])),
-              Row(children: <Widget>[
+              Row(mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
                 const SizedBox(width: 10),
                 Expanded(
-                  child: TextButton(
+                  child: Align(alignment: Alignment.centerLeft,
+                    child: TextButton(
                       child: const Text("Delete"),
                       style: TextButton.styleFrom(
                         primary: redColor,
@@ -3350,10 +3323,11 @@ class _PlatesState extends State<PlatesPage> {
                         _plateCounter.value++;
                         Navigator.of(context).pop();
                       }),
-                ),
+                )),
                 const Expanded(child: Text("")),
                 Expanded(
-                  child: TextButton(
+                  child: Align(alignment: Alignment.centerRight,
+                    child: TextButton(
                       child: const Text("Cancel"),
                       style: TextButton.styleFrom(
                         primary: redColor,
@@ -3364,8 +3338,9 @@ class _PlatesState extends State<PlatesPage> {
                       onPressed: () {
                         Navigator.of(context).pop();
                       }),
-                ),
+                )),
                 Expanded(
+                  child: Align(alignment: Alignment.centerRight,
                   child: TextButton(
                       child: const Text("OK"),
                       style: TextButton.styleFrom(
@@ -3382,7 +3357,7 @@ class _PlatesState extends State<PlatesPage> {
                         _plateCounter.value++;
                         Navigator.of(context).pop();
                       }),
-                ),
+                )),
               ]),
             ]),
           ));
@@ -3433,8 +3408,7 @@ class _PlatesState extends State<PlatesPage> {
               const SizedBox(height: 40),
               Row(
                 children: <Widget>[
-                  SizedBox(
-                    width: 170,
+                  Expanded(child: SizedBox(
                     height: 50,
                     child: OutlinedButton(
                       child: const Text("-5lb"),
@@ -3472,10 +3446,9 @@ class _PlatesState extends State<PlatesPage> {
                         }
                       },
                     ),
-                  ),
+                  )),
                   const SizedBox(width: 10),
-                  SizedBox(
-                      width: 170,
+                  Expanded(child: SizedBox(
                       height: 50,
                       child: OutlinedButton(
                         child: const Text("+5lb"),
@@ -3505,12 +3478,12 @@ class _PlatesState extends State<PlatesPage> {
                             });
                           }
                         },
-                      ))
+                      ))),
                 ],
               ),
               const SizedBox(height: 20),
-              Row(children: <Widget>[
-                const SizedBox(width: 187.4),
+              Row(mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
                 TextButton(
                   style: TextButton.styleFrom(
                     primary: redColor,
@@ -4270,7 +4243,7 @@ class _EditState extends State<Edit> {
       ),
       body: Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
+          maxHeight: MediaQuery.of(context).size.height - 150,
         ),
         child: Column(children: <Widget>[
           Flexible(
@@ -4289,20 +4262,13 @@ class _EditState extends State<Edit> {
                           minHeight: 80,
                         ),
                         color: backColor, // custom color goes here
-                        child: Row(children: <Widget>[
-                          Container(
-                            width: 70,
-                            padding: const EdgeInsets.fromLTRB(8, 24, 8, 8),
-                            child: ReorderableDragStartListener(
+                        child: ListTile(
+                         leading: SizedBox(width: 40, child: 
+                            Center(child: ReorderableDragStartListener(
                               index: index,
                               child: const Icon(Icons.drag_indicator_outlined),
-                            ),
-                          ),
-                          Flexible(
-                            child: Container(
-                              padding: const EdgeInsets.fromLTRB(0, 14, 0, 0),
-                              width: 280,
-                              child: Column(
+                          ))),
+                          title: Column(
                                 children: [
                                   Align(
                                     alignment: Alignment.centerLeft,
@@ -4353,9 +4319,7 @@ class _EditState extends State<Edit> {
                                       ])),
                                 ],
                               ),
-                            ),
-                          ),
-                          PopupMenuButton(
+                          trailing: PopupMenuButton(
                             icon: const Icon(Icons.more_vert),
                             onSelected: (dynamic value) {
                               // edits
@@ -4387,8 +4351,8 @@ class _EditState extends State<Edit> {
                                 ),
                               ];
                             },
-                          ),
-                        ])),
+                          )),
+                        ),
                     onTap: () {
                       Navigator.of(context)
                           .push(MaterialPageRoute(
@@ -4482,14 +4446,13 @@ class _EditState extends State<Edit> {
             ),
         ]),
       ),
-      floatingActionButton: Align(
-        alignment: const Alignment(.93, 1), // custom alignment
-        child: SizedBox(
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: SizedBox(
           width: 150,
-          height: 50,
           child: OutlinedButton(
             child: const Text("Add Workout"),
             style: OutlinedButton.styleFrom(
+              fixedSize: const Size.fromHeight(50),
               primary: Colors.white,
               backgroundColor: redColor,
               shape: const RoundedRectangleBorder(
@@ -4529,8 +4492,8 @@ class _EditState extends State<Edit> {
                                   thickness: 2,
                                 ),
                                 const SizedBox(height: 30),
-                                Row(children: <Widget>[
-                                  const SizedBox(width: 187.4),
+                                Row(mainAxisAlignment: MainAxisAlignment.end,
+                                  children: <Widget>[
                                   TextButton(
                                     style: TextButton.styleFrom(
                                       primary: redColor,
@@ -4590,7 +4553,6 @@ class _EditState extends State<Edit> {
                               ]))));
             },
           ),
-        ),
       ),
     );
   }
@@ -4719,6 +4681,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
   void switchWorkout(int idx) {
     setState(() {
+      showTimer = false;
       tempNoteBox.putAt(0, "");
       for (int j = 0; j < workoutsBox.getAt(idx)!.exercises.length; ++j) {
         final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(idx);
@@ -4729,7 +4692,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
               .add(workoutsBox.getAt(idx)!.exercises[j].reps + 1);
           tempWorkout.save();
         }
-        showTimer = false;
       }
       Navigator.of(context).pop();
       Navigator.of(context)
@@ -4770,6 +4732,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                               padding:
                                   const EdgeInsets.only(left: 15, right: 10),
                               child: DropdownButton(
+                                dropdownColor: circleColor,
+                                itemHeight: null,
                                 underline: const SizedBox(),
                                 isExpanded: false,
                                 items: workoutsList.map((Workout workout) {
@@ -4780,15 +4744,19 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                 value: selectVal,
                                 selectedItemBuilder: (context) {
                                   return [
-                                    SizedBox(
-                                        width: 200,
-                                        child: Align(
+                                    Expanded(
+                                      child: Align(
                                           alignment: Alignment.center,
-                                          child: Text(
+                                          child: Container(
+                                              constraints: BoxConstraints(
+                                                  maxWidth: MediaQuery.of(
+                                                          context)
+                                                      .size
+                                                      .width * .45),
+                                              child: Text(
                                               workoutsList[widget.index].name,
-                                              maxLines: 1,
                                               overflow: TextOverflow.ellipsis),
-                                        ))
+                                        ))),
                                   ];
                                 },
                                 onChanged: (Workout? w) {
@@ -5040,277 +5008,293 @@ class _WorkoutPageState extends State<WorkoutPage> {
             body: Container(
                 padding: const EdgeInsets.all(10),
                 constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.76,
+                  maxHeight: boolBox.getAt(1)!
+                      ? MediaQuery.of(context).size.height * 0.76
+                      : MediaQuery.of(context).size.height * 0.87,
                 ),
-                child: Column(children: <Widget>[
-                  Flexible(
-                      child: ListView(
-                          scrollDirection: Axis.vertical,
-                          shrinkWrap: true,
-                          children: <Widget>[
-                        for (int i = 0;
-                            i <
-                                workoutsBox
-                                    .getAt(widget.index)!
-                                    .exercises
-                                    .length;
-                            i++)
-                          Column(children: <Widget>[
-                            Row(children: <Widget>[
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.only(left: 15),
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                        workoutsBox
-                                            .getAt(widget.index)!
-                                            .exercises[i]
-                                            .name,
-                                        style: const TextStyle(
-                                          fontSize: 17,
-                                        )),
-                                  ),
+                child: ListView(
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    children: <Widget>[
+                      for (int i = 0;
+                          i < workoutsBox.getAt(widget.index)!.exercises.length;
+                          i++)
+                        Column(children: <Widget>[
+                          Row(children: <Widget>[
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.only(left: 15),
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                      workoutsBox
+                                          .getAt(widget.index)!
+                                          .exercises[i]
+                                          .name,
+                                      style: const TextStyle(
+                                        fontSize: 17,
+                                      )),
                                 ),
                               ),
-                              Expanded(
-                                  child: Align(
-                                      alignment: Alignment.centerRight,
-                                      child: GestureDetector(
-                                          onTap: () {
-                                            for (int j = 0;
-                                                j < exercisesBox.length;
-                                                j++) {
-                                              if (exercisesBox.getAt(j)!.name ==
-                                                  workoutsBox
-                                                      .getAt(widget.index)!
-                                                      .exercises[i]
-                                                      .name) {
-                                                Navigator.of(context)
-                                                    .push(MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            EditExercisePage(
-                                                                j)))
-                                                    .then((value) {
-                                                  setState(() {});
-                                                });
-                                              }
-                                            }
-                                          },
-                                          child: Row(children: <Widget>[
-                                            if (workoutsBox
+                            ),
+                            Expanded(
+                                child: Container(
+                                    padding: const EdgeInsets.only(right: 15),
+                                    child: Align(
+                                        alignment: Alignment.centerRight,
+                                        child: GestureDetector(
+                                            onTap: () {
+                                              for (int j = 0;
+                                                  j < exercisesBox.length;
+                                                  j++) {
+                                                if (exercisesBox
+                                                        .getAt(j)!
+                                                        .name ==
+                                                    workoutsBox
                                                         .getAt(widget.index)!
                                                         .exercises[i]
-                                                        .weight %
-                                                    1 ==
-                                                0)
-                                              Flexible(
-                                                  child: Align(
-                                                      alignment:
-                                                          Alignment.centerRight,
-                                                      child: Text(
-                                                          "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight ~/ 1}lb",
-                                                          style:
-                                                              const TextStyle(
-                                                            fontSize: 17,
-                                                          ))))
-                                            else
-                                              Expanded(
-                                                  child: Align(
-                                                      alignment:
-                                                          Alignment.centerRight,
-                                                      child: Text(
-                                                          "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight.toString()}lb",
-                                                          style:
-                                                              const TextStyle(
-                                                                  fontSize:
-                                                                      17)))),
+                                                        .name) {
+                                                  Navigator.of(context)
+                                                      .push(MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              EditExercisePage(
+                                                                  j)))
+                                                      .then((value) {
+                                                    setState(() {});
+                                                  });
+                                                }
+                                              }
+                                            },
+                                            child: Row(children: <Widget>[
+                                              if (workoutsBox
+                                                          .getAt(widget.index)!
+                                                          .exercises[i]
+                                                          .weight %
+                                                      1 ==
+                                                  0)
+                                                Flexible(
+                                                    child: Align(
+                                                        alignment: Alignment
+                                                            .centerRight,
+                                                        child: Text(
+                                                            "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight ~/ 1}lb",
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 17,
+                                                            ))))
+                                              else
+                                                Expanded(
+                                                    child: Align(
+                                                        alignment: Alignment
+                                                            .centerRight,
+                                                        child: Text(
+                                                            "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight.toString()}lb",
+                                                            style:
+                                                                const TextStyle(
+                                                                    fontSize:
+                                                                        17)))),
+                                              SizedBox(
+                                                width: 17,
+                                                child: IconButton(
+                                                  onPressed: () {
+                                                    for (int j = 0;
+                                                        j < exercisesBox.length;
+                                                        j++) {
+                                                      if (exercisesBox
+                                                              .getAt(j)!
+                                                              .name ==
+                                                          workoutsBox
+                                                              .getAt(
+                                                                  widget.index)!
+                                                              .exercises[i]
+                                                              .name) {
+                                                        Navigator.of(context)
+                                                            .push(MaterialPageRoute(
+                                                                builder:
+                                                                    (context) =>
+                                                                        EditExercisePage(
+                                                                            j)))
+                                                            .then((value) {
+                                                          setState(() {});
+                                                        });
+                                                      }
+                                                    }
+                                                  },
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  padding:
+                                                      const EdgeInsets.all(0),
+                                                  splashColor:
+                                                      Colors.transparent,
+                                                  highlightColor:
+                                                      Colors.transparent,
+                                                  icon: const Icon(
+                                                      Icons.arrow_right_sharp),
+                                                  color: redColor,
+                                                  iconSize: 20,
+                                                ),
+                                              ),
+                                            ]))))),
+                          ]),
+                          Container(
+                            padding: const EdgeInsets.only(left: 15, right: 15),
+                            alignment: Alignment.centerLeft,
+                            child: Wrap(
+                                direction: Axis.horizontal,
+                                spacing: (MediaQuery.of(context)
+                                                    .size
+                                                    .width -
+                                                300) / 4.01,
+                                runSpacing: 15,
+                                children: <Widget>[
+                                  // one circle for each set, initialized with number of reps
+                                  for (int j = 0;
+                                      j <
+                                          workoutsBox
+                                              .getAt(widget.index)!
+                                              .exercises[i]
+                                              .sets;
+                                      j++)
+                                    // circle, onTap decrement, loops back to rep number
+                                    ValueListenableBuilder(
+                                        valueListenable: _circleCounter,
+                                        builder: (context, value, child) {
+                                          return 
                                             SizedBox(
-                                              width: 17,
-                                              child: IconButton(
-                                                onPressed: () {
-                                                  for (int j = 0;
-                                                      j < exercisesBox.length;
-                                                      j++) {
-                                                    if (exercisesBox
-                                                            .getAt(j)!
-                                                            .name ==
+                                              width: 50,
+                                              height: 50,
+                                              child: MaterialButton(
+                                                elevation: 0,
+                                                splashColor: Colors.transparent,
+                                                animationDuration:
+                                                    const Duration(
+                                                        milliseconds: 0),
+                                                highlightColor:
+                                                    Colors.transparent,
+                                                shape: const CircleBorder(
+                                                    side: BorderSide(
+                                                        width: 1,
+                                                        style:
+                                                            BorderStyle.none)),
+                                                child: workoutsBox
+                                                            .getAt(
+                                                                widget.index)!
+                                                            .exercises[i]
+                                                            .repsCompleted[j] >
                                                         workoutsBox
                                                             .getAt(
                                                                 widget.index)!
                                                             .exercises[i]
-                                                            .name) {
-                                                      Navigator.of(context)
-                                                          .push(MaterialPageRoute(
-                                                              builder: (context) =>
-                                                                  EditExercisePage(
-                                                                      j)))
-                                                          .then((value) {
-                                                        setState(() {});
-                                                      });
-                                                    }
-                                                  }
-                                                },
-                                                alignment: Alignment.centerLeft,
-                                                padding:
-                                                    const EdgeInsets.all(0),
-                                                splashColor: Colors.transparent,
-                                                highlightColor:
-                                                    Colors.transparent,
-                                                icon: const Icon(
-                                                    Icons.arrow_right_sharp),
-                                                color: redColor,
-                                                iconSize: 20,
-                                              ),
-                                            ),
-                                          ])))),
-                            ]),
-                            Container(
-                              height: 50,
-                              alignment: Alignment.centerLeft,
-                              child: ListView(
-                                  scrollDirection: Axis.horizontal,
-                                  children: <Widget>[
-                                    Row(children: <Widget>[
-                                      // one circle for each set, initialized with number of reps
-                                      for (int j = 0;
-                                          j <
-                                              workoutsBox
-                                                  .getAt(widget.index)!
-                                                  .exercises[i]
-                                                  .sets;
-                                          j++)
-                                        // circle, onTap decrement, loops back to rep number
-                                        ValueListenableBuilder(
-                                            valueListenable: _circleCounter,
-                                            builder: (context, value, child) {
-                                              return SizedBox(
-                                                width: 78,
-                                                height: 50,
-                                                child: MaterialButton(
-                                                  elevation: 0,
-                                                  splashColor:
-                                                      Colors.transparent,
-                                                  animationDuration:
-                                                      const Duration(
-                                                          milliseconds: 0),
-                                                  highlightColor:
-                                                      Colors.transparent,
-                                                  shape: const CircleBorder(
-                                                      side: BorderSide(
-                                                          width: 1,
-                                                          style: BorderStyle
-                                                              .none)),
-                                                  child: workoutsBox
-                                                                  .getAt(widget
-                                                                      .index)!
-                                                                  .exercises[i]
-                                                                  .repsCompleted[
-                                                              j] >
-                                                          workoutsBox
-                                                              .getAt(
-                                                                  widget.index)!
-                                                              .exercises[i]
-                                                              .reps
-                                                      ? Text(
-                                                          workoutsBox
-                                                              .getAt(
-                                                                  widget.index)!
-                                                              .exercises[i]
-                                                              .reps
-                                                              .toString(),
-                                                          style:
-                                                              const TextStyle(
-                                                                  fontSize: 18))
-                                                      : Text(
+                                                            .reps
+                                                    ? workoutsBox.getAt(widget.index)!
+                                                        .exercises[i].repsCompleted[j] < 10
+                                                      ? FittedBox(child: Text(
+                                                        workoutsBox
+                                                            .getAt(
+                                                                widget.index)!
+                                                            .exercises[i]
+                                                            .reps
+                                                            .toString(),
+                                                        style: const TextStyle(
+                                                            fontSize: 18)))
+                                                      : FittedBox(child: Text(workoutsBox
+                                                            .getAt(
+                                                                widget.index)!
+                                                            .exercises[i]
+                                                            .reps
+                                                            .toString(),
+                                                          style: const TextStyle(
+                                                            fontSize: 18)))
+                                                    : workoutsBox.getAt(widget.index)!
+                                                        .exercises[i].repsCompleted[j] < 10
+                                                      ? FittedBox(child: Text(
                                                           workoutsBox
                                                               .getAt(
                                                                   widget.index)!
                                                               .exercises[i]
                                                               .repsCompleted[j]
                                                               .toString(),
-                                                          style:
-                                                              const TextStyle(
-                                                                  fontSize:
-                                                                      18)),
-                                                  color: workoutsBox
-                                                                  .getAt(widget
-                                                                      .index)!
-                                                                  .exercises[i]
-                                                                  .repsCompleted[
-                                                              j] >
+                                                          style: const TextStyle(
+                                                              fontSize: 18)))
+                                                      : FittedBox(child: Text(
                                                           workoutsBox
                                                               .getAt(
                                                                   widget.index)!
                                                               .exercises[i]
-                                                              .reps
-                                                      ? circleColor
-                                                      : redColor,
-                                                  textColor: workoutsBox
-                                                                  .getAt(widget
-                                                                      .index)!
-                                                                  .exercises[i]
-                                                                  .repsCompleted[
-                                                              j] >
-                                                          workoutsBox
-                                                              .getAt(
-                                                                  widget.index)!
-                                                              .exercises[i]
-                                                              .reps
-                                                      ? emptyCircleTextColor
-                                                      : Colors.white,
-                                                  onPressed: () {
-                                                    workoutIndex = widget.index;
-                                                    exerciseIndex = i;
-                                                    setIndex = j - 1;
-                                                    incrementCircles(
-                                                        widget.index,
-                                                        i,
-                                                        j,
-                                                        false);
-                                                    checkWorkoutInProgress(
-                                                        widget.index);
-                                                  },
-                                                ),
-                                              );
-                                            })
-                                    ]),
-                                  ]),
-                            ),
-                            const SizedBox(height: 10),
-                          ]),
-                      ])),
-                  Container(
-                      padding:
-                          const EdgeInsets.only(top: 15, bottom: 15, left: 15),
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            const Expanded(
-                                child: Center(
-                                    child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text("Body Weight",
-                                            style: TextStyle(
-                                              fontSize: 17,
-                                            ))))),
-                            Expanded(
-                                child: Center(
-                                    child: GestureDetector(
-                                        onTap: () {
-                                          // sets initial scroll to weight
-                                          final _intController =
-                                              FixedExtentScrollController(
-                                                  initialItem: tempBodyWeightBox
-                                                              .getAt(0)! ~/
-                                                          1 -
-                                                      50);
-                                          // annoying floating point precision: 100.6 - 100 = 0.599
-                                          // the +0.05 is a way around it
-                                          final _decController =
-                                              FixedExtentScrollController(
-                                                  initialItem:
-                                                      (tempBodyWeightBox
+                                                              .repsCompleted[j]
+                                                              .toString(),
+                                                          style: const TextStyle(
+                                                              fontSize: 12))),
+                                                color: workoutsBox
+                                                            .getAt(
+                                                                widget.index)!
+                                                            .exercises[i]
+                                                            .repsCompleted[j] >
+                                                        workoutsBox
+                                                            .getAt(
+                                                                widget.index)!
+                                                            .exercises[i]
+                                                            .reps
+                                                    ? circleColor
+                                                    : redColor,
+                                                textColor: workoutsBox
+                                                            .getAt(
+                                                                widget.index)!
+                                                            .exercises[i]
+                                                            .repsCompleted[j] >
+                                                        workoutsBox
+                                                            .getAt(
+                                                                widget.index)!
+                                                            .exercises[i]
+                                                            .reps
+                                                    ? emptyCircleTextColor
+                                                    : Colors.white,
+                                                onPressed: () {
+                                                  workoutIndex = widget.index;
+                                                  exerciseIndex = i;
+                                                  setIndex = j - 1;
+                                                  incrementCircles(widget.index,
+                                                      i, j, false);
+                                                  checkWorkoutInProgress(
+                                                      widget.index);
+                                                },
+                                              ),
+                                            );
+                                        }),
+                                ])),
+                          const SizedBox(height: 10),
+                        ]),
+                      Container(
+                          padding: const EdgeInsets.all(15),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                const Expanded(
+                                    child: Center(
+                                        child: Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text("Body Weight",
+                                                style: TextStyle(
+                                                  fontSize: 17,
+                                                ))))),
+                                Expanded(
+                                    child: Center(
+                                        child: GestureDetector(
+                                            onTap: () {
+                                              // sets initial scroll to weight
+                                              final _intController =
+                                                  FixedExtentScrollController(
+                                                      initialItem:
+                                                          tempBodyWeightBox
+                                                                      .getAt(
+                                                                          0)! ~/
+                                                                  1 -
+                                                              50);
+                                              // annoying floating point precision: 100.6 - 100 = 0.599
+                                              // the +0.05 is a way around it
+                                              final _decController =
+                                                  FixedExtentScrollController(
+                                                      initialItem: (tempBodyWeightBox
                                                                   .getAt(0)! -
                                                               (tempBodyWeightBox
                                                                       .getAt(
@@ -5319,246 +5303,236 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                               0.05) *
                                                           10 ~/
                                                           1);
-                                          int scrollBodyWeightInt =
-                                              tempBodyWeightBox.getAt(0)! ~/ 1;
-                                          int scrollBodyWeightDec =
-                                              (tempBodyWeightBox.getAt(0)! -
-                                                      (tempBodyWeightBox
-                                                              .getAt(0)! ~/
-                                                          1)) *
-                                                  10 ~/
-                                                  1;
-                                          showDialog(
-                                              context: context,
-                                              builder: (context) => Dialog(
-                                                  insetPadding:
-                                                      const EdgeInsets.all(10),
-                                                  child: Container(
-                                                      padding:
+                                              int scrollBodyWeightInt =
+                                                  tempBodyWeightBox.getAt(0)! ~/
+                                                      1;
+                                              int scrollBodyWeightDec =
+                                                  (tempBodyWeightBox.getAt(0)! -
+                                                          (tempBodyWeightBox
+                                                                  .getAt(0)! ~/
+                                                              1)) *
+                                                      10 ~/
+                                                      1;
+                                              showDialog(
+                                                  context: context,
+                                                  builder: (context) => Dialog(
+                                                      insetPadding:
                                                           const EdgeInsets.all(
-                                                              20),
-                                                      child: Column(
-                                                          mainAxisSize:
-                                                              MainAxisSize.min,
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: <Widget>[
-                                                            const Text("Weight",
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontSize: 18,
-                                                                )),
-                                                            const SizedBox(
-                                                                height: 30),
-                                                            Flexible(
-                                                                child: Row(
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .center,
+                                                              10),
+                                                      child: Container(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(20),
+                                                          child: Column(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: <
+                                                                  Widget>[
+                                                                const Text(
+                                                                    "Weight",
+                                                                    style:
+                                                                        TextStyle(
+                                                                      fontSize:
+                                                                          18,
+                                                                    )),
+                                                                const SizedBox(
+                                                                    height: 30),
+                                                                Flexible(
+                                                                    child: Row(
+                                                                        mainAxisAlignment:
+                                                                            MainAxisAlignment
+                                                                                .center,
+                                                                        children: <
+                                                                            Widget>[
+                                                                      SizedBox(
+                                                                          height:
+                                                                              120,
+                                                                          width:
+                                                                              70,
+                                                                          child:
+                                                                              CupertinoPicker(
+                                                                            scrollController:
+                                                                                _intController,
+                                                                            children:
+                                                                                nums,
+                                                                            looping:
+                                                                                true,
+                                                                            diameterRatio:
+                                                                                1.25,
+                                                                            selectionOverlay:
+                                                                                Column(children: <Widget>[
+                                                                              Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                      border: Border(
+                                                                                          top: BorderSide(
+                                                                                color: textColor,
+                                                                                width: 2,
+                                                                              )))),
+                                                                              const SizedBox(height: 50),
+                                                                              Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                      border: Border(
+                                                                                          top: BorderSide(
+                                                                                color: textColor,
+                                                                                width: 2,
+                                                                              ))))
+                                                                            ]),
+                                                                            itemExtent:
+                                                                                75,
+                                                                            onSelectedItemChanged: (index) =>
+                                                                                {
+                                                                              scrollBodyWeightInt = index + 50,
+                                                                            },
+                                                                          )),
+                                                                      const SizedBox(width: 5),
+                                                                      const SizedBox(
+                                                                        height:
+                                                                            45,
+                                                                        child:
+                                                                            Align(
+                                                                          alignment:
+                                                                              Alignment.topCenter,
+                                                                          child: Text(
+                                                                              ".",
+                                                                              style: TextStyle(
+                                                                                fontSize: 17,
+                                                                              )),
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(
+                                                                          height:
+                                                                              120,
+                                                                          width:
+                                                                              70,
+                                                                          child:
+                                                                              CupertinoPicker(
+                                                                            scrollController:
+                                                                                _decController,
+                                                                            children:
+                                                                                decs,
+                                                                            looping:
+                                                                                true,
+                                                                            diameterRatio:
+                                                                                1.25,
+                                                                            selectionOverlay:
+                                                                                Column(children: <Widget>[
+                                                                              Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                      border: Border(
+                                                                                          top: BorderSide(
+                                                                                color: textColor,
+                                                                                width: 2,
+                                                                              )))),
+                                                                              const SizedBox(height: 50),
+                                                                              Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                      border: Border(
+                                                                                          top: BorderSide(
+                                                                                color: textColor,
+                                                                                width: 2,
+                                                                              ))))
+                                                                            ]),
+                                                                            itemExtent:
+                                                                                75,
+                                                                            onSelectedItemChanged: (index) =>
+                                                                                {
+                                                                              scrollBodyWeightDec = index,
+                                                                            },
+                                                                          )),
+                                                                      const SizedBox(width: 5),
+                                                                      const SizedBox(
+                                                                        height:
+                                                                            40,
+                                                                        child:
+                                                                            Align(
+                                                                          alignment:
+                                                                              Alignment.topCenter,
+                                                                          child: Text(
+                                                                              "lb",
+                                                                              style: TextStyle(
+                                                                                fontSize: 14,
+                                                                              )),
+                                                                        ),
+                                                                      ),
+                                                                    ])),
+                                                                const SizedBox(
+                                                                    height: 30),
+                                                                Row(mainAxisAlignment: MainAxisAlignment.end,
                                                                     children: <
                                                                         Widget>[
-                                                                  SizedBox(
-                                                                      height:
-                                                                          120,
-                                                                      width: 70,
-                                                                      child:
-                                                                          CupertinoPicker(
-                                                                        scrollController:
-                                                                            _intController,
-                                                                        children:
-                                                                            nums,
-                                                                        looping:
-                                                                            true,
-                                                                        diameterRatio:
-                                                                            1.25,
-                                                                        selectionOverlay:
-                                                                            Column(
-                                                                                children: <Widget>[
-                                                                              Container(
-                                                                                  decoration: BoxDecoration(
-                                                                                      border: Border(
-                                                                                          top: BorderSide(
-                                                                                color: textColor,
-                                                                                width: 2,
-                                                                              )))),
-                                                                              const SizedBox(height: 50),
-                                                                              Container(
-                                                                                  decoration: BoxDecoration(
-                                                                                      border: Border(
-                                                                                          top: BorderSide(
-                                                                                color: textColor,
-                                                                                width: 2,
-                                                                              ))))
-                                                                            ]),
-                                                                        itemExtent:
-                                                                            75,
-                                                                        onSelectedItemChanged:
-                                                                            (index) =>
-                                                                                {
-                                                                          scrollBodyWeightInt =
-                                                                              index + 50,
+                                                                      TextButton(
+                                                                        style: TextButton
+                                                                            .styleFrom(
+                                                                          primary:
+                                                                              redColor,
+                                                                          textStyle: const TextStyle(
+                                                                              fontSize: 16,
+                                                                              fontWeight: FontWeight.bold),
+                                                                          alignment:
+                                                                              Alignment.center,
+                                                                        ),
+                                                                        child: const Text(
+                                                                            "Cancel"),
+                                                                        onPressed:
+                                                                            () {
+                                                                          Navigator.of(context)
+                                                                              .pop();
                                                                         },
-                                                                      )),
-                                                                  const SizedBox(
-                                                                    width: 20,
-                                                                    height: 45,
-                                                                    child:
-                                                                        Align(
-                                                                      alignment:
-                                                                          Alignment
-                                                                              .topCenter,
-                                                                      child: Text(
-                                                                          ".",
-                                                                          style:
-                                                                              TextStyle(
-                                                                            fontSize:
-                                                                                17,
-                                                                          )),
-                                                                    ),
-                                                                  ),
-                                                                  SizedBox(
-                                                                      height:
-                                                                          120,
-                                                                      width: 70,
-                                                                      child:
-                                                                          CupertinoPicker(
-                                                                        scrollController:
-                                                                            _decController,
-                                                                        children:
-                                                                            decs,
-                                                                        looping:
-                                                                            true,
-                                                                        diameterRatio:
-                                                                            1.25,
-                                                                        selectionOverlay:
-                                                                            Column(
-                                                                                children: <Widget>[
-                                                                              Container(
-                                                                                  decoration: BoxDecoration(
-                                                                                      border: Border(
-                                                                                          top: BorderSide(
-                                                                                color: textColor,
-                                                                                width: 2,
-                                                                              )))),
-                                                                              const SizedBox(height: 50),
-                                                                              Container(
-                                                                                  decoration: BoxDecoration(
-                                                                                      border: Border(
-                                                                                          top: BorderSide(
-                                                                                color: textColor,
-                                                                                width: 2,
-                                                                              ))))
-                                                                            ]),
-                                                                        itemExtent:
-                                                                            75,
-                                                                        onSelectedItemChanged:
-                                                                            (index) =>
-                                                                                {
-                                                                          scrollBodyWeightDec =
-                                                                              index,
+                                                                      ),
+                                                                      const SizedBox(
+                                                                          width:
+                                                                              20),
+                                                                      TextButton(
+                                                                        style: TextButton
+                                                                            .styleFrom(
+                                                                          primary:
+                                                                              redColor,
+                                                                          textStyle: const TextStyle(
+                                                                              fontSize: 16,
+                                                                              fontWeight: FontWeight.bold),
+                                                                          alignment:
+                                                                              Alignment.center,
+                                                                        ),
+                                                                        child: const Text(
+                                                                            "OK"),
+                                                                        onPressed:
+                                                                            () {
+                                                                          tempBodyWeightBox.putAt(
+                                                                              0,
+                                                                              scrollBodyWeightInt + 0.1 * scrollBodyWeightDec);
+                                                                          setState(
+                                                                              () {});
+                                                                          Navigator.of(context)
+                                                                              .pop();
                                                                         },
-                                                                      )),
-                                                                  const SizedBox(
-                                                                    width: 20,
-                                                                    height: 40,
-                                                                    child:
-                                                                        Align(
-                                                                      alignment:
-                                                                          Alignment
-                                                                              .topCenter,
-                                                                      child: Text(
-                                                                          "lb",
-                                                                          style:
-                                                                              TextStyle(
-                                                                            fontSize:
-                                                                                14,
-                                                                          )),
-                                                                    ),
-                                                                  ),
-                                                                ])),
-                                                            const SizedBox(
-                                                                height: 30),
-                                                            Row(children: <
-                                                                Widget>[
-                                                              const SizedBox(
-                                                                  width: 187.4),
-                                                              TextButton(
-                                                                style: TextButton
-                                                                    .styleFrom(
-                                                                  primary:
-                                                                      redColor,
-                                                                  textStyle: const TextStyle(
-                                                                      fontSize:
-                                                                          16,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .center,
-                                                                ),
-                                                                child: const Text(
-                                                                    "Cancel"),
-                                                                onPressed: () {
-                                                                  Navigator.of(
-                                                                          context)
-                                                                      .pop();
-                                                                },
-                                                              ),
-                                                              const SizedBox(
-                                                                  width: 20),
-                                                              TextButton(
-                                                                style: TextButton
-                                                                    .styleFrom(
-                                                                  primary:
-                                                                      redColor,
-                                                                  textStyle: const TextStyle(
-                                                                      fontSize:
-                                                                          16,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .center,
-                                                                ),
-                                                                child:
-                                                                    const Text(
-                                                                        "OK"),
-                                                                onPressed: () {
-                                                                  tempBodyWeightBox.putAt(
-                                                                      0,
-                                                                      scrollBodyWeightInt +
-                                                                          0.1 *
-                                                                              scrollBodyWeightDec);
-                                                                  setState(
-                                                                      () {});
-                                                                  Navigator.of(
-                                                                          context)
-                                                                      .pop();
-                                                                },
-                                                              ),
-                                                            ]),
-                                                          ]))));
-                                        },
-                                        child: Align(
-                                            alignment: Alignment.centerRight,
-                                            child: Text(
-                                                "${tempBodyWeightBox.getAt(0)!.toString()}lb",
-                                                style: const TextStyle(
-                                                  fontSize: 17,
-                                                  color: redColor,
-                                                  fontWeight: FontWeight.bold,
-                                                )))))),
-                          ])),
-                ])),
+                                                                      ),
+                                                                    ]),
+                                                              ]))));
+                                            },
+                                            child: Align(
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child: Text(
+                                                    "${tempBodyWeightBox.getAt(0)!.toString()}lb",
+                                                    style: const TextStyle(
+                                                      fontSize: 17,
+                                                      color: redColor,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    )))))),
+                              ])),
+                    ])),
             floatingActionButtonLocation:
-                FloatingActionButtonLocation.endDocked,
+                FloatingActionButtonLocation.centerDocked,
             floatingActionButton: ValueListenableBuilder(
                 valueListenable: _timerCounter,
                 builder: (context, value, child) {
                   return Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
                         showTimer
@@ -5566,7 +5540,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                 width: double.infinity,
                                 height:
                                     MediaQuery.of(context).size.height * 0.1,
-                                padding: const EdgeInsets.only(left: 25),
+                                padding:
+                                    const EdgeInsets.only(left: 15, right: 15),
                                 child: Align(
                                     alignment: Alignment.center,
                                     child: Container(
@@ -5637,51 +5612,56 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                         ))))
                             : Container(),
                         Container(
-                            padding: const EdgeInsets.only(left: 25),
-                            child: Row(children: <Widget>[
-                              Expanded(
-                                child: Align(
-                                  alignment: Alignment.bottomLeft,
-                                  child: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const WorkoutNotesPage()));
-                                      },
-                                      child: const Text("Note"),
-                                      style: TextButton.styleFrom(
-                                        primary: redColor,
-                                        textStyle: const TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                        alignment: Alignment.bottomCenter,
-                                      )),
-                                ),
-                              ),
-                              Expanded(
-                                child: Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context)
-                                            .push(MaterialPageRoute(
-                                                builder: (context) =>
-                                                    EditWorkoutPage(
-                                                        widget.index)))
-                                            .then((value) {
-                                          setState(() {});
-                                        });
-                                      },
-                                      child: const Text("Edit"),
-                                      style: TextButton.styleFrom(
-                                        primary: redColor,
-                                        textStyle: const TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                        alignment: Alignment.bottomCenter,
-                                      )),
-                                ),
-                              ),
-                            ])),
+                            height: MediaQuery.of(context).size.height * 0.05,
+                            width: double.infinity,
+                            color: backColor,
+                            padding: const EdgeInsets.only(left: 15, right: 15),
+                            child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Align(
+                                      alignment: Alignment.bottomLeft,
+                                      child: TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const WorkoutNotesPage()));
+                                          },
+                                          child: const Text("Note"),
+                                          style: TextButton.styleFrom(
+                                            primary: redColor,
+                                            textStyle: const TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                            alignment: Alignment.bottomCenter,
+                                          )),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Align(
+                                      alignment: Alignment.bottomRight,
+                                      child: TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context)
+                                                .push(MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        EditWorkoutPage(
+                                                            widget.index)))
+                                                .then((value) {
+                                              setState(() {});
+                                            });
+                                          },
+                                          child: const Text("Edit"),
+                                          style: TextButton.styleFrom(
+                                            primary: redColor,
+                                            textStyle: const TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                            alignment: Alignment.bottomCenter,
+                                          )),
+                                    ),
+                                  ),
+                                ])),
                       ]);
                 })));
   }
@@ -5772,8 +5752,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
         titleTextStyle: TextStyle(fontSize: 22, color: textColor),
       ),
       body: Container(
-        constraints: const BoxConstraints(
-          maxHeight: 750,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height - 150,
         ),
         child: Column(
           children: <Widget>[
@@ -5791,21 +5771,13 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                     Container(
                       key: Key('$i'),
                       color: backColor, // custom color goes here
-                      child: Row(
-                        children: <Widget>[
-                          SizedBox(
-                            width: 70,
-                            height: 80,
-                            child: ReorderableDragStartListener(
+                      child: ListTile(
+                         leading: SizedBox(width: 40, child: 
+                            Center(child: ReorderableDragStartListener(
                               index: i,
                               child: const Icon(Icons.drag_indicator_outlined),
-                            ),
-                          ),
-                          GestureDetector(
-                            child: SizedBox(
-                              width: 280,
-                              height: 60,
-                              child: SingleChildScrollView(
+                          ))),
+                          title: GestureDetector(
                                 child: Column(
                                   children: [
                                     Align(
@@ -5843,8 +5815,6 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                     ),
                                   ],
                                 ),
-                              ),
-                            ),
                             onTap: () {
                               for (int j = 0; j < exercisesBox.length; j++) {
                                 if (exercisesBox.getAt(j)!.name ==
@@ -5863,7 +5833,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                               }
                             },
                           ),
-                          PopupMenuButton(
+                          trailing: PopupMenuButton(
                             icon: const Icon(Icons.more_vert),
                             onSelected: (dynamic value) {
                               // edits
@@ -6002,9 +5972,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                               ];
                             },
                           ),
-                        ],
+                        ),
                       ),
-                    ),
                 ],
                 onReorder: (oldIndex, newIndex) {
                   setState(() {
@@ -6070,8 +6039,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                       thickness: 2,
                                     ),
                                     const SizedBox(height: 40),
-                                    Row(children: <Widget>[
-                                      const SizedBox(width: 187.4),
+                                    Row(mainAxisAlignment: MainAxisAlignment.end,
+                                      children: <Widget>[
                                       TextButton(
                                         style: TextButton.styleFrom(
                                           primary: redColor,
@@ -6179,14 +6148,13 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
           ],
         ),
       ),
-      floatingActionButton: Align(
-        alignment: const Alignment(.93, 1), // custom alignment
-        child: SizedBox(
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: SizedBox(
           width: 150,
-          height: 50,
           child: OutlinedButton(
             child: const Text("Add Exercise"),
             style: OutlinedButton.styleFrom(
+              fixedSize: const Size.fromHeight(50),
               primary: Colors.white,
               backgroundColor: redColor,
               shape: const RoundedRectangleBorder(
@@ -6250,8 +6218,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                 setState(() => selectVal = e);
                               }),
                           const SizedBox(height: 30),
-                          Row(children: <Widget>[
-                            const SizedBox(width: 187.4),
+                          Row(mainAxisAlignment: MainAxisAlignment.end,
+                            children: <Widget>[
                             TextButton(
                               style: TextButton.styleFrom(
                                 primary: redColor,
@@ -6329,9 +6297,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                       ),
                                                       const SizedBox(
                                                           height: 30),
-                                                      Row(children: <Widget>[
-                                                        const SizedBox(
-                                                            width: 187.4),
+                                                      Row(mainAxisAlignment: MainAxisAlignment.end,
+                                                        children: <Widget>[
                                                         TextButton(
                                                           style: TextButton
                                                               .styleFrom(
@@ -6627,7 +6594,6 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
             },
           ),
         ),
-      ),
     );
   }
 }
@@ -6806,8 +6772,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                           const SizedBox(height: 40),
                           Row(
                             children: <Widget>[
-                              SizedBox(
-                                width: 170,
+                              Expanded(child: SizedBox(
                                 height: 50,
                                 child: OutlinedButton(
                                   child: const Text("-5lb"),
@@ -6863,10 +6828,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                     }
                                   },
                                 ),
-                              ),
+                              )),
                               const SizedBox(width: 10),
-                              SizedBox(
-                                  width: 170,
+                              Expanded(child: SizedBox(
                                   height: 50,
                                   child: OutlinedButton(
                                       child: const Text("+5lb"),
@@ -6913,12 +6877,12 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                         .text.length);
                                           });
                                         }
-                                      }))
+                                      }))),
                             ],
                           ),
                           const SizedBox(height: 20),
-                          Row(children: <Widget>[
-                            const SizedBox(width: 187.4),
+                          Row(mainAxisAlignment: MainAxisAlignment.end,
+                            children: <Widget>[
                             TextButton(
                               style: TextButton.styleFrom(
                                 primary: redColor,
@@ -7072,8 +7036,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                           const SizedBox(height: 40),
                           Row(
                             children: <Widget>[
-                              SizedBox(
-                                width: 170,
+                              Expanded(child: SizedBox(
                                 height: 50,
                                 child: OutlinedButton(
                                   child: const Text("-5lb"),
@@ -7129,10 +7092,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                     }
                                   },
                                 ),
-                              ),
+                              )),
                               const SizedBox(width: 10),
-                              SizedBox(
-                                  width: 170,
+                              Expanded(child: SizedBox(
                                   height: 50,
                                   child: OutlinedButton(
                                       child: const Text("+5lb"),
@@ -7179,12 +7141,12 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                         .text.length);
                                           });
                                         }
-                                      }))
+                                      }))),
                             ],
                           ),
                           const SizedBox(height: 20),
-                          Row(children: <Widget>[
-                            const SizedBox(width: 187.4),
+                          Row(mainAxisAlignment: MainAxisAlignment.end,
+                            children: <Widget>[
                             TextButton(
                               style: TextButton.styleFrom(
                                 primary: redColor,
@@ -7396,8 +7358,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             thickness: 2,
                           ),
                           const SizedBox(height: 20),
-                          Row(children: <Widget>[
-                            const SizedBox(width: 187.4),
+                          Row(mainAxisAlignment: MainAxisAlignment.end,
+                            children: <Widget>[
                             TextButton(
                               style: TextButton.styleFrom(
                                 primary: redColor,
@@ -7627,8 +7589,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                 thickness: 2,
                               ),
                               const SizedBox(height: 40),
-                              Row(children: <Widget>[
-                                const SizedBox(width: 187.4),
+                              Row(mainAxisAlignment: MainAxisAlignment.end,
+                                children: <Widget>[
                                 TextButton(
                                   style: TextButton.styleFrom(
                                     primary: redColor,
@@ -7789,10 +7751,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
         titleTextStyle: TextStyle(fontSize: 22, color: textColor),
       ),
       body: ListView(children: <Widget>[
-        SizedBox(
-          height: 91,
-          width: double.infinity,
-          child: TextButton(
+        TextButton(
             style: TextButton.styleFrom(
                 primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
@@ -7834,101 +7793,99 @@ class _IncrementsPageState extends State<IncrementsPage> {
               ]),
             ),
             onPressed: (() => toggleSwitch(false)),
-          ),
         ),
         exercisesBox.getAt(widget.index)!.overload
             ? ValueListenableBuilder(
-                    valueListenable: _incrementsCounter,
-                    builder: (context, value, child) {
-                      return TextButton(
-                          style: TextButton.styleFrom(
-                              primary: Colors.white,
-                              textStyle: const TextStyle(fontSize: 16)),
-                          child: Container(
-                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                            child: Row(children: <Widget>[
-                              Expanded(
-                                child: Column(children: [
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text("Increments",
+                valueListenable: _incrementsCounter,
+                builder: (context, value, child) {
+                  return TextButton(
+                      style: TextButton.styleFrom(
+                          primary: Colors.white,
+                          textStyle: const TextStyle(fontSize: 16)),
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                        child: Row(children: <Widget>[
+                          Expanded(
+                            child: Column(children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text("Increments",
+                                    style: TextStyle(
+                                        fontSize: 18, color: textColor)),
+                              ),
+                              const SizedBox(height: 8),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: exercisesBox
+                                                .getAt(widget.index)!
+                                                .increment %
+                                            1 ==
+                                        0
+                                    ? Text(
+                                        "${exercisesBox.getAt(widget.index)!.increment.toInt().toString()}lb",
                                         style: TextStyle(
-                                            fontSize: 18, color: textColor)),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: exercisesBox
-                                                    .getAt(widget.index)!
-                                                    .increment %
-                                                1 ==
-                                            0
-                                        ? Text(
-                                            "${exercisesBox.getAt(widget.index)!.increment.toInt().toString()}lb",
-                                            style: TextStyle(
-                                                fontSize: 16, color: greyColor))
-                                        : Text(
-                                            "${exercisesBox.getAt(widget.index)!.increment.toString()}lb",
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                color: greyColor)),
-                                  ),
-                                ]),
+                                            fontSize: 16, color: greyColor))
+                                    : Text(
+                                        "${exercisesBox.getAt(widget.index)!.increment.toString()}lb",
+                                        style: TextStyle(
+                                            fontSize: 16, color: greyColor)),
                               ),
                             ]),
                           ),
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) => incrementSelector());
-                          });
-                    })
+                        ]),
+                      ),
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) => incrementSelector());
+                      });
+                })
             : const SizedBox(),
         exercisesBox.getAt(widget.index)!.overload
-            ?  ValueListenableBuilder(
-                    valueListenable: _incrementsCounter,
-                    builder: (context, value, child) {
-                      return TextButton(
-                        style: TextButton.styleFrom(
-                            primary: Colors.white,
-                            textStyle: const TextStyle(fontSize: 16)),
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                          child: Row(children: <Widget>[
-                            Expanded(
-                              child: Column(children: [
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text("Frequency",
+            ? ValueListenableBuilder(
+                valueListenable: _incrementsCounter,
+                builder: (context, value, child) {
+                  return TextButton(
+                    style: TextButton.styleFrom(
+                        primary: Colors.white,
+                        textStyle: const TextStyle(fontSize: 16)),
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                      child: Row(children: <Widget>[
+                        Expanded(
+                          child: Column(children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text("Frequency",
+                                  style: TextStyle(
+                                      fontSize: 18, color: textColor)),
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: exercisesBox
+                                          .getAt(widget.index)!
+                                          .incrementFrequency ==
+                                      1
+                                  ? Text("Every Time",
                                       style: TextStyle(
-                                          fontSize: 18, color: textColor)),
-                                ),
-                                const SizedBox(height: 8),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: exercisesBox
-                                              .getAt(widget.index)!
-                                              .incrementFrequency ==
-                                          1
-                                      ? Text("Every Time",
-                                          style: TextStyle(
-                                              fontSize: 16, color: greyColor))
-                                      : Text(
-                                          "Every ${exercisesBox.getAt(widget.index)!.incrementFrequency.toString()} Times",
-                                          style: TextStyle(
-                                              fontSize: 16, color: greyColor)),
-                                ),
-                              ]),
+                                          fontSize: 16, color: greyColor))
+                                  : Text(
+                                      "Every ${exercisesBox.getAt(widget.index)!.incrementFrequency.toString()} Times",
+                                      style: TextStyle(
+                                          fontSize: 16, color: greyColor)),
                             ),
                           ]),
                         ),
-                        onPressed: () {
-                          showDialog(
-                              context: context,
-                              builder: (context) => frequencySelector());
-                        },
-                      );
+                      ]),
+                    ),
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) => frequencySelector());
                     },
+                  );
+                },
               )
             : const SizedBox(),
         const SizedBox(height: 10),
@@ -7978,131 +7935,130 @@ class _IncrementsPageState extends State<IncrementsPage> {
               ))
             : const SizedBox(),
         TextButton(
-            style: TextButton.styleFrom(
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 16)),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-              child: Column(children: <Widget>[
-                Row(children: <Widget>[
-                  Expanded(
-                    flex: 4,
-                    child: Column(children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text("Deload",
-                            style: TextStyle(fontSize: 18, color: textColor)),
-                      ),
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text("Decrease weight if failed sets",
-                            style: TextStyle(fontSize: 16, color: greyColor)),
-                      ),
-                    ]),
-                  ),
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Switch(
-                        inactiveThumbColor: greyColor,
-                        inactiveTrackColor:
-                            const Color.fromARGB(255, 207, 207, 207),
-                        activeColor: activeSwitchColor,
-                        activeTrackColor: greyColor,
-                        value: exercisesBox.getAt(widget.index)!.deload,
-                        onChanged: toggleSwitch2,
-                      ),
+          style: TextButton.styleFrom(
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+            child: Column(children: <Widget>[
+              Row(children: <Widget>[
+                Expanded(
+                  flex: 4,
+                  child: Column(children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Deload",
+                          style: TextStyle(fontSize: 18, color: textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Decrease weight if failed sets",
+                          style: TextStyle(fontSize: 16, color: greyColor)),
+                    ),
+                  ]),
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Switch(
+                      inactiveThumbColor: greyColor,
+                      inactiveTrackColor:
+                          const Color.fromARGB(255, 207, 207, 207),
+                      activeColor: activeSwitchColor,
+                      activeTrackColor: greyColor,
+                      value: exercisesBox.getAt(widget.index)!.deload,
+                      onChanged: toggleSwitch2,
                     ),
                   ),
-                ]),
+                ),
               ]),
-            ),
-            onPressed: (() => toggleSwitch2(false)),
+            ]),
+          ),
+          onPressed: (() => toggleSwitch2(false)),
         ),
         exercisesBox.getAt(widget.index)!.deload
             ? ValueListenableBuilder(
-                    valueListenable: _incrementsCounter,
-                    builder: (context, value, child) {
-                      return TextButton(
-                          style: TextButton.styleFrom(
-                              primary: Colors.white,
-                              textStyle: const TextStyle(fontSize: 16)),
-                          child: Container(
-                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                            child: Row(children: <Widget>[
-                              Expanded(
-                                child: Column(children: [
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text("Percentage",
-                                        style: TextStyle(
-                                            fontSize: 18, color: textColor)),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                        "${exercisesBox.getAt(widget.index)!.deloadPercent.toString()}%",
-                                        style: TextStyle(
-                                            fontSize: 16, color: greyColor)),
-                                  ),
-                                ]),
+                valueListenable: _incrementsCounter,
+                builder: (context, value, child) {
+                  return TextButton(
+                      style: TextButton.styleFrom(
+                          primary: Colors.white,
+                          textStyle: const TextStyle(fontSize: 16)),
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                        child: Row(children: <Widget>[
+                          Expanded(
+                            child: Column(children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text("Percentage",
+                                    style: TextStyle(
+                                        fontSize: 18, color: textColor)),
+                              ),
+                              const SizedBox(height: 8),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                    "${exercisesBox.getAt(widget.index)!.deloadPercent.toString()}%",
+                                    style: TextStyle(
+                                        fontSize: 16, color: greyColor)),
                               ),
                             ]),
                           ),
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) => percentageSelector());
-                          });
-                    })
+                        ]),
+                      ),
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) => percentageSelector());
+                      });
+                })
             : const SizedBox(),
         exercisesBox.getAt(widget.index)!.deload
             ? ValueListenableBuilder(
-                    valueListenable: _incrementsCounter,
-                    builder: (context, value, child) {
-                      return TextButton(
-                        style: TextButton.styleFrom(
-                            primary: Colors.white,
-                            textStyle: const TextStyle(fontSize: 16)),
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                          child: Row(children: <Widget>[
-                            Expanded(
-                              child: Column(children: [
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text("Frequency",
+                valueListenable: _incrementsCounter,
+                builder: (context, value, child) {
+                  return TextButton(
+                    style: TextButton.styleFrom(
+                        primary: Colors.white,
+                        textStyle: const TextStyle(fontSize: 16)),
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                      child: Row(children: <Widget>[
+                        Expanded(
+                          child: Column(children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text("Frequency",
+                                  style: TextStyle(
+                                      fontSize: 18, color: textColor)),
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: exercisesBox
+                                          .getAt(widget.index)!
+                                          .deloadFrequency ==
+                                      1
+                                  ? Text("Every Time",
                                       style: TextStyle(
-                                          fontSize: 18, color: textColor)),
-                                ),
-                                const SizedBox(height: 8),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: exercisesBox
-                                              .getAt(widget.index)!
-                                              .deloadFrequency ==
-                                          1
-                                      ? Text("Every Time",
-                                          style: TextStyle(
-                                              fontSize: 16, color: greyColor))
-                                      : Text(
-                                          "Every ${exercisesBox.getAt(widget.index)!.deloadFrequency.toString()} Times",
-                                          style: TextStyle(
-                                              fontSize: 16, color: greyColor)),
-                                ),
-                              ]),
+                                          fontSize: 16, color: greyColor))
+                                  : Text(
+                                      "Every ${exercisesBox.getAt(widget.index)!.deloadFrequency.toString()} Times",
+                                      style: TextStyle(
+                                          fontSize: 16, color: greyColor)),
                             ),
                           ]),
                         ),
-                        onPressed: () {
-                          showDialog(
-                              context: context,
-                              builder: (context) => deloadFrequencySelector());
-                        },
-                      );
+                      ]),
+                    ),
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) => deloadFrequencySelector());
                     },
+                  );
+                },
               )
             : const SizedBox(),
         const SizedBox(height: 10),
@@ -8187,8 +8143,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
               const SizedBox(height: 40),
               Row(
                 children: <Widget>[
-                  SizedBox(
-                    width: 170,
+                  Expanded(child: SizedBox(
                     height: 50,
                     child: OutlinedButton(
                       child: const Text("-5lb"),
@@ -8226,10 +8181,9 @@ class _IncrementsPageState extends State<IncrementsPage> {
                         }
                       },
                     ),
-                  ),
+                  )),
                   const SizedBox(width: 10),
-                  SizedBox(
-                      width: 170,
+                  Expanded(child: SizedBox(
                       height: 50,
                       child: OutlinedButton(
                         child: const Text("+5lb"),
@@ -8259,12 +8213,12 @@ class _IncrementsPageState extends State<IncrementsPage> {
                             });
                           }
                         },
-                      ))
+                      ))),
                 ],
               ),
               const SizedBox(height: 20),
-              Row(children: <Widget>[
-                const SizedBox(width: 187.4),
+              Row(mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
                 TextButton(
                   style: TextButton.styleFrom(
                     primary: redColor,
@@ -8329,7 +8283,6 @@ class _IncrementsPageState extends State<IncrementsPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                         const SizedBox(
-                          width: 60,
                           height: 40,
                           child: Align(
                             alignment: Alignment.topCenter,
@@ -8339,9 +8292,10 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                 )),
                           ),
                         ),
+                        const SizedBox(width: 5),
                         SizedBox(
                             height: 120,
-                            width: 60,
+                            width: 70,
                             child: CupertinoPicker(
                               scrollController: _controller,
                               children: freqs,
@@ -8369,8 +8323,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                 freq = index + 1,
                               },
                             )),
+                        const SizedBox(width: 5),
                         const SizedBox(
-                          width: 60,
                           height: 40,
                           child: Align(
                             alignment: Alignment.topCenter,
@@ -8382,8 +8336,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
                         ),
                       ])),
                   const SizedBox(height: 30),
-                  Row(children: <Widget>[
-                    const SizedBox(width: 187.4),
+                  Row(mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
                     TextButton(
                       style: TextButton.styleFrom(
                         primary: redColor,
@@ -8478,8 +8432,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                 percent = index + 1,
                               },
                             )),
+                        const SizedBox(width: 5),
                         const SizedBox(
-                          width: 40,
                           height: 40,
                           child: Align(
                             alignment: Alignment.topCenter,
@@ -8491,8 +8445,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
                         ),
                       ])),
                   const SizedBox(height: 30),
-                  Row(children: <Widget>[
-                    const SizedBox(width: 187.4),
+                  Row(mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
                     TextButton(
                       style: TextButton.styleFrom(
                         primary: redColor,
@@ -8558,7 +8512,6 @@ class _IncrementsPageState extends State<IncrementsPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                         const SizedBox(
-                          width: 60,
                           height: 40,
                           child: Align(
                             alignment: Alignment.topCenter,
@@ -8568,6 +8521,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                 )),
                           ),
                         ),
+                        const SizedBox(width: 5),
                         SizedBox(
                             height: 120,
                             width: 60,
@@ -8598,8 +8552,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                 freq = index + 1,
                               },
                             )),
+                        const SizedBox(width: 5),
                         const SizedBox(
-                          width: 60,
                           height: 40,
                           child: Align(
                             alignment: Alignment.topCenter,
@@ -8611,8 +8565,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
                         ),
                       ])),
                   const SizedBox(height: 30),
-                  Row(children: <Widget>[
-                    const SizedBox(width: 187.4),
+                  Row(mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
                     TextButton(
                       style: TextButton.styleFrom(
                         primary: redColor,
@@ -8823,446 +8777,474 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.88,
             ),
-            child: Column(children: <Widget>[
-              Flexible(
-                  child: ListView(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      children: <Widget>[
-                    for (int i = 0;
-                        i <
-                            indivWorkoutsBox
-                                .getAt(widget.index)!
-                                .repsCompleted
-                                .length;
-                        i++)
-                      Column(children: <Widget>[
-                        Row(children: <Widget>[
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.only(left: 15),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                    indivWorkoutsBox
-                                        .getAt(widget.index)!
-                                        .exercisesCompleted[i],
-                                    style: const TextStyle(
-                                      fontSize: 17,
-                                    )),
-                              ),
+            child: ListView(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                children: <Widget>[
+                  for (int i = 0;
+                      i <
+                          indivWorkoutsBox
+                              .getAt(widget.index)!
+                              .repsCompleted
+                              .length;
+                      i++)
+                    Column(children: <Widget>[
+                      Row(children: <Widget>[
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.only(left: 15),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                  indivWorkoutsBox
+                                      .getAt(widget.index)!
+                                      .exercisesCompleted[i],
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                  )),
                             ),
                           ),
-                          Expanded(
-                              child: Align(
-                                  alignment: Alignment.centerRight,
-                                  child: GestureDetector(
-                                      onTap: () =>
-                                          _weightsSetsReps(widget.index, i),
-                                      child: Row(children: <Widget>[
-                                        if (indivWorkoutsBox
-                                                    .getAt(widget.index)!
-                                                    .weights[i] %
-                                                1 ==
-                                            0)
-                                          Flexible(
-                                              child: Align(
-                                                  alignment:
-                                                      Alignment.centerRight,
-                                                  child: Text(
-                                                      "${indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]}×${indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]} ${indivWorkoutsBox.getAt(widget.index)!.weights[i] ~/ 1}lb",
-                                                      style: const TextStyle(
-                                                        fontSize: 17,
-                                                      ))))
-                                        else
-                                          Flexible(
-                                              child: Align(
-                                                  alignment:
-                                                      Alignment.centerRight,
-                                                  child: Text(
-                                                      "${indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]}×${indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]} ${indivWorkoutsBox.getAt(widget.index)!.weights[i].toString()}lb",
-                                                      style: const TextStyle(
-                                                          fontSize: 17)))),
-                                        SizedBox(
-                                          width: 17,
-                                          child: IconButton(
-                                            onPressed: () => _weightsSetsReps(
-                                                widget.index, i),
-                                            alignment: Alignment.centerLeft,
-                                            padding: const EdgeInsets.all(0),
-                                            splashColor: Colors.transparent,
-                                            highlightColor: Colors.transparent,
-                                            icon: const Icon(
-                                                Icons.arrow_right_sharp),
-                                            color: redColor,
-                                            iconSize: 20,
+                        ),
+                        Expanded(
+                            child: Container(
+                                padding: const EdgeInsets.only(right: 15),
+                                child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: GestureDetector(
+                                        onTap: () =>
+                                            _weightsSetsReps(widget.index, i),
+                                        child: Row(children: <Widget>[
+                                          if (indivWorkoutsBox
+                                                      .getAt(widget.index)!
+                                                      .weights[i] %
+                                                  1 ==
+                                              0)
+                                            Flexible(
+                                                child: Align(
+                                                    alignment:
+                                                        Alignment.centerRight,
+                                                    child: Text(
+                                                        "${indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]}×${indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]} ${indivWorkoutsBox.getAt(widget.index)!.weights[i] ~/ 1}lb",
+                                                        style: const TextStyle(
+                                                          fontSize: 17,
+                                                        ))))
+                                          else
+                                            Flexible(
+                                                child: Align(
+                                                    alignment:
+                                                        Alignment.centerRight,
+                                                    child: Text(
+                                                        "${indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]}×${indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]} ${indivWorkoutsBox.getAt(widget.index)!.weights[i].toString()}lb",
+                                                        style: const TextStyle(
+                                                            fontSize: 17)))),
+                                          SizedBox(
+                                            width: 17,
+                                            child: IconButton(
+                                              onPressed: () => _weightsSetsReps(
+                                                  widget.index, i),
+                                              alignment: Alignment.centerLeft,
+                                              padding: const EdgeInsets.all(0),
+                                              splashColor: Colors.transparent,
+                                              highlightColor:
+                                                  Colors.transparent,
+                                              icon: const Icon(
+                                                  Icons.arrow_right_sharp),
+                                              color: redColor,
+                                              iconSize: 20,
+                                            ),
                                           ),
-                                        ),
-                                      ])))),
-                        ]),
-                        Container(
-                          height: 50,
-                          alignment: Alignment.centerLeft,
-                          child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: <Widget>[
-                                Row(children: <Widget>[
-                                  // one circle for each set, initialized with number of reps
-                                  for (int j = 0;
-                                      j <
-                                          indivWorkoutsBox
-                                              .getAt(widget.index)!
-                                              .setsPlanned[i];
-                                      j++)
-                                    // circle, onTap decrement, loops back to rep number
+                                        ]))))),
+                      ]),
+                      Container(
+                        padding: const EdgeInsets.only(left: 15, right: 15),
+                        alignment: Alignment.centerLeft,
+                        child: Wrap(
+                            direction: Axis.horizontal,
+                            spacing: (MediaQuery.of(context)
+                                                .size
+                                                .width -
+                                            300) / 4.01,
+                            runSpacing: 15,
+                            children: <Widget>[
+                                // one circle for each set, initialized with number of reps
+                                for (int j = 0;
+                                    j <
+                                        indivWorkoutsBox
+                                            .getAt(widget.index)!
+                                            .setsPlanned[i];
+                                    j++)
+                                  // circle, onTap decrement, loops back to rep number
                                     SizedBox(
-                                      width: 78,
-                                      height: 50,
-                                      child: MaterialButton(
-                                        elevation: 0,
-                                        splashColor: Colors.transparent,
-                                        animationDuration:
-                                            const Duration(milliseconds: 0),
-                                        shape: const CircleBorder(
-                                            side: BorderSide(
-                                                width: 1,
-                                                style: BorderStyle.none)),
-                                        child: indivWorkoutsBox
-                                                    .getAt(widget.index)!
-                                                    .repsCompleted[i][j] >
-                                                indivWorkoutsBox
-                                                    .getAt(widget.index)!
-                                                    .repsPlanned[i]
-                                            ? Text(
+                                    width: 50,
+                                    height: 50,
+                                    child: MaterialButton(
+                                      elevation: 0,
+                                      splashColor: Colors.transparent,
+                                      animationDuration:
+                                          const Duration(milliseconds: 0),
+                                      shape: const CircleBorder(
+                                          side: BorderSide(
+                                              width: 1,
+                                              style: BorderStyle.none)),
+                                      child: indivWorkoutsBox
+                                                  .getAt(widget.index)!
+                                                  .repsCompleted[i][j] >
+                                              indivWorkoutsBox
+                                                  .getAt(widget.index)!
+                                                  .repsPlanned[i]
+                                          ? indivWorkoutsBox
+                                                  .getAt(widget.index)!
+                                                  .repsCompleted[i][j] < 10
+                                            ? FittedBox(child: Text(
                                                 indivWorkoutsBox
                                                     .getAt(widget.index)!
                                                     .repsPlanned[i]
                                                     .toString(),
-                                                style: const TextStyle(
-                                                    fontSize: 18))
-                                            : Text(
+                                                style:
+                                                    const TextStyle(fontSize: 18)))
+                                            : FittedBox(child: Text(
+                                                indivWorkoutsBox
+                                                    .getAt(widget.index)!
+                                                    .repsPlanned[i]
+                                                    .toString(),
+                                                style:
+                                                    const TextStyle(fontSize: 12)))
+                                          
+                                          : indivWorkoutsBox
+                                                  .getAt(widget.index)!
+                                                  .repsCompleted[i][j] < 10
+                                            ? FittedBox(child: Text(
                                                 indivWorkoutsBox
                                                     .getAt(widget.index)!
                                                     .repsCompleted[i][j]
                                                     .toString(),
                                                 style: const TextStyle(
-                                                    fontSize: 18)),
-                                        color: indivWorkoutsBox
-                                                    .getAt(widget.index)!
-                                                    .repsCompleted[i][j] >
-                                                indivWorkoutsBox
-                                                    .getAt(widget.index)!
-                                                    .repsPlanned[i]
-                                            ? circleColor
-                                            : redColor,
-                                        textColor: indivWorkoutsBox
-                                                    .getAt(widget.index)!
-                                                    .repsCompleted[i][j] >
-                                                indivWorkoutsBox
-                                                    .getAt(widget.index)!
-                                                    .repsPlanned[i]
-                                            ? emptyCircleTextColor
-                                            : Colors.white,
-                                        onPressed: () {
-                                          changesMade = true;
-                                          final tempIndiv =
-                                              Hive.box<IndivWorkout>(
-                                                      'indivWorkoutsBox')
-                                                  .getAt(widget.index);
-                                          // loops around
-                                          if (tempIndiv!.repsCompleted[i][j] ==
-                                              0) {
-                                            setState(() => tempIndiv
-                                                    .repsCompleted[i][j] =
-                                                tempIndiv.repsPlanned[i] + 1);
-                                          } else {
-                                            setState(() => tempIndiv
-                                                .repsCompleted[i][j] -= 1);
-                                          }
-                                        },
-                                      ),
+                                                    fontSize: 18)))
+                                            : FittedBox(child: Text(
+                                              indivWorkoutsBox
+                                                  .getAt(widget.index)!
+                                                  .repsCompleted[i][j]
+                                                  .toString(),
+                                              style: const TextStyle(
+                                                  fontSize: 12))),
+
+                                      color: indivWorkoutsBox
+                                                  .getAt(widget.index)!
+                                                  .repsCompleted[i][j] >
+                                              indivWorkoutsBox
+                                                  .getAt(widget.index)!
+                                                  .repsPlanned[i]
+                                          ? circleColor
+                                          : redColor,
+                                      textColor: indivWorkoutsBox
+                                                  .getAt(widget.index)!
+                                                  .repsCompleted[i][j] >
+                                              indivWorkoutsBox
+                                                  .getAt(widget.index)!
+                                                  .repsPlanned[i]
+                                          ? emptyCircleTextColor
+                                          : Colors.white,
+                                      onPressed: () {
+                                        changesMade = true;
+                                        final tempIndiv =
+                                            Hive.box<IndivWorkout>(
+                                                    'indivWorkoutsBox')
+                                                .getAt(widget.index);
+                                        // loops around
+                                        if (tempIndiv!.repsCompleted[i][j] ==
+                                            0) {
+                                          setState(() =>
+                                              tempIndiv.repsCompleted[i][j] =
+                                                  tempIndiv.repsPlanned[i] + 1);
+                                        } else {
+                                          setState(() => tempIndiv
+                                              .repsCompleted[i][j] -= 1);
+                                        }
+                                      },
                                     ),
-                                ]),
-                              ]),
-                        ),
-                        const SizedBox(height: 10),
-                      ]),
-                  ])),
-              Container(
-                  padding: const EdgeInsets.fromLTRB(15, 20, 20, 20),
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        const Expanded(
-                            child: Center(
-                                child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text("Body Weight",
-                                        style: TextStyle(
-                                          fontSize: 17,
-                                        ))))),
-                        Expanded(
-                            child: Center(
-                                child: GestureDetector(
-                                    onTap: () {
-                                      // sets initial scroll to weight
-                                      final _intController =
-                                          FixedExtentScrollController(
-                                              initialItem:
-                                                  postTempBodyWeight ~/ 1 - 50);
-                                      // annoying floating point precision: 100.6 - 100 = 0.599
-                                      // the +0.05 is a way around it
-                                      final _decController =
-                                          FixedExtentScrollController(
-                                              initialItem: (postTempBodyWeight -
-                                                      (postTempBodyWeight ~/
-                                                          1) +
-                                                      0.05) *
-                                                  10 ~/
-                                                  1);
-                                      int scrollBodyWeightInt =
-                                          postTempBodyWeight ~/ 1;
-                                      int scrollBodyWeightDec =
-                                          (postTempBodyWeight -
-                                                  (postTempBodyWeight ~/ 1)) *
-                                              10 ~/
-                                              1;
-                                      showDialog(
-                                          context: context,
-                                          builder: (context) => Dialog(
-                                              insetPadding:
-                                                  const EdgeInsets.all(10),
-                                              child: Container(
-                                                  padding:
-                                                      const EdgeInsets.all(20),
-                                                  child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: <Widget>[
-                                                        const Text("Weight",
-                                                            style: TextStyle(
-                                                              fontSize: 18,
-                                                            )),
-                                                        const SizedBox(
-                                                            height: 30),
-                                                        Flexible(
-                                                            child: Row(
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .center,
-                                                                children: <
-                                                                    Widget>[
-                                                              SizedBox(
-                                                                  height: 120,
-                                                                  width: 70,
-                                                                  child:
-                                                                      CupertinoPicker(
-                                                                    scrollController:
-                                                                        _intController,
-                                                                    children:
-                                                                        nums,
-                                                                    looping:
-                                                                        true,
-                                                                    diameterRatio:
-                                                                        1.25,
-                                                                    selectionOverlay:
-                                                                        Column(children: <
-                                                                            Widget>[
-                                                                      Container(
-                                                                          decoration: BoxDecoration(
-                                                                              border: Border(
-                                                                                  top: BorderSide(
-                                                                        color:
-                                                                            textColor,
-                                                                        width:
-                                                                            2,
-                                                                      )))),
-                                                                      const SizedBox(
-                                                                          height:
-                                                                              50),
-                                                                      Container(
-                                                                          decoration: BoxDecoration(
-                                                                              border: Border(
-                                                                                  top: BorderSide(
-                                                                        color:
-                                                                            textColor,
-                                                                        width:
-                                                                            2,
-                                                                      ))))
-                                                                    ]),
-                                                                    itemExtent:
-                                                                        75,
-                                                                    onSelectedItemChanged:
-                                                                        (index) =>
-                                                                            {
-                                                                      scrollBodyWeightInt =
-                                                                          index +
-                                                                              50,
-                                                                    },
-                                                                  )),
-                                                              const SizedBox(
-                                                                width: 20,
-                                                                height: 45,
-                                                                child: Align(
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .topCenter,
-                                                                  child: Text(
-                                                                      ".",
-                                                                      style:
-                                                                          TextStyle(
-                                                                        fontSize:
-                                                                            17,
-                                                                      )),
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                  height: 120,
-                                                                  width: 70,
-                                                                  child:
-                                                                      CupertinoPicker(
-                                                                    scrollController:
-                                                                        _decController,
-                                                                    children:
-                                                                        decs,
-                                                                    looping:
-                                                                        true,
-                                                                    diameterRatio:
-                                                                        1.25,
-                                                                    selectionOverlay:
-                                                                        Column(children: <
-                                                                            Widget>[
-                                                                      Container(
-                                                                          decoration: BoxDecoration(
-                                                                              border: Border(
-                                                                                  top: BorderSide(
-                                                                        color:
-                                                                            textColor,
-                                                                        width:
-                                                                            2,
-                                                                      )))),
-                                                                      const SizedBox(
-                                                                          height:
-                                                                              50),
-                                                                      Container(
-                                                                          decoration: BoxDecoration(
-                                                                              border: Border(
-                                                                                  top: BorderSide(
-                                                                        color:
-                                                                            textColor,
-                                                                        width:
-                                                                            2,
-                                                                      ))))
-                                                                    ]),
-                                                                    itemExtent:
-                                                                        75,
-                                                                    onSelectedItemChanged:
-                                                                        (index) =>
-                                                                            {
-                                                                      scrollBodyWeightDec =
-                                                                          index,
-                                                                    },
-                                                                  )),
-                                                              const SizedBox(
-                                                                width: 20,
-                                                                height: 40,
-                                                                child: Align(
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .topCenter,
-                                                                  child: Text(
-                                                                      "lb",
-                                                                      style:
-                                                                          TextStyle(
-                                                                        fontSize:
-                                                                            14,
-                                                                      )),
-                                                                ),
-                                                              ),
-                                                            ])),
-                                                        const SizedBox(
-                                                            height: 30),
-                                                        Row(children: <Widget>[
-                                                          const SizedBox(
-                                                              width: 187.4),
-                                                          TextButton(
-                                                            style: TextButton
-                                                                .styleFrom(
-                                                              primary: redColor,
-                                                              textStyle: const TextStyle(
-                                                                  fontSize: 16,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold),
-                                                              alignment:
-                                                                  Alignment
-                                                                      .center,
-                                                            ),
-                                                            child: const Text(
-                                                                "Cancel"),
-                                                            onPressed: () {
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop();
-                                                            },
-                                                          ),
-                                                          const SizedBox(
-                                                              width: 20),
-                                                          TextButton(
-                                                            style: TextButton
-                                                                .styleFrom(
-                                                              primary: redColor,
-                                                              textStyle: const TextStyle(
-                                                                  fontSize: 16,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold),
-                                                              alignment:
-                                                                  Alignment
-                                                                      .center,
-                                                            ),
-                                                            child: const Text(
-                                                                "OK"),
-                                                            onPressed: () {
-                                                              setState(
-                                                                () => postTempBodyWeight =
-                                                                    scrollBodyWeightInt +
-                                                                        0.1 *
-                                                                            scrollBodyWeightDec,
-                                                              );
-                                                              if (postTempBodyWeight !=
-                                                                  indivWorkoutsBox
-                                                                      .getAt(widget
-                                                                          .index)!
-                                                                      .bodyWeight) {
-                                                                changesMade =
-                                                                    true;
-                                                              }
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop();
-                                                            },
-                                                          ),
-                                                        ]),
-                                                      ]))));
-                                    },
+                                  ),
+                            ]),
+                      ),
+                      const SizedBox(height: 10),
+                    ]),
+                  Container(
+                      padding: const EdgeInsets.all(15),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            const Expanded(
+                                child: Center(
                                     child: Align(
-                                        alignment: Alignment.centerRight,
-                                        child: Text(
-                                            "${postTempBodyWeight.toString()}lb",
-                                            style: const TextStyle(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text("Body Weight",
+                                            style: TextStyle(
                                               fontSize: 17,
-                                              color: redColor,
-                                              fontWeight: FontWeight.bold,
-                                            )))))),
-                      ])),
-            ])),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+                                            ))))),
+                            Expanded(
+                                child: Center(
+                                    child: GestureDetector(
+                                        onTap: () {
+                                          // sets initial scroll to weight
+                                          final _intController =
+                                              FixedExtentScrollController(
+                                                  initialItem:
+                                                      postTempBodyWeight ~/ 1 -
+                                                          50);
+                                          // annoying floating point precision: 100.6 - 100 = 0.599
+                                          // the +0.05 is a way around it
+                                          final _decController =
+                                              FixedExtentScrollController(
+                                                  initialItem: (postTempBodyWeight -
+                                                          (postTempBodyWeight ~/
+                                                              1) +
+                                                          0.05) *
+                                                      10 ~/
+                                                      1);
+                                          int scrollBodyWeightInt =
+                                              postTempBodyWeight ~/ 1;
+                                          int scrollBodyWeightDec =
+                                              (postTempBodyWeight -
+                                                      (postTempBodyWeight ~/
+                                                          1)) *
+                                                  10 ~/
+                                                  1;
+                                          showDialog(
+                                              context: context,
+                                              builder: (context) => Dialog(
+                                                  insetPadding:
+                                                      const EdgeInsets.all(10),
+                                                  child: Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              20),
+                                                      child: Column(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: <Widget>[
+                                                            const Text("Weight",
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontSize: 18,
+                                                                )),
+                                                            const SizedBox(
+                                                                height: 30),
+                                                            Flexible(
+                                                                child: Row(
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .center,
+                                                                    children: <
+                                                                        Widget>[
+                                                                  SizedBox(
+                                                                      height:
+                                                                          120,
+                                                                      width: 70,
+                                                                      child:
+                                                                          CupertinoPicker(
+                                                                        scrollController:
+                                                                            _intController,
+                                                                        children:
+                                                                            nums,
+                                                                        looping:
+                                                                            true,
+                                                                        diameterRatio:
+                                                                            1.25,
+                                                                        selectionOverlay:
+                                                                            Column(
+                                                                                children: <Widget>[
+                                                                              Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                      border: Border(
+                                                                                          top: BorderSide(
+                                                                                color: textColor,
+                                                                                width: 2,
+                                                                              )))),
+                                                                              const SizedBox(height: 50),
+                                                                              Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                      border: Border(
+                                                                                          top: BorderSide(
+                                                                                color: textColor,
+                                                                                width: 2,
+                                                                              ))))
+                                                                            ]),
+                                                                        itemExtent:
+                                                                            75,
+                                                                        onSelectedItemChanged:
+                                                                            (index) =>
+                                                                                {
+                                                                          scrollBodyWeightInt =
+                                                                              index + 50,
+                                                                        },
+                                                                      )),
+                                                                  const SizedBox(width: 5),
+                                                                  const SizedBox(
+                                                                    height: 45,
+                                                                    child:
+                                                                        Align(
+                                                                      alignment:
+                                                                          Alignment
+                                                                              .topCenter,
+                                                                      child: Text(
+                                                                          ".",
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontSize:
+                                                                                17,
+                                                                          )),
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(
+                                                                      height:
+                                                                          120,
+                                                                      width: 70,
+                                                                      child:
+                                                                          CupertinoPicker(
+                                                                        scrollController:
+                                                                            _decController,
+                                                                        children:
+                                                                            decs,
+                                                                        looping:
+                                                                            true,
+                                                                        diameterRatio:
+                                                                            1.25,
+                                                                        selectionOverlay:
+                                                                            Column(
+                                                                                children: <Widget>[
+                                                                              Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                      border: Border(
+                                                                                          top: BorderSide(
+                                                                                color: textColor,
+                                                                                width: 2,
+                                                                              )))),
+                                                                              const SizedBox(height: 50),
+                                                                              Container(
+                                                                                  decoration: BoxDecoration(
+                                                                                      border: Border(
+                                                                                          top: BorderSide(
+                                                                                color: textColor,
+                                                                                width: 2,
+                                                                              ))))
+                                                                            ]),
+                                                                        itemExtent:
+                                                                            75,
+                                                                        onSelectedItemChanged:
+                                                                            (index) =>
+                                                                                {
+                                                                          scrollBodyWeightDec =
+                                                                              index,
+                                                                        },
+                                                                      )),
+                                                                  const SizedBox(width: 5),
+                                                                  const SizedBox(
+                                                                    height: 40,
+                                                                    child:
+                                                                        Align(
+                                                                      alignment:
+                                                                          Alignment
+                                                                              .topCenter,
+                                                                      child: Text(
+                                                                          "lb",
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontSize:
+                                                                                14,
+                                                                          )),
+                                                                    ),
+                                                                  ),
+                                                                ])),
+                                                            const SizedBox(
+                                                                height: 30),
+                                                            Row(mainAxisAlignment: MainAxisAlignment.end,
+                                                              children: <
+                                                                Widget>[
+                                                              TextButton(
+                                                                style: TextButton
+                                                                    .styleFrom(
+                                                                  primary:
+                                                                      redColor,
+                                                                  textStyle: const TextStyle(
+                                                                      fontSize:
+                                                                          16,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold),
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .center,
+                                                                ),
+                                                                child: const Text(
+                                                                    "Cancel"),
+                                                                onPressed: () {
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop();
+                                                                },
+                                                              ),
+                                                              const SizedBox(
+                                                                  width: 20),
+                                                              TextButton(
+                                                                style: TextButton
+                                                                    .styleFrom(
+                                                                  primary:
+                                                                      redColor,
+                                                                  textStyle: const TextStyle(
+                                                                      fontSize:
+                                                                          16,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold),
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .center,
+                                                                ),
+                                                                child:
+                                                                    const Text(
+                                                                        "OK"),
+                                                                onPressed: () {
+                                                                  setState(
+                                                                    () => postTempBodyWeight =
+                                                                        scrollBodyWeightInt +
+                                                                            0.1 *
+                                                                                scrollBodyWeightDec,
+                                                                  );
+                                                                  if (postTempBodyWeight !=
+                                                                      indivWorkoutsBox
+                                                                          .getAt(
+                                                                              widget.index)!
+                                                                          .bodyWeight) {
+                                                                    changesMade =
+                                                                        true;
+                                                                  }
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop();
+                                                                },
+                                                              ),
+                                                            ]),
+                                                          ]))));
+                                        },
+                                        child: Align(
+                                            alignment: Alignment.centerRight,
+                                            child: Text(
+                                                "${postTempBodyWeight.toString()}lb",
+                                                style: const TextStyle(
+                                                  fontSize: 17,
+                                                  color: redColor,
+                                                  fontWeight: FontWeight.bold,
+                                                )))))),
+                          ])),
+                ])),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: Container(
-            padding: const EdgeInsets.only(left: 25),
+            height: MediaQuery.of(context).size.height * 0.05,
+            width: double.infinity,
+            color: backColor,
+            padding: const EdgeInsets.only(left: 15, right: 15),
             child: Row(children: <Widget>[
               Expanded(
                 child: Align(
@@ -9489,8 +9471,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   thickness: 2,
                 ),
                 const SizedBox(height: 20),
-                Row(children: <Widget>[
-                  const SizedBox(width: 187.4),
+                Row(mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
                   TextButton(
                     style: TextButton.styleFrom(
                       primary: redColor,
