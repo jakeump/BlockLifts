@@ -106,6 +106,7 @@ String postWorkoutTempNote = "";
 Timer? timer;
 Duration duration = const Duration();
 bool showTimer = false;
+bool lastSet = false;
 int workoutIndex = 0;
 int exerciseIndex = 0;
 int setIndex = 0;
@@ -393,7 +394,6 @@ bool onIosBackground(ServiceInstance service) {
 }
 
 void onStart(ServiceInstance service) async {
-
   // Only available for flutter 3.0.0 and later
   DartPluginRegistrant.ensureInitialized();
 
@@ -413,7 +413,6 @@ void onStart(ServiceInstance service) async {
 
   // bring to foreground
   Timer.periodic(const Duration(seconds: 1), (timer) async {
-
     if (service is AndroidServiceInstance) {
       service.setForegroundNotificationInfo(
         title: "My App Service",
@@ -449,6 +448,7 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
   final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(workoutIndex);
   final boolBox = Hive.box<bool>('boolBox');
   bool showNotification = false;
+  lastSet = false;
 
   void addTime(Timer? timer) {
     const addSeconds = 0;
@@ -466,9 +466,13 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
     timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
   }
 
+  if (setIdx == tempWorkout!.exercises[exIdx].sets - 1) {
+    lastSet = true;
+  }
+
   // failed button clicked from notification
   if (fail) {
-    if (exIdx == tempWorkout!.exercises.length - 1 &&
+    if (exIdx == tempWorkout.exercises.length - 1 &&
         setIdx == tempWorkout.exercises[exIdx].sets - 1) {
       AwesomeNotifications().cancelAll();
       showTimer = false;
@@ -487,7 +491,7 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
     }
   } else {
     // loops around
-    if (tempWorkout!.exercises[exIdx].repsCompleted[setIdx] == 0) {
+    if (tempWorkout.exercises[exIdx].repsCompleted[setIdx] == 0) {
       AwesomeNotifications().cancelAll();
       showTimer = false;
 
@@ -2764,8 +2768,8 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
           output += "1";
           output += "×";
           output += indivWorkoutsBox.getAt(i)!.repsCompleted[j][k].toString();
-        }
-        else if (successCounter == indivWorkoutsBox.getAt(i)!.setsPlanned[j]) {
+        } else if (successCounter ==
+            indivWorkoutsBox.getAt(i)!.setsPlanned[j]) {
           output = "";
           output += indivWorkoutsBox.getAt(i)!.setsPlanned[j].toString();
           output += "×";
@@ -5691,19 +5695,12 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                         padding: const EdgeInsets.only(
                                             top: 15, bottom: 15),
                                         child: Row(children: <Widget>[
+                                          buildTime(),
+                                          
                                           Flexible(
-                                              child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  children: [
-                                                buildTime(),
-                                              ])),
-                                          Flexible(
-                                            child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.end,
-                                                children: [
-                                                  failed
+                                            child: Align(alignment: Alignment.centerRight, child:
+                                                  lastSet ? const Text("Set equipment, then lift", overflow: TextOverflow.fade)
+                                                  : failed
                                                       ? failureTimes.isEmpty
                                                           ? const Text(
                                                               "No failure timer")
@@ -5736,17 +5733,16 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                   style: TextStyle(
                                                                       color:
                                                                           textColor)),
-                                                  IconButton(
-                                                      icon: const Icon(
-                                                          Icons.close),
-                                                      onPressed: () =>
-                                                          setState(() {
-                                                            showTimer = false;
-                                                            AwesomeNotifications()
-                                                                .cancelAll();
-                                                          })),
-                                                ]),
-                                          ),
+                                          )),
+                                          IconButton(
+                                              icon: const Icon(
+                                                  Icons.close),
+                                              onPressed: () =>
+                                                  setState(() {
+                                                    showTimer = false;
+                                                    AwesomeNotifications()
+                                                        .cancelAll();
+                                                  })),
                                         ]),
                                         decoration: BoxDecoration(
                                           color: circleColor,
@@ -5982,7 +5978,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+    return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
       buildTimeCard(minutes, 20),
       SizedBox(
           width: 4,
