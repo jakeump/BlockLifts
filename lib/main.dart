@@ -136,6 +136,7 @@ ValueNotifier<int> _progressCounter =
 ValueNotifier<int> _calendarCounter =
     ValueNotifier<int>(0); // for calendar page
 ValueNotifier<int> _themeCounter = ValueNotifier<int>(0); // for dark/light mode
+ValueNotifier<int> _timerPageCounter = ValueNotifier<int>(0); // for timer page
 
 @HiveType(typeId: 1)
 class Workout extends HiveObject {
@@ -1113,8 +1114,7 @@ class _HomeState extends State<Home> {
                   context: context,
                   builder: (context) => Dialog(
                         insetPadding: const EdgeInsets.all(10),
-                        child: Flexible(
-                            child: Container(
+                        child: Container(
                           color: tileColor,
                           padding: const EdgeInsets.all(20),
                           child: Column(
@@ -1191,7 +1191,7 @@ class _HomeState extends State<Home> {
                                       )),
                                 ]),
                               ]),
-                        )),
+                        ),
                       ));
             } else if (boolBox.getAt(5)! && i == counterBox.getAt(0)!) {
               Navigator.of(context)
@@ -1313,13 +1313,13 @@ class _HistoryState extends State<History> {
                     indicatorSize: TabBarIndicatorSize.tab,
                     tabs: const [
                       Tab(
-                        child:Text('List', style: TextStyle(fontSize: 16)),
+                        child: Text('List', style: TextStyle(fontSize: 16)),
                       ),
                       Tab(
-                        child:Text('Calendar', style: TextStyle(fontSize: 16)),
+                        child: Text('Calendar', style: TextStyle(fontSize: 16)),
                       ),
                       Tab(
-                        child:Text('Notes', style: TextStyle(fontSize: 16)),
+                        child: Text('Notes', style: TextStyle(fontSize: 16)),
                       ),
                     ],
                   ),
@@ -1406,13 +1406,11 @@ class _ProgressState extends State<Progress> {
                                                         .width *
                                                     0.7),
                                             child: Text(
-                                                  exercisesBox
-                                                      .getAt(i)!
-                                                      .name,
-                                                  style: TextStyle(
-                                                      fontSize: 17,
-                                                      color: textColor),
-                                                ),
+                                              exercisesBox.getAt(i)!.name,
+                                              style: TextStyle(
+                                                  fontSize: 17,
+                                                  color: textColor),
+                                            ),
                                           ),
                                           Container(
                                             padding:
@@ -1464,42 +1462,47 @@ class _ProgressState extends State<Progress> {
                             padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
                             child: Row(children: <Widget>[
                               Expanded(
-                                child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                  Container(
-                                    constraints: BoxConstraints(
-                                        maxWidth: MediaQuery.of(context)
-                                                .size
-                                                .width * 0.8),
-                                    child: Text(
-                                      "Body Weight",
-                                      style: TextStyle(
-                                          fontSize: 17, color: textColor),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: indivWorkoutsBox.isEmpty
-                                        ? Text("150lb",
-                                            style: TextStyle(color: greyColor))
-                                        : indivWorkoutsBox
-                                                        .getAt(indivWorkoutsBox
-                                                                .length -
-                                                            1)!
-                                                        .bodyWeight %
-                                                    1 ==
-                                                0
-                                            ? Text(
-                                                "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toInt().toString()}lb",
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        constraints: BoxConstraints(
+                                            maxWidth: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.8),
+                                        child: Text(
+                                          "Body Weight",
+                                          style: TextStyle(
+                                              fontSize: 17, color: textColor),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: indivWorkoutsBox.isEmpty
+                                            ? Text("150lb",
                                                 style:
                                                     TextStyle(color: greyColor))
-                                            : Text(
-                                                "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toString()}lb",
-                                                style: TextStyle(
-                                                    color: greyColor)),
-                                  ),
-                                ]),
+                                            : indivWorkoutsBox
+                                                            .getAt(
+                                                                indivWorkoutsBox
+                                                                        .length -
+                                                                    1)!
+                                                            .bodyWeight %
+                                                        1 ==
+                                                    0
+                                                ? Text(
+                                                    "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toInt().toString()}lb",
+                                                    style: TextStyle(
+                                                        color: greyColor))
+                                                : Text(
+                                                    "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toString()}lb",
+                                                    style: TextStyle(
+                                                        color: greyColor)),
+                                      ),
+                                    ]),
                               ),
                             ]),
                           ),
@@ -1533,12 +1536,13 @@ class _ProgressState extends State<Progress> {
                                             constraints: BoxConstraints(
                                                 maxWidth: MediaQuery.of(context)
                                                         .size
-                                                        .width * 0.8),
+                                                        .width *
+                                                    0.8),
                                             child: Text(
-                                                exercisesBox.getAt(i)!.name,
-                                                style: TextStyle(
-                                                    fontSize: 17,
-                                                    color: textColor),
+                                              exercisesBox.getAt(i)!.name,
+                                              style: TextStyle(
+                                                  fontSize: 17,
+                                                  color: textColor),
                                             ),
                                           ),
                                           const SizedBox(height: 8),
@@ -1720,8 +1724,8 @@ class _SettingsState extends State<Settings> {
                   const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Text(platesString,
-                        style: TextStyle(color: greyColor)),
+                    child:
+                        Text(platesString, style: TextStyle(color: greyColor)),
                   ),
                 ]),
               ),
@@ -1741,9 +1745,7 @@ class _SettingsState extends State<Settings> {
               primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
           child: Container(
             padding: const EdgeInsets.all(10),
-            child: Row(children: <Widget>[
-              Expanded(
-                child: Column(children: [
+            child: Column(children: [
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text("Default Bar Weight",
@@ -1763,8 +1765,6 @@ class _SettingsState extends State<Settings> {
                             style: TextStyle(color: greyColor)),
                   ),
                 ]),
-              ),
-            ]),
           ),
           onPressed: () {
             defaultsBox.getAt(0)! % 1 == 0
@@ -1774,8 +1774,7 @@ class _SettingsState extends State<Settings> {
                 context: context,
                 builder: (context) => Dialog(
                       insetPadding: const EdgeInsets.all(10),
-                      child: Flexible(
-                          child: Container(
+                      child: Container(
                         color: tileColor,
                         padding: const EdgeInsets.all(20),
                         child: Column(
@@ -1845,7 +1844,7 @@ class _SettingsState extends State<Settings> {
                                     )
                                   ]),
                             ]),
-                      )),
+                      ),
                     ));
           },
         ),
@@ -1881,8 +1880,7 @@ class _SettingsState extends State<Settings> {
                 context: context,
                 builder: (context) => Dialog(
                       insetPadding: const EdgeInsets.all(10),
-                      child: Flexible(
-                          child: Container(
+                      child: Container(
                         color: tileColor,
                         padding: const EdgeInsets.all(20),
                         child: Column(
@@ -1952,7 +1950,7 @@ class _SettingsState extends State<Settings> {
                                     )
                                   ]),
                             ]),
-                      )),
+                      ),
                     ));
           },
         ),
@@ -1988,8 +1986,7 @@ class _SettingsState extends State<Settings> {
                 context: context,
                 builder: (context) => Dialog(
                       insetPadding: const EdgeInsets.all(10),
-                      child: Flexible(
-                          child: Container(
+                      child: Container(
                         color: tileColor,
                         padding: const EdgeInsets.all(20),
                         child: Column(
@@ -2060,7 +2057,7 @@ class _SettingsState extends State<Settings> {
                                   ]),
                             ]),
                       )),
-                    ));
+                    );
           },
         ),
         TextButton(
@@ -2540,6 +2537,7 @@ class _TimerState extends State<TimerPage> {
         boolBox.putAt(1, false);
       });
     }
+    _timerPageCounter.value++;
   }
 
   // ring
@@ -2553,6 +2551,7 @@ class _TimerState extends State<TimerPage> {
         boolBox.putAt(2, false);
       });
     }
+    _timerPageCounter.value++;
   }
 
   // vibration
@@ -2566,6 +2565,7 @@ class _TimerState extends State<TimerPage> {
         boolBox.putAt(3, false);
       });
     }
+    _timerPageCounter.value++;
   }
 
   @override
@@ -2612,63 +2612,24 @@ class _TimerState extends State<TimerPage> {
   Widget build(BuildContext context) {
     successTimes = addTimes(successTimerBox);
     failTimes = addTimes(failTimerBox);
-    return Scaffold(
-      backgroundColor: backColor,
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          iconSize: 18,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        backgroundColor: headerColor,
-        title: const Text("Timer"),
-        titleTextStyle: TextStyle(fontSize: 22, color: textColor),
-      ),
-      body: ListView(children: <Widget>[
-        TextButton(
-          style: TextButton.styleFrom(
-              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Column(children: <Widget>[
-              Row(children: <Widget>[
-                Expanded(
-                  child: Column(children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Timer", style: TextStyle(color: textColor)),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: boolBox.getAt(1)! == true
-                          ? Text("On", style: TextStyle(color: greyColor))
-                          : Text("Off", style: TextStyle(color: greyColor)),
-                    ),
-                  ]),
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Switch(
-                      inactiveThumbColor: greyColor,
-                      inactiveTrackColor:
-                          const Color.fromARGB(255, 207, 207, 207),
-                      activeColor: activeSwitchColor,
-                      activeTrackColor: greyColor,
-                      value: boolBox.getAt(1)!,
-                      onChanged: toggleSwitch,
-                    ),
-                  ),
-                ),
-              ]),
-            ]),
-          ),
-          onPressed: (() => toggleSwitch(false)),
-        ),
-        boolBox.getAt(1)!
-            ? TextButton(
+    return ValueListenableBuilder(
+        valueListenable: _timerPageCounter,
+        builder: (context, index, child) {
+          return Scaffold(
+            backgroundColor: backColor,
+            appBar: AppBar(
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios),
+                iconSize: 18,
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              backgroundColor: headerColor,
+              title: const Text("Timer"),
+              titleTextStyle: TextStyle(fontSize: 22, color: textColor),
+            ),
+            body: ListView(children: <Widget>[
+              TextButton(
                 style: TextButton.styleFrom(
                     primary: Colors.white,
                     textStyle: const TextStyle(fontSize: 16)),
@@ -2680,16 +2641,15 @@ class _TimerState extends State<TimerPage> {
                         child: Column(children: [
                           Align(
                             alignment: Alignment.centerLeft,
-                            child: Text("Ring",
+                            child: Text("Timer",
                                 style: TextStyle(color: textColor)),
                           ),
                           const SizedBox(height: 8),
                           Align(
                             alignment: Alignment.centerLeft,
-                            child: boolBox.getAt(2)! == true
-                                ? Text("Enabled",
-                                    style: TextStyle(color: greyColor))
-                                : Text("Disabled",
+                            child: boolBox.getAt(1)! == true
+                                ? Text("On", style: TextStyle(color: greyColor))
+                                : Text("Off",
                                     style: TextStyle(color: greyColor)),
                           ),
                         ]),
@@ -2703,145 +2663,193 @@ class _TimerState extends State<TimerPage> {
                                 const Color.fromARGB(255, 207, 207, 207),
                             activeColor: activeSwitchColor,
                             activeTrackColor: greyColor,
-                            value: boolBox.getAt(2)!,
-                            onChanged: toggleSwitch2,
+                            value: boolBox.getAt(1)!,
+                            onChanged: toggleSwitch,
                           ),
                         ),
                       ),
                     ]),
                   ]),
                 ),
-                onPressed: (() => toggleSwitch2(false)),
-              )
-            : const SizedBox(),
-        boolBox.getAt(1)!
-            ? TextButton(
-                style: TextButton.styleFrom(
-                    primary: Colors.white,
-                    textStyle: const TextStyle(fontSize: 16)),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(children: <Widget>[
-                    Row(children: <Widget>[
-                      Flexible(
-                        flex: 3,
-                        child: Column(children: [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text("Vibration",
-                                style: TextStyle(color: textColor)),
-                          ),
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: boolBox.getAt(3)! == true
-                                ? Text("Enabled",
-                                    style: TextStyle(color: greyColor))
-                                : Text("Disabled",
-                                    style: TextStyle(color: greyColor)),
-                          ),
-                          boolBox.getAt(3)!
-                              ? const SizedBox(height: 8)
-                              : const SizedBox(),
-                          boolBox.getAt(3)!
-                              ? Align(
+                onPressed: (() => toggleSwitch(false)),
+              ),
+              boolBox.getAt(1)!
+                  ? TextButton(
+                      style: TextButton.styleFrom(
+                          primary: Colors.white,
+                          textStyle: const TextStyle(fontSize: 16)),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(children: <Widget>[
+                          Row(children: <Widget>[
+                            Expanded(
+                              child: Column(children: [
+                                Align(
                                   alignment: Alignment.centerLeft,
-                                  child: Text(
-                                      "Notification vibrations must be enabled",
-                                      style: TextStyle(
-                                          color: greyColor, fontSize: 12)),
-                                )
-                              : const SizedBox(),
+                                  child: Text("Ring",
+                                      style: TextStyle(color: textColor)),
+                                ),
+                                const SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: boolBox.getAt(2)! == true
+                                      ? Text("Enabled",
+                                          style: TextStyle(color: greyColor))
+                                      : Text("Disabled",
+                                          style: TextStyle(color: greyColor)),
+                                ),
+                              ]),
+                            ),
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Switch(
+                                  inactiveThumbColor: greyColor,
+                                  inactiveTrackColor:
+                                      const Color.fromARGB(255, 207, 207, 207),
+                                  activeColor: activeSwitchColor,
+                                  activeTrackColor: greyColor,
+                                  value: boolBox.getAt(2)!,
+                                  onChanged: toggleSwitch2,
+                                ),
+                              ),
+                            ),
+                          ]),
                         ]),
                       ),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Switch(
-                            inactiveThumbColor: greyColor,
-                            inactiveTrackColor:
-                                const Color.fromARGB(255, 207, 207, 207),
-                            activeColor: activeSwitchColor,
-                            activeTrackColor: greyColor,
-                            value: boolBox.getAt(3)!,
-                            onChanged: toggleSwitch3,
-                          ),
-                        ),
+                      onPressed: (() => toggleSwitch2(false)),
+                    )
+                  : const SizedBox(),
+              boolBox.getAt(1)!
+                  ? TextButton(
+                      style: TextButton.styleFrom(
+                          primary: Colors.white,
+                          textStyle: const TextStyle(fontSize: 16)),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(children: <Widget>[
+                          Row(children: <Widget>[
+                            Flexible(
+                              flex: 3,
+                              child: Column(children: [
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text("Vibration",
+                                      style: TextStyle(color: textColor)),
+                                ),
+                                const SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: boolBox.getAt(3)! == true
+                                      ? Text("Enabled",
+                                          style: TextStyle(color: greyColor))
+                                      : Text("Disabled",
+                                          style: TextStyle(color: greyColor)),
+                                ),
+                                boolBox.getAt(3)!
+                                    ? const SizedBox(height: 8)
+                                    : const SizedBox(),
+                                boolBox.getAt(3)!
+                                    ? Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                            "Notification vibrations must be enabled",
+                                            style: TextStyle(
+                                                color: greyColor,
+                                                fontSize: 12)),
+                                      )
+                                    : const SizedBox(),
+                              ]),
+                            ),
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Switch(
+                                  inactiveThumbColor: greyColor,
+                                  inactiveTrackColor:
+                                      const Color.fromARGB(255, 207, 207, 207),
+                                  activeColor: activeSwitchColor,
+                                  activeTrackColor: greyColor,
+                                  value: boolBox.getAt(3)!,
+                                  onChanged: toggleSwitch3,
+                                ),
+                              ),
+                            ),
+                          ]),
+                        ]),
                       ),
-                    ]),
-                  ]),
-                ),
-                onPressed: (() => toggleSwitch3(false)),
-              )
-            : const SizedBox(),
-        boolBox.getAt(1)!
-            ? TextButton(
-                style: TextButton.styleFrom(
-                    primary: Colors.white,
-                    textStyle: const TextStyle(fontSize: 16)),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(children: <Widget>[
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Success Timer",
-                          style: TextStyle(color: textColor)),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(successTimes,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: greyColor)),
-                    ),
-                  ]),
-                ),
-                onPressed: () {
-                  Navigator.of(context)
-                      .push(MaterialPageRoute(
-                          builder: (context) => const SetTimerPage(0)))
-                      .then((value) {
-                    setState(() {});
-                  });
-                },
-              )
-            : const SizedBox(),
-        boolBox.getAt(1)!
-            ? TextButton(
-                style: TextButton.styleFrom(
-                    primary: Colors.white,
-                    textStyle: const TextStyle(fontSize: 16)),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(children: <Widget>[
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Fail Timer",
-                          style: TextStyle(color: textColor)),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(failTimes,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: greyColor)),
-                    ),
-                  ]),
-                ),
-                onPressed: () {
-                  Navigator.of(context)
-                      .push(MaterialPageRoute(
-                          builder: (context) => const SetTimerPage(1)))
-                      .then((value) {
-                    setState(() {});
-                  });
-                },
-              )
-            : const SizedBox(),
-      ]),
-    );
+                      onPressed: (() => toggleSwitch3(false)),
+                    )
+                  : const SizedBox(),
+              boolBox.getAt(1)!
+                  ? TextButton(
+                      style: TextButton.styleFrom(
+                          primary: Colors.white,
+                          textStyle: const TextStyle(fontSize: 16)),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(children: <Widget>[
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text("Success Timer",
+                                style: TextStyle(color: textColor)),
+                          ),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(successTimes,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: greyColor)),
+                          ),
+                        ]),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context)
+                            .push(MaterialPageRoute(
+                                builder: (context) => const SetTimerPage(0)))
+                            .then((value) {
+                          setState(() {});
+                        });
+                      },
+                    )
+                  : const SizedBox(),
+              boolBox.getAt(1)!
+                  ? TextButton(
+                      style: TextButton.styleFrom(
+                          primary: Colors.white,
+                          textStyle: const TextStyle(fontSize: 16)),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(children: <Widget>[
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text("Fail Timer",
+                                style: TextStyle(color: textColor)),
+                          ),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(failTimes,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: greyColor)),
+                          ),
+                        ]),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context)
+                            .push(MaterialPageRoute(
+                                builder: (context) => const SetTimerPage(1)))
+                            .then((value) {
+                          setState(() {});
+                        });
+                      },
+                    )
+                  : const SizedBox(),
+            ]),
+          );
+        });
   }
 }
 
@@ -2973,130 +2981,130 @@ class _SetTimerState extends State<SetTimerPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: SizedBox(
           child: OutlinedButton(
-            child: const Text("Add Timer", style: TextStyle(fontSize: 16)),
-            style: OutlinedButton.styleFrom(
-              fixedSize: const Size.fromHeight(50),
-              primary: Colors.white,
-              backgroundColor: redColor,
-              shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(50))),
-            ),
-            onPressed: () {
-              final _minController = FixedExtentScrollController();
-              final _secController = FixedExtentScrollController();
-              showDialog(
-                  context: context,
-                  builder: (context) => Dialog(
-                      insetPadding: const EdgeInsets.all(10),
-                      child: Container(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                widget.index == 0
-                                    ? const Text("Success Timer",
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                        ))
-                                    : const Text("Fail Timer",
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                        )),
-                                const SizedBox(height: 30),
-                                Flexible(
-                                    child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: <Widget>[
-                                      SizedBox(
-                                          height: 120,
-                                          width: 70,
-                                          child: CupertinoPicker(
-                                            scrollController: _minController,
-                                            children: mins,
-                                            looping: true,
-                                            diameterRatio: 1.25,
-                                            selectionOverlay:
-                                                Column(children: <Widget>[
-                                              Container(
-                                                  decoration: BoxDecoration(
-                                                      border: Border(
-                                                          top: BorderSide(
-                                                color: textColor,
-                                                width: 2,
-                                              )))),
-                                              const SizedBox(height: 50),
-                                              Container(
-                                                  decoration: BoxDecoration(
-                                                      border: Border(
-                                                          top: BorderSide(
-                                                color: textColor,
-                                                width: 2,
-                                              ))))
-                                            ]),
-                                            itemExtent: 75,
-                                            onSelectedItemChanged: (index) => {
-                                              minutes = index,
-                                            },
+        child: const Text("Add Timer", style: TextStyle(fontSize: 16)),
+        style: OutlinedButton.styleFrom(
+          fixedSize: const Size.fromHeight(50),
+          primary: Colors.white,
+          backgroundColor: redColor,
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(50))),
+        ),
+        onPressed: () {
+          final _minController = FixedExtentScrollController();
+          final _secController = FixedExtentScrollController();
+          showDialog(
+              context: context,
+              builder: (context) => Dialog(
+                  insetPadding: const EdgeInsets.all(10),
+                  child: Container(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            widget.index == 0
+                                ? const Text("Success Timer",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                    ))
+                                : const Text("Fail Timer",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                    )),
+                            const SizedBox(height: 30),
+                            Flexible(
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                  SizedBox(
+                                      height: 120,
+                                      width: 70,
+                                      child: CupertinoPicker(
+                                        scrollController: _minController,
+                                        children: mins,
+                                        looping: true,
+                                        diameterRatio: 1.25,
+                                        selectionOverlay:
+                                            Column(children: <Widget>[
+                                          Container(
+                                              decoration: BoxDecoration(
+                                                  border: Border(
+                                                      top: BorderSide(
+                                            color: textColor,
+                                            width: 2,
+                                          )))),
+                                          const SizedBox(height: 50),
+                                          Container(
+                                              decoration: BoxDecoration(
+                                                  border: Border(
+                                                      top: BorderSide(
+                                            color: textColor,
+                                            width: 2,
+                                          ))))
+                                        ]),
+                                        itemExtent: 75,
+                                        onSelectedItemChanged: (index) => {
+                                          minutes = index,
+                                        },
+                                      )),
+                                  const SizedBox(
+                                    width: 40,
+                                    height: 40,
+                                    child: Align(
+                                      alignment: Alignment.topCenter,
+                                      child: Text("min",
+                                          style: TextStyle(
+                                            fontSize: 14,
                                           )),
-                                      const SizedBox(
-                                        width: 40,
-                                        height: 40,
-                                        child: Align(
-                                          alignment: Alignment.topCenter,
-                                          child: Text("min",
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                              )),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                          height: 120,
-                                          width: 70,
-                                          child: CupertinoPicker(
-                                            scrollController: _secController,
-                                            children: secs,
-                                            looping: true,
-                                            diameterRatio: 1.25,
-                                            selectionOverlay:
-                                                Column(children: <Widget>[
-                                              Container(
-                                                  decoration: BoxDecoration(
-                                                      border: Border(
-                                                          top: BorderSide(
-                                                color: textColor,
-                                                width: 2,
-                                              )))),
-                                              const SizedBox(height: 50),
-                                              Container(
-                                                  decoration: BoxDecoration(
-                                                      border: Border(
-                                                          top: BorderSide(
-                                                color: textColor,
-                                                width: 2,
-                                              ))))
-                                            ]),
-                                            itemExtent: 75,
-                                            onSelectedItemChanged: (index) => {
-                                              seconds = index,
-                                            },
+                                    ),
+                                  ),
+                                  SizedBox(
+                                      height: 120,
+                                      width: 70,
+                                      child: CupertinoPicker(
+                                        scrollController: _secController,
+                                        children: secs,
+                                        looping: true,
+                                        diameterRatio: 1.25,
+                                        selectionOverlay:
+                                            Column(children: <Widget>[
+                                          Container(
+                                              decoration: BoxDecoration(
+                                                  border: Border(
+                                                      top: BorderSide(
+                                            color: textColor,
+                                            width: 2,
+                                          )))),
+                                          const SizedBox(height: 50),
+                                          Container(
+                                              decoration: BoxDecoration(
+                                                  border: Border(
+                                                      top: BorderSide(
+                                            color: textColor,
+                                            width: 2,
+                                          ))))
+                                        ]),
+                                        itemExtent: 75,
+                                        onSelectedItemChanged: (index) => {
+                                          seconds = index,
+                                        },
+                                      )),
+                                  const SizedBox(
+                                    width: 40,
+                                    height: 40,
+                                    child: Align(
+                                      alignment: Alignment.topCenter,
+                                      child: Text("sec",
+                                          style: TextStyle(
+                                            fontSize: 14,
                                           )),
-                                      const SizedBox(
-                                        width: 40,
-                                        height: 40,
-                                        child: Align(
-                                          alignment: Alignment.topCenter,
-                                          child: Text("sec",
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                              )),
-                                        ),
-                                      ),
-                                    ])),
-                                const SizedBox(height: 30),
-                                Row(mainAxisAlignment: MainAxisAlignment.end,
-                                  children: <Widget>[
+                                    ),
+                                  ),
+                                ])),
+                            const SizedBox(height: 30),
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: <Widget>[
                                   TextButton(
                                     style: TextButton.styleFrom(
                                       primary: redColor,
@@ -3180,8 +3188,8 @@ class _SetTimerState extends State<SetTimerPage> {
                                     },
                                   ),
                                 ]),
-                              ]))));
-            },
+                          ]))));
+        },
       )),
     );
   }
@@ -3219,58 +3227,56 @@ class _PlatesState extends State<PlatesPage> {
               return ListView(children: <Widget>[
                 for (int i = 0; i < platesBox.length; i++)
                   TextButton(
-                        style: TextButton.styleFrom(
-                            primary: Colors.white,
-                            textStyle: const TextStyle(fontSize: 16)),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          child: Row(children: <Widget>[
-                            Expanded(
-                              child: Column(children: [
-                                Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: platesBox.getAt(i)!.weight % 1 == 0
-                                        ? Text(
-                                            "${platesBox.getAt(i)!.weight.toInt().toString()}lb",
-                                            style: TextStyle(color: textColor))
-                                        : Text(
-                                            "${platesBox.getAt(i)!.weight.toString()}lb",
-                                            style:
-                                                TextStyle(color: textColor))),
-                                const SizedBox(height: 8),
-                                Align(
+                      style: TextButton.styleFrom(
+                          primary: Colors.white,
+                          textStyle: const TextStyle(fontSize: 16)),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        child: Row(children: <Widget>[
+                          Expanded(
+                            child: Column(children: [
+                              Align(
                                   alignment: Alignment.centerLeft,
-                                  child: Text(
-                                      "${platesBox.getAt(i)!.number} plates",
-                                      style: TextStyle(color: greyColor)),
-                                ),
-                              ]),
-                            ),
-                          ]),
-                        ),
-                        onPressed: () {
-                          showDialog(
-                              context: context,
-                              builder: (context) => plateSelector(i));
-                        }),
+                                  child: platesBox.getAt(i)!.weight % 1 == 0
+                                      ? Text(
+                                          "${platesBox.getAt(i)!.weight.toInt().toString()}lb",
+                                          style: TextStyle(color: textColor))
+                                      : Text(
+                                          "${platesBox.getAt(i)!.weight.toString()}lb",
+                                          style: TextStyle(color: textColor))),
+                              const SizedBox(height: 8),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                    "${platesBox.getAt(i)!.number} plates",
+                                    style: TextStyle(color: greyColor)),
+                              ),
+                            ]),
+                          ),
+                        ]),
+                      ),
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) => plateSelector(i));
+                      }),
               ]);
             }),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         floatingActionButton: SizedBox(
-              width: 100,
-              child: OutlinedButton(
-                  child: const Text("Add"),
-                  style: OutlinedButton.styleFrom(
-                    fixedSize: const Size.fromHeight(50),
-                    primary: Colors.white,
-                    backgroundColor: redColor,
-                    shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(50))),
-                  ),
-                  onPressed: () {
-                    showDialog(
-                        context: context, builder: (context) => addPlate());
-                  },
+            width: 100,
+            child: OutlinedButton(
+              child: const Text("Add"),
+              style: OutlinedButton.styleFrom(
+                fixedSize: const Size.fromHeight(50),
+                primary: Colors.white,
+                backgroundColor: redColor,
+                shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(50))),
+              ),
+              onPressed: () {
+                showDialog(context: context, builder: (context) => addPlate());
+              },
             )));
   }
 
@@ -3312,63 +3318,67 @@ class _PlatesState extends State<PlatesPage> {
                         });
                       }),
               ])),
-              Row(mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                const SizedBox(width: 10),
-                Expanded(
-                  flex: 4,
-                  child: Align(alignment: Alignment.centerLeft,
-                    child: TextButton(
-                      child: const Text("Delete"),
-                      style: TextButton.styleFrom(
-                        primary: redColor,
-                        textStyle: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                        alignment: Alignment.center,
-                      ),
-                      onPressed: () {
-                        platesBox.deleteAt(i);
-                        _plateCounter.value++;
-                        Navigator.of(context).pop();
-                      }),
-                )),
-                const Expanded(child: Text("")),
-                Expanded(
-                  flex: 4,
-                  child: Align(alignment: Alignment.centerRight,
-                    child: TextButton(
-                      child: const Text("Cancel"),
-                      style: TextButton.styleFrom(
-                        primary: redColor,
-                        textStyle: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                        alignment: Alignment.center,
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      }),
-                )),
-                Expanded(
-                  flex: 2,
-                  child: Align(alignment: Alignment.centerRight,
-                  child: TextButton(
-                      child: const Text("OK"),
-                      style: TextButton.styleFrom(
-                        primary: redColor,
-                        textStyle: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                        alignment: Alignment.center,
-                      ),
-                      onPressed: () {
-                        final tempPlate =
-                            Hive.box<Plate>('platesBox').getAt(i)!;
-                        tempPlate.number = tempNumber;
-                        tempPlate.save();
-                        _plateCounter.value++;
-                        Navigator.of(context).pop();
-                      }),
-                )),
-              ]),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    const SizedBox(width: 10),
+                    Expanded(
+                        flex: 4,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton(
+                              child: const Text("Delete"),
+                              style: TextButton.styleFrom(
+                                primary: redColor,
+                                textStyle: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                                alignment: Alignment.center,
+                              ),
+                              onPressed: () {
+                                platesBox.deleteAt(i);
+                                _plateCounter.value++;
+                                Navigator.of(context).pop();
+                              }),
+                        )),
+                    const Expanded(child: Text("")),
+                    Expanded(
+                        flex: 4,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                              child: const Text("Cancel"),
+                              style: TextButton.styleFrom(
+                                primary: redColor,
+                                textStyle: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                                alignment: Alignment.center,
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              }),
+                        )),
+                    Expanded(
+                        flex: 2,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                              child: const Text("OK"),
+                              style: TextButton.styleFrom(
+                                primary: redColor,
+                                textStyle: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                                alignment: Alignment.center,
+                              ),
+                              onPressed: () {
+                                final tempPlate =
+                                    Hive.box<Plate>('platesBox').getAt(i)!;
+                                tempPlate.number = tempNumber;
+                                tempPlate.save();
+                                _plateCounter.value++;
+                                Navigator.of(context).pop();
+                              }),
+                        )),
+                  ]),
             ]),
           ));
     });
@@ -3418,7 +3428,8 @@ class _PlatesState extends State<PlatesPage> {
               const SizedBox(height: 40),
               Row(
                 children: <Widget>[
-                  Expanded(child: SizedBox(
+                  Expanded(
+                      child: SizedBox(
                     height: 50,
                     child: OutlinedButton(
                       child: const Text("-5lb"),
@@ -3458,42 +3469,46 @@ class _PlatesState extends State<PlatesPage> {
                     ),
                   )),
                   const SizedBox(width: 10),
-                  Expanded(child: SizedBox(
-                      height: 50,
-                      child: OutlinedButton(
-                        child: const Text("+5lb"),
-                        style: OutlinedButton.styleFrom(
-                          primary: Colors.white,
-                          backgroundColor: Colors.black,
-                          shape: const RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(5))),
-                        ),
-                        onPressed: () {
-                          // subtracts 5lb from text box
-                          double tempText = double.parse(_myController.text);
-                          if (tempText % 1 == 0) {
-                            setState(() {
-                              tempText += 5;
-                              _myController.text = tempText.toInt().toString();
-                              _myController.selection = TextSelection.collapsed(
-                                  offset: _myController.text.length);
-                            });
-                          } else {
-                            setState(() {
-                              tempText += 5;
-                              _myController.text = tempText.toString();
-                              _myController.selection = TextSelection.collapsed(
-                                  offset: _myController.text.length);
-                            });
-                          }
-                        },
-                      ))),
+                  Expanded(
+                      child: SizedBox(
+                          height: 50,
+                          child: OutlinedButton(
+                            child: const Text("+5lb"),
+                            style: OutlinedButton.styleFrom(
+                              primary: Colors.white,
+                              backgroundColor: Colors.black,
+                              shape: const RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(5))),
+                            ),
+                            onPressed: () {
+                              // subtracts 5lb from text box
+                              double tempText =
+                                  double.parse(_myController.text);
+                              if (tempText % 1 == 0) {
+                                setState(() {
+                                  tempText += 5;
+                                  _myController.text =
+                                      tempText.toInt().toString();
+                                  _myController.selection =
+                                      TextSelection.collapsed(
+                                          offset: _myController.text.length);
+                                });
+                              } else {
+                                setState(() {
+                                  tempText += 5;
+                                  _myController.text = tempText.toString();
+                                  _myController.selection =
+                                      TextSelection.collapsed(
+                                          offset: _myController.text.length);
+                                });
+                              }
+                            },
+                          ))),
                 ],
               ),
               const SizedBox(height: 20),
-              Row(mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
+              Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
                 TextButton(
                   style: TextButton.styleFrom(
                     primary: redColor,
@@ -3638,8 +3653,7 @@ class _ListState extends State<ListPage> {
                                             setState(() {});
                                           });
                                         },
-                                        child: Flexible(
-                                            child: Container(
+                                        child: Container(
                                                 padding:
                                                     const EdgeInsets.all(20),
                                                 decoration: BoxDecoration(
@@ -3694,29 +3708,45 @@ class _ListState extends State<ListPage> {
                                                                 .length;
                                                         j++)
                                                       Column(children: <Widget>[
-                                                        Row(mainAxisAlignment: MainAxisAlignment.center,
-                                                          children: <Widget>[
-                                                          Expanded(
-                                                            child: Align(
-                                                              alignment: Alignment
-                                                                  .centerLeft,
-                                                              child: Text(
-                                                                  indivWorkoutsBox
-                                                                      .getAt(i)!
-                                                                      .exercisesCompleted[j],
-                                                                  style: TextStyle(
-                                                                    fontSize:
-                                                                        16,
-                                                                    color:
-                                                                        textColor,
-                                                                  )),
-                                                            ),
-                                                          ),
-                                                          Expanded(
-                                                              child: Align(alignment: Alignment.centerRight,
-                                                              child: Text(makeCompletionString(i, j), 
-                                                              style: TextStyle(fontSize: 16, color: textColor))),
-                                                      )]),
+                                                        Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            children: <Widget>[
+                                                              Expanded(
+                                                                child: Align(
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .centerLeft,
+                                                                  child: Text(
+                                                                      indivWorkoutsBox
+                                                                          .getAt(
+                                                                              i)!
+                                                                          .exercisesCompleted[j],
+                                                                      style: TextStyle(
+                                                                        fontSize:
+                                                                            16,
+                                                                        color:
+                                                                            textColor,
+                                                                      )),
+                                                                ),
+                                                              ),
+                                                              Expanded(
+                                                                child: Align(
+                                                                    alignment:
+                                                                        Alignment
+                                                                            .centerRight,
+                                                                    child: Text(
+                                                                        makeCompletionString(
+                                                                            i,
+                                                                            j),
+                                                                        style: TextStyle(
+                                                                            fontSize:
+                                                                                16,
+                                                                            color:
+                                                                                textColor))),
+                                                              )
+                                                            ]),
                                                         Divider(
                                                             // larger divider if not at end of list
                                                             height: j !=
@@ -3732,7 +3762,7 @@ class _ListState extends State<ListPage> {
                                                                 .transparent),
                                                       ])
                                                   ]),
-                                                ])))),
+                                                ]))),
                                     const Divider(
                                         height: 5, color: Colors.transparent),
                                   ]),
@@ -3747,36 +3777,32 @@ class _ListState extends State<ListPage> {
     int successCounter = 0;
 
     for (int k = 0; k < indivWorkoutsBox.getAt(i)!.setsPlanned[j]; k++) {
-
       if (indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
           indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1) {
-          output += "0";
-          skippedCounter++;
-      }
-      else {
+        output += "0";
+        skippedCounter++;
+      } else {
         if (indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
             indivWorkoutsBox.getAt(i)!.repsPlanned[j]) {
           successCounter++;
         }
         output += indivWorkoutsBox.getAt(i)!.repsCompleted[j][k].toString();
       }
-      
+
       if (k != indivWorkoutsBox.getAt(i)!.setsPlanned[j] - 1) {
         output += "/";
-      }
-      else {
+      } else {
         if (successCounter == indivWorkoutsBox.getAt(i)!.setsPlanned[j]) {
           output = "";
           output += indivWorkoutsBox.getAt(i)!.setsPlanned[j].toString();
           output += "×";
-        }
-        else {
+        } else {
           output += " ";
         }
 
         indivWorkoutsBox.getAt(i)!.weights[j] % 1 == 0
-        ? output += indivWorkoutsBox.getAt(i)!.weights[j].toInt().toString()
-        : output += indivWorkoutsBox.getAt(i)!.weights[j].toString();
+            ? output += indivWorkoutsBox.getAt(i)!.weights[j].toInt().toString()
+            : output += indivWorkoutsBox.getAt(i)!.weights[j].toString();
         output += "lb";
       }
 
@@ -4256,67 +4282,70 @@ class _EditState extends State<Edit> {
                   GestureDetector(
                     key: Key('$index'),
                     child: Container(
-                        constraints: const BoxConstraints(
-                          minHeight: 80,
-                        ),
-                        color: backColor, // custom color goes here
-                        child: ListTile(
-                         leading: SizedBox(width: 40, child: 
-                            Center(child: ReorderableDragStartListener(
-                              index: index,
-                              child: const Icon(Icons.drag_indicator_outlined),
-                          ))),
+                      constraints: const BoxConstraints(
+                        minHeight: 80,
+                      ),
+                      color: backColor, // custom color goes here
+                      child: ListTile(
+                          leading: SizedBox(
+                              width: 40,
+                              child: Center(
+                                  child: ReorderableDragStartListener(
+                                index: index,
+                                child:
+                                    const Icon(Icons.drag_indicator_outlined),
+                              ))),
                           title: Column(
-                                children: [
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      workoutsBox.getAt(index)!.name,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                      ),
-                                      softWrap: false,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                            children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  workoutsBox.getAt(index)!.name,
+                                  style: const TextStyle(
+                                    fontSize: 18,
                                   ),
-                                  // Prints out names of each exercise in the workout
-                                  Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Wrap(children: [
-                                        for (int i = 0;
-                                            i <
-                                                workoutsBox
-                                                    .getAt(index)!
-                                                    .exercises
-                                                    .length;
-                                            i++)
-                                          // If not last exercise, print comma after
-                                          if (i !=
-                                              workoutsBox
-                                                      .getAt(index)!
-                                                      .exercises
-                                                      .length -
-                                                  1)
-                                            Text(
-                                              "${workoutsBox.getAt(index)!.exercises[i].name}, ",
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                              ),
-                                            )
-                                          else
-                                            Text(
-                                              workoutsBox
-                                                  .getAt(index)!
-                                                  .exercises[i]
-                                                  .name,
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                              ),
-                                            ),
-                                      ])),
-                                ],
+                                  softWrap: false,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
+                              // Prints out names of each exercise in the workout
+                              Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Wrap(children: [
+                                    for (int i = 0;
+                                        i <
+                                            workoutsBox
+                                                .getAt(index)!
+                                                .exercises
+                                                .length;
+                                        i++)
+                                      // If not last exercise, print comma after
+                                      if (i !=
+                                          workoutsBox
+                                                  .getAt(index)!
+                                                  .exercises
+                                                  .length -
+                                              1)
+                                        Text(
+                                          "${workoutsBox.getAt(index)!.exercises[i].name}, ",
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                          ),
+                                        )
+                                      else
+                                        Text(
+                                          workoutsBox
+                                              .getAt(index)!
+                                              .exercises[i]
+                                              .name,
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                  ])),
+                            ],
+                          ),
                           trailing: PopupMenuButton(
                             icon: const Icon(Icons.more_vert),
                             onSelected: (dynamic value) {
@@ -4350,7 +4379,7 @@ class _EditState extends State<Edit> {
                               ];
                             },
                           )),
-                        ),
+                    ),
                     onTap: () {
                       Navigator.of(context)
                           .push(MaterialPageRoute(
@@ -4446,66 +4475,53 @@ class _EditState extends State<Edit> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: SizedBox(
-          child: OutlinedButton(
-            child: const Text("Add Workout", style: TextStyle(fontSize: 16)),
-            style: OutlinedButton.styleFrom(
-              fixedSize: const Size.fromHeight(50),
-              primary: Colors.white,
-              backgroundColor: redColor,
-              shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(50))),
-            ),
-            onPressed: () {
-              showDialog(
-                  context: context,
-                  builder: (context) => Dialog(
-                      insetPadding: const EdgeInsets.all(10),
-                      child: Container(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                const Text("Workout Name",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                    )),
-                                const SizedBox(height: 10),
-                                TextField(
-                                  controller: _myController,
-                                  autofocus: true,
-                                  keyboardType: TextInputType.text,
-                                  textCapitalization: TextCapitalization.words,
-                                  textAlignVertical: TextAlignVertical.bottom,
-                                  decoration: const InputDecoration(
-                                    contentPadding: EdgeInsets.only(bottom: 10),
-                                    enabledBorder: InputBorder.none,
-                                    focusedBorder: InputBorder.none,
-                                  ),
+        child: OutlinedButton(
+          child: const Text("Add Workout", style: TextStyle(fontSize: 16)),
+          style: OutlinedButton.styleFrom(
+            fixedSize: const Size.fromHeight(50),
+            primary: Colors.white,
+            backgroundColor: redColor,
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(50))),
+          ),
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                    insetPadding: const EdgeInsets.all(10),
+                    child: Container(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              const Text("Workout Name",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                  )),
+                              const SizedBox(height: 10),
+                              TextField(
+                                controller: _myController,
+                                autofocus: true,
+                                keyboardType: TextInputType.text,
+                                textCapitalization: TextCapitalization.words,
+                                textAlignVertical: TextAlignVertical.bottom,
+                                decoration: const InputDecoration(
+                                  contentPadding: EdgeInsets.only(bottom: 10),
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
                                 ),
-                                Divider(
-                                  color: underlineColor,
-                                  height: 2,
-                                  thickness: 2,
-                                ),
-                                const SizedBox(height: 30),
-                                Row(mainAxisAlignment: MainAxisAlignment.end,
+                              ),
+                              Divider(
+                                color: underlineColor,
+                                height: 2,
+                                thickness: 2,
+                              ),
+                              const SizedBox(height: 30),
+                              Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
                                   children: <Widget>[
-                                  TextButton(
-                                    style: TextButton.styleFrom(
-                                      primary: redColor,
-                                      textStyle: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                      alignment: Alignment.center,
-                                    ),
-                                    child: const Text("Cancel"),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  const SizedBox(width: 20),
-                                  TextButton(
+                                    TextButton(
                                       style: TextButton.styleFrom(
                                         primary: redColor,
                                         textStyle: const TextStyle(
@@ -4513,43 +4529,57 @@ class _EditState extends State<Edit> {
                                             fontWeight: FontWeight.bold),
                                         alignment: Alignment.center,
                                       ),
-                                      child: const Text("OK"),
+                                      child: const Text("Cancel"),
                                       onPressed: () {
-                                        bool duplicate = false;
-                                        for (var i in workoutsBox.values) {
-                                          if (i.name == _myController.text) {
-                                            duplicate = true;
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    const SizedBox(width: 20),
+                                    TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text("OK"),
+                                        onPressed: () {
+                                          bool duplicate = false;
+                                          for (var i in workoutsBox.values) {
+                                            if (i.name == _myController.text) {
+                                              duplicate = true;
+                                            }
                                           }
-                                        }
-                                        if (duplicate == false) {
-                                          workoutsBox
-                                              .add(Workout(_myController.text));
-                                          _myController.text = "";
-                                          Navigator.of(context).pop();
-                                          Navigator.of(context)
-                                              .push(MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      EditWorkoutPage(
-                                                          workoutsBox.length -
-                                                              1)))
-                                              .then((value) {
-                                            setState(() {});
-                                          });
-                                        } else {
-                                          _myController.text = "";
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(const SnackBar(
-                                            content:
-                                                Text("Workout already exists"),
-                                            duration: Duration(seconds: 2),
-                                          ));
-                                          Navigator.of(context).pop();
-                                        }
-                                      }),
-                                ]),
-                              ]))));
-            },
-          ),
+                                          if (duplicate == false) {
+                                            workoutsBox.add(
+                                                Workout(_myController.text));
+                                            _myController.text = "";
+                                            Navigator.of(context).pop();
+                                            Navigator.of(context)
+                                                .push(MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        EditWorkoutPage(
+                                                            workoutsBox.length -
+                                                                1)))
+                                                .then((value) {
+                                              setState(() {});
+                                            });
+                                          } else {
+                                            _myController.text = "";
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(const SnackBar(
+                                              content: Text(
+                                                  "Workout already exists"),
+                                              duration: Duration(seconds: 2),
+                                            ));
+                                            Navigator.of(context).pop();
+                                          }
+                                        }),
+                                  ]),
+                            ]))));
+          },
+        ),
       ),
     );
   }
@@ -4742,18 +4772,21 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                 selectedItemBuilder: (context) {
                                   return [
                                     Expanded(
-                                      child: Align(
-                                          alignment: Alignment.center,
-                                          child: Container(
+                                        child: Align(
+                                            alignment: Alignment.center,
+                                            child: Container(
                                               constraints: BoxConstraints(
-                                                  maxWidth: MediaQuery.of(
-                                                          context)
-                                                      .size
-                                                      .width * .45),
+                                                  maxWidth:
+                                                      MediaQuery.of(context)
+                                                              .size
+                                                              .width *
+                                                          .45),
                                               child: Text(
-                                              workoutsList[widget.index].name,
-                                              overflow: TextOverflow.ellipsis),
-                                        ))),
+                                                  workoutsList[widget.index]
+                                                      .name,
+                                                  overflow:
+                                                      TextOverflow.ellipsis),
+                                            ))),
                                   ];
                                 },
                                 onChanged: (Workout? w) {
@@ -5129,30 +5162,29 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                             ]))))),
                           ]),
                           Container(
-                            padding: const EdgeInsets.only(left: 15, right: 15),
-                            alignment: Alignment.centerLeft,
-                            child: Wrap(
-                                direction: Axis.horizontal,
-                                spacing: (MediaQuery.of(context)
-                                                    .size
-                                                    .width -
-                                                300) / 4.01,
-                                runSpacing: 15,
-                                children: <Widget>[
-                                  // one circle for each set, initialized with number of reps
-                                  for (int j = 0;
-                                      j <
-                                          workoutsBox
-                                              .getAt(widget.index)!
-                                              .exercises[i]
-                                              .sets;
-                                      j++)
-                                    // circle, onTap decrement, loops back to rep number
-                                    ValueListenableBuilder(
-                                        valueListenable: _circleCounter,
-                                        builder: (context, value, child) {
-                                          return 
-                                            SizedBox(
+                              padding:
+                                  const EdgeInsets.only(left: 15, right: 15),
+                              alignment: Alignment.centerLeft,
+                              child: Wrap(
+                                  direction: Axis.horizontal,
+                                  spacing: (MediaQuery.of(context).size.width -
+                                          300) /
+                                      4.01,
+                                  runSpacing: 15,
+                                  children: <Widget>[
+                                    // one circle for each set, initialized with number of reps
+                                    for (int j = 0;
+                                        j <
+                                            workoutsBox
+                                                .getAt(widget.index)!
+                                                .exercises[i]
+                                                .sets;
+                                        j++)
+                                      // circle, onTap decrement, loops back to rep number
+                                      ValueListenableBuilder(
+                                          valueListenable: _circleCounter,
+                                          builder: (context, value, child) {
+                                            return SizedBox(
                                               width: 50,
                                               height: 50,
                                               child: MaterialButton(
@@ -5178,45 +5210,27 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                 widget.index)!
                                                             .exercises[i]
                                                             .reps
-                                                    ? workoutsBox.getAt(widget.index)!
-                                                        .exercises[i].repsCompleted[j] < 10
-                                                      ? FittedBox(child: Text(
-                                                        workoutsBox
-                                                            .getAt(
-                                                                widget.index)!
-                                                            .exercises[i]
-                                                            .reps
-                                                            .toString(),
-                                                        style: const TextStyle(
-                                                            fontSize: 18)))
-                                                      : FittedBox(child: Text(workoutsBox
-                                                            .getAt(
-                                                                widget.index)!
-                                                            .exercises[i]
-                                                            .reps
-                                                            .toString(),
-                                                          style: const TextStyle(
-                                                            fontSize: 18)))
-                                                    : workoutsBox.getAt(widget.index)!
-                                                        .exercises[i].repsCompleted[j] < 10
-                                                      ? FittedBox(child: Text(
-                                                          workoutsBox
-                                                              .getAt(
-                                                                  widget.index)!
-                                                              .exercises[i]
-                                                              .repsCompleted[j]
-                                                              .toString(),
-                                                          style: const TextStyle(
-                                                              fontSize: 18)))
-                                                      : FittedBox(child: Text(
-                                                          workoutsBox
-                                                              .getAt(
-                                                                  widget.index)!
-                                                              .exercises[i]
-                                                              .repsCompleted[j]
-                                                              .toString(),
-                                                          style: const TextStyle(
-                                                              fontSize: 12))),
+                                                    ? workoutsBox.getAt(widget.index)!.exercises[i].repsCompleted[j] <
+                                                            10
+                                                        ? FittedBox(
+                                                            child: Text(
+                                                                workoutsBox
+                                                                    .getAt(widget
+                                                                        .index)!
+                                                                    .exercises[
+                                                                        i]
+                                                                    .reps
+                                                                    .toString(),
+                                                                style: const TextStyle(
+                                                                    fontSize:
+                                                                        18)))
+                                                        : FittedBox(
+                                                            child: Text(
+                                                                workoutsBox.getAt(widget.index)!.exercises[i].reps.toString(),
+                                                                style: const TextStyle(fontSize: 18)))
+                                                    : workoutsBox.getAt(widget.index)!.exercises[i].repsCompleted[j] < 10
+                                                        ? FittedBox(child: Text(workoutsBox.getAt(widget.index)!.exercises[i].repsCompleted[j].toString(), style: const TextStyle(fontSize: 18)))
+                                                        : FittedBox(child: Text(workoutsBox.getAt(widget.index)!.exercises[i].repsCompleted[j].toString(), style: const TextStyle(fontSize: 12))),
                                                 color: workoutsBox
                                                             .getAt(
                                                                 widget.index)!
@@ -5252,8 +5266,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                 },
                                               ),
                                             );
-                                        }),
-                                ])),
+                                          }),
+                                  ])),
                           const SizedBox(height: 10),
                         ]),
                       Container(
@@ -5380,7 +5394,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                               scrollBodyWeightInt = index + 50,
                                                                             },
                                                                           )),
-                                                                      const SizedBox(width: 5),
+                                                                      const SizedBox(
+                                                                          width:
+                                                                              5),
                                                                       const SizedBox(
                                                                         height:
                                                                             45,
@@ -5435,7 +5451,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                               scrollBodyWeightDec = index,
                                                                             },
                                                                           )),
-                                                                      const SizedBox(width: 5),
+                                                                      const SizedBox(
+                                                                          width:
+                                                                              5),
                                                                       const SizedBox(
                                                                         height:
                                                                             40,
@@ -5453,7 +5471,10 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                     ])),
                                                                 const SizedBox(
                                                                     height: 30),
-                                                                Row(mainAxisAlignment: MainAxisAlignment.end,
+                                                                Row(
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .end,
                                                                     children: <
                                                                         Widget>[
                                                                       TextButton(
@@ -5517,7 +5538,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                           FontWeight.bold,
                                                     )))))),
                               ])),
-                    SizedBox(height: boolBox.getAt(1)! ? 150 : 50),
+                      SizedBox(height: boolBox.getAt(1)! ? 150 : 50),
                     ])),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
@@ -5535,8 +5556,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                 child: Align(
                                     alignment: Alignment.center,
                                     child: Container(
-                                      padding: const EdgeInsets.only(
-                                          top: 15, bottom: 15),
+                                        padding: const EdgeInsets.only(
+                                            top: 15, bottom: 15),
                                         child: Row(children: <Widget>[
                                           Flexible(
                                               child: Row(
@@ -5755,76 +5776,58 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                   for (int i = 0;
                       i < workoutsBox.getAt(widget.index)!.exercises.length;
                       i++)
-                    Container(
+                    GestureDetector(
                       key: Key('$i'),
-                      color: backColor, // custom color goes here
-                      child: ListTile(
-                         leading: SizedBox(width: 40, child: 
-                            Center(child: ReorderableDragStartListener(
-                              index: i,
-                              child: const Icon(Icons.drag_indicator_outlined),
-                          ))),
-                          title: GestureDetector(
-                                child: Column(
-                                  children: [
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        workoutsBox
-                                            .getAt(widget.index)!
-                                            .exercises[i]
-                                            .name,
-                                        style: const TextStyle(
-                                          fontSize: 17,
-                                        ),
-                                        softWrap: false,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                      child: Container(
+                          color: backColor, // custom color goes here
+                          child: ListTile(
+                            leading: SizedBox(
+                                width: 40,
+                                child: Center(
+                                    child: ReorderableDragStartListener(
+                                  index: i,
+                                  child:
+                                      const Icon(Icons.drag_indicator_outlined),
+                                ))),
+                            title: GestureDetector(
+                              child: Column(
+                                children: [
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      workoutsBox
+                                          .getAt(widget.index)!
+                                          .exercises[i]
+                                          .name,
+                                      style: const TextStyle(
+                                        fontSize: 17,
                                       ),
+                                      softWrap: false,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    // Prints out names of each exercise in the workout
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Wrap(children: [
-                                        Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(
-                                            "${workoutsBox.getAt(widget.index)!.exercises[i].sets.toString()} sets of ${workoutsBox.getAt(widget.index)!.exercises[i].reps.toString()} reps",
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                            softWrap: false,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                  ),
+                                  // Prints out names of each exercise in the workout
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Wrap(children: [
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          "${workoutsBox.getAt(widget.index)!.exercises[i].sets.toString()} sets of ${workoutsBox.getAt(widget.index)!.exercises[i].reps.toString()} reps",
+                                          style: const TextStyle(
+                                            fontSize: 14,
                                           ),
+                                          softWrap: false,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ]),
-                                    ),
-                                  ],
-                                ),
-                            onTap: () {
-                              for (int j = 0; j < exercisesBox.length; j++) {
-                                if (exercisesBox.getAt(j)!.name ==
-                                    workoutsBox
-                                        .getAt(widget.index)!
-                                        .exercises[i]
-                                        .name) {
-                                  Navigator.of(context)
-                                      .push(MaterialPageRoute(
-                                          builder: (context) =>
-                                              EditExercisePage(j)))
-                                      .then((value) {
-                                    setState(() {});
-                                  });
-                                }
-                              }
-                            },
-                          ),
-                          trailing: PopupMenuButton(
-                            icon: const Icon(Icons.more_vert),
-                            onSelected: (dynamic value) {
-                              // edits
-                              if (value == 'edit') {
+                                      ),
+                                    ]),
+                                  ),
+                                ],
+                              ),
+                              onTap: () {
                                 for (int j = 0; j < exercisesBox.length; j++) {
                                   if (exercisesBox.getAt(j)!.name ==
                                       workoutsBox
@@ -5840,127 +5843,172 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                     });
                                   }
                                 }
-                              }
-                              // deletes
-                              else if (value == 'delete') {
-                                setState(() {
-                                  final tempWorkout =
-                                      Hive.box<Workout>('workoutsBox')
-                                          .getAt(widget.index);
-                                  tempWorkout?.exercises.removeAt(i);
-                                  tempWorkout?.save();
-                                });
-                              } else if (value == 'deleteAll') {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    backgroundColor: tileColor,
-                                    title: Text('Delete From All Workouts',
-                                        style: TextStyle(
-                                            fontSize: 20, color: textColor)),
-                                    content: Text(
-                                        'This will remove the exercise from all workouts and clear its statistics. It will not be visible on the progress page. Are you sure you want to delete?',
-                                        style: TextStyle(
-                                            fontSize: 15, color: textColor)),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text(
-                                          'Cancel',
+                              },
+                            ),
+                            trailing: PopupMenuButton(
+                              icon: const Icon(Icons.more_vert),
+                              onSelected: (dynamic value) {
+                                // edits
+                                if (value == 'edit') {
+                                  for (int j = 0;
+                                      j < exercisesBox.length;
+                                      j++) {
+                                    if (exercisesBox.getAt(j)!.name ==
+                                        workoutsBox
+                                            .getAt(widget.index)!
+                                            .exercises[i]
+                                            .name) {
+                                      Navigator.of(context)
+                                          .push(MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EditExercisePage(j)))
+                                          .then((value) {
+                                        setState(() {});
+                                      });
+                                    }
+                                  }
+                                }
+                                // deletes
+                                else if (value == 'delete') {
+                                  setState(() {
+                                    final tempWorkout =
+                                        Hive.box<Workout>('workoutsBox')
+                                            .getAt(widget.index);
+                                    tempWorkout?.exercises.removeAt(i);
+                                    tempWorkout?.save();
+                                  });
+                                } else if (value == 'deleteAll') {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      backgroundColor: tileColor,
+                                      title: Text('Delete From All Workouts',
                                           style: TextStyle(
-                                              fontSize: 16, color: redColor),
+                                              fontSize: 20, color: textColor)),
+                                      content: Text(
+                                          'This will remove the exercise from all workouts and clear its statistics. It will not be visible on the progress page. Are you sure you want to delete?',
+                                          style: TextStyle(
+                                              fontSize: 15, color: textColor)),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text(
+                                            'Cancel',
+                                            style: TextStyle(
+                                                fontSize: 16, color: redColor),
+                                          ),
                                         ),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            for (int k = 0;
-                                                k < exercisesBox.length;
-                                                k++) {
-                                              if (exercisesBox.getAt(k)!.name ==
-                                                  workoutsBox
-                                                      .getAt(widget.index)!
-                                                      .exercises[i]
-                                                      .name) {
-                                                exercisesBox.deleteAt(k);
+                                        TextButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              for (int k = 0;
+                                                  k < exercisesBox.length;
+                                                  k++) {
+                                                if (exercisesBox
+                                                        .getAt(k)!
+                                                        .name ==
+                                                    workoutsBox
+                                                        .getAt(widget.index)!
+                                                        .exercises[i]
+                                                        .name) {
+                                                  exercisesBox.deleteAt(k);
+                                                }
                                               }
-                                            }
-                                            for (int j = 0;
-                                                j < workoutsBox.length;
-                                                j++) {
-                                              if (workoutsBox.getAt(j)! ==
-                                                  workoutsBox
-                                                      .getAt(widget.index)!) {
-                                              } else {
-                                                for (int k = 0;
-                                                    k <
-                                                        workoutsBox
+                                              for (int j = 0;
+                                                  j < workoutsBox.length;
+                                                  j++) {
+                                                if (workoutsBox.getAt(j)! ==
+                                                    workoutsBox
+                                                        .getAt(widget.index)!) {
+                                                } else {
+                                                  for (int k = 0;
+                                                      k <
+                                                          workoutsBox
+                                                              .getAt(j)!
+                                                              .exercises
+                                                              .length;
+                                                      k++) {
+                                                    if (workoutsBox
                                                             .getAt(j)!
-                                                            .exercises
-                                                            .length;
-                                                    k++) {
-                                                  if (workoutsBox
-                                                          .getAt(j)!
-                                                          .exercises[k]
-                                                          .name ==
-                                                      workoutsBox
-                                                          .getAt(widget.index)!
-                                                          .exercises[i]
-                                                          .name) {
-                                                    final tempWorkout =
-                                                        Hive.box<Workout>(
-                                                                'workoutsBox')
-                                                            .getAt(j);
-                                                    tempWorkout?.exercises
-                                                        .removeAt(i);
-                                                    tempWorkout?.save();
+                                                            .exercises[k]
+                                                            .name ==
+                                                        workoutsBox
+                                                            .getAt(
+                                                                widget.index)!
+                                                            .exercises[i]
+                                                            .name) {
+                                                      final tempWorkout =
+                                                          Hive.box<Workout>(
+                                                                  'workoutsBox')
+                                                              .getAt(j);
+                                                      tempWorkout?.exercises
+                                                          .removeAt(i);
+                                                      tempWorkout?.save();
+                                                    }
                                                   }
                                                 }
                                               }
-                                            }
-                                            final tempWorkout =
-                                                Hive.box<Workout>('workoutsBox')
-                                                    .getAt(widget.index);
-                                            tempWorkout?.exercises.removeAt(i);
-                                            tempWorkout?.save();
-                                          });
-                                          _progressCounter.value++;
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: const Text(
-                                          'Delete',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: redColor,
+                                              final tempWorkout =
+                                                  Hive.box<Workout>(
+                                                          'workoutsBox')
+                                                      .getAt(widget.index);
+                                              tempWorkout?.exercises
+                                                  .removeAt(i);
+                                              tempWorkout?.save();
+                                            });
+                                            _progressCounter.value++;
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const Text(
+                                            'Delete',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: redColor,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
+                                  );
+                                }
+                              },
+                              itemBuilder: (BuildContext bc) {
+                                return const [
+                                  PopupMenuItem(
+                                    child: Text("Edit"),
+                                    value: 'edit',
                                   ),
-                                );
-                              }
-                            },
-                            itemBuilder: (BuildContext bc) {
-                              return const [
-                                PopupMenuItem(
-                                  child: Text("Edit"),
-                                  value: 'edit',
-                                ),
-                                PopupMenuItem(
-                                  child: Text("Delete"),
-                                  value: 'delete',
-                                ),
-                                PopupMenuItem(
-                                  child: Text("Delete From All Workouts"),
-                                  value: 'deleteAll',
-                                ),
-                              ];
-                            },
-                          ),
-                        ),
-                      ),
+                                  PopupMenuItem(
+                                    child: Text("Delete"),
+                                    value: 'delete',
+                                  ),
+                                  PopupMenuItem(
+                                    child: Text("Delete From All Workouts"),
+                                    value: 'deleteAll',
+                                  ),
+                                ];
+                              },
+                            ),
+                          )),
+                      onTap: () {
+                        for (int j = 0; j < exercisesBox.length; j++) {
+                          if (exercisesBox.getAt(j)!.name ==
+                              workoutsBox
+                                  .getAt(widget.index)!
+                                  .exercises[i]
+                                  .name) {
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(
+                                    builder: (context) => EditExercisePage(j)))
+                                .then((value) {
+                              setState(() {});
+                            });
+                          }
+                        }
+                      },
+                    ),
                 ],
                 onReorder: (oldIndex, newIndex) {
                   setState(() {
@@ -6026,44 +6074,47 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                       thickness: 2,
                                     ),
                                     const SizedBox(height: 40),
-                                    Row(mainAxisAlignment: MainAxisAlignment.end,
-                                      children: <Widget>[
-                                      TextButton(
-                                        style: TextButton.styleFrom(
-                                          primary: redColor,
-                                          textStyle: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
-                                          alignment: Alignment.center,
-                                        ),
-                                        child: const Text("Cancel"),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      const SizedBox(width: 20),
-                                      TextButton(
-                                        style: TextButton.styleFrom(
-                                          primary: redColor,
-                                          textStyle: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
-                                          alignment: Alignment.center,
-                                        ),
-                                        child: const Text("OK"),
-                                        onPressed: () {
-                                          setState(() {
-                                            final tempWorkout =
-                                                Hive.box<Workout>('workoutsBox')
-                                                    .getAt(widget.index);
-                                            tempWorkout?.name =
-                                                _myController.text;
-                                            tempWorkout?.save();
-                                          });
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                    ]),
+                                    Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: <Widget>[
+                                          TextButton(
+                                            style: TextButton.styleFrom(
+                                              primary: redColor,
+                                              textStyle: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold),
+                                              alignment: Alignment.center,
+                                            ),
+                                            child: const Text("Cancel"),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                          const SizedBox(width: 20),
+                                          TextButton(
+                                            style: TextButton.styleFrom(
+                                              primary: redColor,
+                                              textStyle: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold),
+                                              alignment: Alignment.center,
+                                            ),
+                                            child: const Text("OK"),
+                                            onPressed: () {
+                                              setState(() {
+                                                final tempWorkout =
+                                                    Hive.box<Workout>(
+                                                            'workoutsBox')
+                                                        .getAt(widget.index);
+                                                tempWorkout?.name =
+                                                    _myController.text;
+                                                tempWorkout?.save();
+                                              });
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ]),
                                   ]),
                             ),
                           ));
@@ -6137,424 +6188,384 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: SizedBox(
-          child: OutlinedButton(
-            child: const Text("Add Exercise", style: TextStyle(fontSize: 16)),
-            style: OutlinedButton.styleFrom(
-              fixedSize: const Size.fromHeight(50),
-              primary: Colors.white,
-              backgroundColor: redColor,
-              shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(50))),
-            ),
-            onPressed: () {
-              exercisesList = exercisesBox.values.toList();
-              exercisesList.removeAt(0);
-              copyExercisesList = exercisesBox.values.toList();
-              copyExercisesList.removeAt(0);
-              copyExercisesList.sort((a, b) {
-                return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-              });
-              // removes if already in workout
-              for (var ex in exercisesList) {
-                for (int i = 0;
-                    i < workoutsBox.getAt(widget.index)!.exercises.length;
-                    i++) {
-                  if (ex.name ==
-                      workoutsBox.getAt(widget.index)!.exercises[i].name) {
-                    copyExercisesList.remove(ex);
-                  }
+        child: OutlinedButton(
+          child: const Text("Add Exercise", style: TextStyle(fontSize: 16)),
+          style: OutlinedButton.styleFrom(
+            fixedSize: const Size.fromHeight(50),
+            primary: Colors.white,
+            backgroundColor: redColor,
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(50))),
+          ),
+          onPressed: () {
+            exercisesList = exercisesBox.values.toList();
+            exercisesList.removeAt(0);
+            copyExercisesList = exercisesBox.values.toList();
+            copyExercisesList.removeAt(0);
+            copyExercisesList.sort((a, b) {
+              return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+            });
+            // removes if already in workout
+            for (var ex in exercisesList) {
+              for (int i = 0;
+                  i < workoutsBox.getAt(widget.index)!.exercises.length;
+                  i++) {
+                if (ex.name ==
+                    workoutsBox.getAt(widget.index)!.exercises[i].name) {
+                  copyExercisesList.remove(ex);
                 }
               }
-              copyExercisesList.insert(0, customxyz);
+            }
+            copyExercisesList.insert(0, customxyz);
 
-              Exercise? selectVal = customxyz;
-              showDialog(
-                context: context,
-                builder: (context) => Dialog(
-                  insetPadding: const EdgeInsets.all(10),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          const Text("Add Exercise",
-                              style: TextStyle(
-                                fontSize: 18,
-                              )),
-                          const SizedBox(height: 10),
+            Exercise? selectVal = customxyz;
+            showDialog(
+              context: context,
+              builder: (context) => Dialog(
+                insetPadding: const EdgeInsets.all(10),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const Text("Add Exercise",
+                            style: TextStyle(
+                              fontSize: 18,
+                            )),
+                        const SizedBox(height: 10),
 
-                          // dropdown list with "custom" at top
-                          DropdownButton(
-                              isExpanded: true,
-                              items: copyExercisesList.map((Exercise exercise) {
-                                return DropdownMenuItem<Exercise>(
-                                    value: exercise,
-                                    child: Text(exercise.name));
-                              }).toList(),
-                              value: selectVal,
-                              selectedItemBuilder: (context) {
-                                return [
-                                  Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(selectVal!.name))
-                                ];
-                              },
-                              onChanged: (Exercise? e) {
-                                setState(() => selectVal = e);
-                              }),
-                          const SizedBox(height: 30),
-                          Row(mainAxisAlignment: MainAxisAlignment.end,
+                        // dropdown list with "custom" at top
+                        DropdownButton(
+                            isExpanded: true,
+                            items: copyExercisesList.map((Exercise exercise) {
+                              return DropdownMenuItem<Exercise>(
+                                  value: exercise, child: Text(exercise.name));
+                            }).toList(),
+                            value: selectVal,
+                            selectedItemBuilder: (context) {
+                              return [
+                                Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(selectVal!.name))
+                              ];
+                            },
+                            onChanged: (Exercise? e) {
+                              setState(() => selectVal = e);
+                            }),
+                        const SizedBox(height: 30),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: <Widget>[
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                primary: redColor,
-                                textStyle: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                                alignment: Alignment.center,
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  primary: redColor,
+                                  textStyle: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                  alignment: Alignment.center,
+                                ),
+                                child: const Text("Cancel"),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
                               ),
-                              child: const Text("Cancel"),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            const SizedBox(width: 20),
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                primary: redColor,
-                                textStyle: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                                alignment: Alignment.center,
-                              ),
-                              child: const Text("OK"),
-                              onPressed: () {
-                                _myController.text = "";
-                                setState(() {
-                                  if (selectVal == customxyz) {
-                                    showDialog(
-                                        context: context,
-                                        builder: (context) => Dialog(
-                                            insetPadding:
-                                                const EdgeInsets.all(10),
-                                            child: Container(
-                                                padding:
-                                                    const EdgeInsets.all(20),
-                                                child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: <Widget>[
-                                                      const Text(
-                                                          "Exercise Name",
-                                                          style: TextStyle(
-                                                            fontSize: 18,
-                                                          )),
-                                                      const SizedBox(
-                                                          height: 10),
-                                                      TextField(
-                                                        controller:
-                                                            _myController,
-                                                        autofocus: true,
-                                                        keyboardType:
-                                                            TextInputType.text,
-                                                        textAlignVertical:
-                                                            TextAlignVertical
-                                                                .bottom,
-                                                        textCapitalization:
-                                                            TextCapitalization
-                                                                .words,
-                                                        decoration:
-                                                            const InputDecoration(
-                                                          contentPadding:
-                                                              EdgeInsets.only(
-                                                                  bottom: 10),
-                                                          enabledBorder:
-                                                              InputBorder.none,
-                                                          focusedBorder:
-                                                              InputBorder.none,
-                                                        ),
-                                                      ),
-                                                      Divider(
-                                                        color: underlineColor,
-                                                        height: 2,
-                                                        thickness: 2,
-                                                      ),
-                                                      const SizedBox(
-                                                          height: 30),
-                                                      Row(mainAxisAlignment: MainAxisAlignment.end,
-                                                        children: <Widget>[
-                                                        TextButton(
-                                                          style: TextButton
-                                                              .styleFrom(
-                                                            primary: redColor,
-                                                            textStyle:
-                                                                const TextStyle(
-                                                                    fontSize:
-                                                                        16,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold),
-                                                            alignment: Alignment
-                                                                .center,
+                              const SizedBox(width: 20),
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  primary: redColor,
+                                  textStyle: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                  alignment: Alignment.center,
+                                ),
+                                child: const Text("OK"),
+                                onPressed: () {
+                                  _myController.text = "";
+                                  setState(() {
+                                    if (selectVal == customxyz) {
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) => Dialog(
+                                              insetPadding:
+                                                  const EdgeInsets.all(10),
+                                              child: Container(
+                                                  padding:
+                                                      const EdgeInsets.all(20),
+                                                  child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: <Widget>[
+                                                        const Text(
+                                                            "Exercise Name",
+                                                            style: TextStyle(
+                                                              fontSize: 18,
+                                                            )),
+                                                        const SizedBox(
+                                                            height: 10),
+                                                        TextField(
+                                                          controller:
+                                                              _myController,
+                                                          autofocus: true,
+                                                          keyboardType:
+                                                              TextInputType
+                                                                  .text,
+                                                          textAlignVertical:
+                                                              TextAlignVertical
+                                                                  .bottom,
+                                                          textCapitalization:
+                                                              TextCapitalization
+                                                                  .words,
+                                                          decoration:
+                                                              const InputDecoration(
+                                                            contentPadding:
+                                                                EdgeInsets.only(
+                                                                    bottom: 10),
+                                                            enabledBorder:
+                                                                InputBorder
+                                                                    .none,
+                                                            focusedBorder:
+                                                                InputBorder
+                                                                    .none,
                                                           ),
-                                                          child: const Text(
-                                                              "Cancel"),
-                                                          onPressed: () {
-                                                            Navigator.of(
-                                                                    context)
-                                                                .pop();
-                                                          },
+                                                        ),
+                                                        Divider(
+                                                          color: underlineColor,
+                                                          height: 2,
+                                                          thickness: 2,
                                                         ),
                                                         const SizedBox(
-                                                            width: 20),
-                                                        TextButton(
-                                                            style: TextButton
-                                                                .styleFrom(
-                                                              primary: redColor,
-                                                              textStyle: const TextStyle(
-                                                                  fontSize: 16,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold),
-                                                              alignment:
-                                                                  Alignment
-                                                                      .center,
-                                                            ),
-                                                            child: const Text(
-                                                                "OK"),
-                                                            onPressed: () {
-                                                              bool duplicate =
-                                                                  false;
-                                                              // check that it's not in all exercises and it's not in current workout
-                                                              for (int i = 0;
-                                                                  i <
-                                                                      exercisesBox
-                                                                          .length;
-                                                                  i++) {
-                                                                if (_myController
-                                                                        .text ==
-                                                                    exercisesBox
-                                                                        .getAt(
-                                                                            i)!
-                                                                        .name) {
-                                                                  duplicate =
-                                                                      true;
-                                                                }
-                                                              }
-                                                              for (int i = 0;
-                                                                  i <
-                                                                      workoutsBox
-                                                                          .getAt(
-                                                                              widget.index)!
-                                                                          .exercises
-                                                                          .length;
-                                                                  i++) {
-                                                                if (_myController
-                                                                        .text ==
-                                                                    workoutsBox
-                                                                        .getAt(widget
-                                                                            .index)!
-                                                                        .exercises[
-                                                                            i]
-                                                                        .name) {
-                                                                  duplicate =
-                                                                      true;
-                                                                }
-                                                              }
-                                                              if (duplicate ==
-                                                                  false) {
-                                                                Exercise newEx = Exercise(
-                                                                    _myController
-                                                                        .text,
-                                                                    defaultsBox
-                                                                        .getAt(
-                                                                            0)!,
-                                                                    defaultsBox
-                                                                        .getAt(
-                                                                            1)!
-                                                                        .toInt(),
-                                                                    defaultsBox
-                                                                        .getAt(
-                                                                            2)!
-                                                                        .toInt());
-                                                                newEx.weight =
-                                                                    defaultsBox
-                                                                        .getAt(
-                                                                            0)!;
-                                                                // Adds to Hive local storage
-                                                                exercisesBox
-                                                                    .add(newEx);
-
-                                                                final tempWorkout = Hive.box<
-                                                                            Workout>(
-                                                                        'workoutsBox')
-                                                                    .getAt(widget
-                                                                        .index);
-                                                                tempWorkout
-                                                                    ?.exercises
-                                                                    .add(newEx);
-                                                                tempWorkout
-                                                                    ?.save();
-                                                                _progressCounter
-                                                                    .value++;
-
-                                                                if (workoutsBox
-                                                                        .getAt(widget
-                                                                            .index)!
-                                                                        .isInitialized ==
-                                                                    false) {
-                                                                  for (int j =
-                                                                          0;
-                                                                      j <
+                                                            height: 30),
+                                                        Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .end,
+                                                            children: <Widget>[
+                                                              TextButton(
+                                                                style: TextButton
+                                                                    .styleFrom(
+                                                                  primary:
+                                                                      redColor,
+                                                                  textStyle: const TextStyle(
+                                                                      fontSize:
+                                                                          16,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold),
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .center,
+                                                                ),
+                                                                child: const Text(
+                                                                    "Cancel"),
+                                                                onPressed: () {
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop();
+                                                                },
+                                                              ),
+                                                              const SizedBox(
+                                                                  width: 20),
+                                                              TextButton(
+                                                                  style: TextButton
+                                                                      .styleFrom(
+                                                                    primary:
+                                                                        redColor,
+                                                                    textStyle: const TextStyle(
+                                                                        fontSize:
+                                                                            16,
+                                                                        fontWeight:
+                                                                            FontWeight.bold),
+                                                                    alignment:
+                                                                        Alignment
+                                                                            .center,
+                                                                  ),
+                                                                  child:
+                                                                      const Text(
+                                                                          "OK"),
+                                                                  onPressed:
+                                                                      () {
+                                                                    bool
+                                                                        duplicate =
+                                                                        false;
+                                                                    // check that it's not in all exercises and it's not in current workout
+                                                                    for (int i =
+                                                                            0;
+                                                                        i < exercisesBox.length;
+                                                                        i++) {
+                                                                      if (_myController
+                                                                              .text ==
+                                                                          exercisesBox
+                                                                              .getAt(i)!
+                                                                              .name) {
+                                                                        duplicate =
+                                                                            true;
+                                                                      }
+                                                                    }
+                                                                    for (int i =
+                                                                            0;
+                                                                        i < workoutsBox.getAt(widget.index)!.exercises.length;
+                                                                        i++) {
+                                                                      if (_myController
+                                                                              .text ==
                                                                           workoutsBox
                                                                               .getAt(widget.index)!
-                                                                              .exercises
-                                                                              .length;
-                                                                      ++j) {
-                                                                    for (int k =
-                                                                            0;
-                                                                        k < workoutsBox.getAt(widget.index)!.exercises[j].sets;
-                                                                        k++) {
-                                                                      // repsCompleted initialized with initial reps value
-                                                                      workoutsBox
-                                                                          .getAt(widget
-                                                                              .index)!
-                                                                          .exercises[
-                                                                              j]
-                                                                          .repsCompleted
-                                                                          .add(workoutsBox.getAt(widget.index)!.exercises[j].reps +
-                                                                              1);
+                                                                              .exercises[i]
+                                                                              .name) {
+                                                                        duplicate =
+                                                                            true;
+                                                                      }
                                                                     }
-                                                                  }
-                                                                  workoutsBox
-                                                                      .getAt(widget
-                                                                          .index)!
-                                                                      .isInitialized = true;
-                                                                } else {
-                                                                  // adds to repsCompleted, initializes it
-                                                                  for (int j =
-                                                                          0;
-                                                                      j <
+                                                                    if (duplicate ==
+                                                                        false) {
+                                                                      Exercise newEx = Exercise(
+                                                                          _myController
+                                                                              .text,
+                                                                          defaultsBox.getAt(
+                                                                              0)!,
+                                                                          defaultsBox
+                                                                              .getAt(
+                                                                                  1)!
+                                                                              .toInt(),
+                                                                          defaultsBox
+                                                                              .getAt(2)!
+                                                                              .toInt());
+                                                                      newEx.weight =
+                                                                          defaultsBox
+                                                                              .getAt(0)!;
+                                                                      // Adds to Hive local storage
+                                                                      exercisesBox
+                                                                          .add(
+                                                                              newEx);
+
+                                                                      final tempWorkout = Hive.box<Workout>(
+                                                                              'workoutsBox')
+                                                                          .getAt(
+                                                                              widget.index);
+                                                                      tempWorkout
+                                                                          ?.exercises
+                                                                          .add(
+                                                                              newEx);
+                                                                      tempWorkout
+                                                                          ?.save();
+                                                                      _progressCounter
+                                                                          .value++;
+
+                                                                      if (workoutsBox
+                                                                              .getAt(widget.index)!
+                                                                              .isInitialized ==
+                                                                          false) {
+                                                                        for (int j =
+                                                                                0;
+                                                                            j < workoutsBox.getAt(widget.index)!.exercises.length;
+                                                                            ++j) {
+                                                                          for (int k = 0;
+                                                                              k < workoutsBox.getAt(widget.index)!.exercises[j].sets;
+                                                                              k++) {
+                                                                            // repsCompleted initialized with initial reps value
+                                                                            workoutsBox.getAt(widget.index)!.exercises[j].repsCompleted.add(workoutsBox.getAt(widget.index)!.exercises[j].reps +
+                                                                                1);
+                                                                          }
+                                                                        }
+                                                                        workoutsBox
+                                                                            .getAt(widget.index)!
+                                                                            .isInitialized = true;
+                                                                      } else {
+                                                                        // adds to repsCompleted, initializes it
+                                                                        for (int j =
+                                                                                0;
+                                                                            j < workoutsBox.getAt(widget.index)!.exercises[workoutsBox.getAt(widget.index)!.exercises.length - 1].sets;
+                                                                            j++) {
                                                                           workoutsBox
                                                                               .getAt(widget.index)!
                                                                               .exercises[workoutsBox.getAt(widget.index)!.exercises.length - 1]
-                                                                              .sets;
-                                                                      j++) {
-                                                                    workoutsBox
-                                                                        .getAt(widget
-                                                                            .index)!
-                                                                        .exercises[
-                                                                            workoutsBox.getAt(widget.index)!.exercises.length -
-                                                                                1]
-                                                                        .repsCompleted
-                                                                        .add(workoutsBox.getAt(widget.index)!.exercises[workoutsBox.getAt(widget.index)!.exercises.length - 1].reps +
-                                                                            1);
-                                                                  }
-                                                                  setState(() =>
+                                                                              .repsCompleted
+                                                                              .add(workoutsBox.getAt(widget.index)!.exercises[workoutsBox.getAt(widget.index)!.exercises.length - 1].reps + 1);
+                                                                        }
+                                                                        setState(() =>
+                                                                            Navigator.of(context).pop());
+                                                                      }
+                                                                      _myController
+                                                                          .text = "";
                                                                       Navigator.of(
                                                                               context)
-                                                                          .pop());
-                                                                }
-                                                                _myController
-                                                                    .text = "";
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop();
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .push(MaterialPageRoute(
-                                                                        builder: (context) =>
-                                                                            EditExercisePage(exercisesBox.length -
-                                                                                1)))
-                                                                    .then(
-                                                                        (value) {
-                                                                  setState(
-                                                                      () {});
-                                                                });
-                                                              } else if (duplicate ==
-                                                                  true) {
-                                                                ScaffoldMessenger.of(
-                                                                        context)
-                                                                    .showSnackBar(
-                                                                  const SnackBar(
-                                                                      content: Text(
-                                                                          "Exercise already exists"),
-                                                                      duration: Duration(
-                                                                          seconds:
-                                                                              2)),
-                                                                );
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop();
-                                                              }
-                                                            }),
-                                                      ]),
-                                                    ]))));
-                                  } else {
-                                    final tempWorkout =
-                                        Hive.box<Workout>('workoutsBox')
-                                            .getAt(widget.index);
-                                    tempWorkout?.exercises.add(selectVal!);
+                                                                          .pop();
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .push(MaterialPageRoute(
+                                                                              builder: (context) => EditExercisePage(exercisesBox.length -
+                                                                                  1)))
+                                                                          .then(
+                                                                              (value) {
+                                                                        setState(
+                                                                            () {});
+                                                                      });
+                                                                    } else if (duplicate ==
+                                                                        true) {
+                                                                      ScaffoldMessenger.of(
+                                                                              context)
+                                                                          .showSnackBar(
+                                                                        const SnackBar(
+                                                                            content:
+                                                                                Text("Exercise already exists"),
+                                                                            duration: Duration(seconds: 2)),
+                                                                      );
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop();
+                                                                    }
+                                                                  }),
+                                                            ]),
+                                                      ]))));
+                                    } else {
+                                      final tempWorkout =
+                                          Hive.box<Workout>('workoutsBox')
+                                              .getAt(widget.index);
+                                      tempWorkout?.exercises.add(selectVal!);
 
-                                    tempWorkout?.save();
+                                      tempWorkout?.save();
 
-                                    if (workoutsBox
-                                            .getAt(widget.index)!
-                                            .isInitialized ==
-                                        false) {
-                                      for (int j = 0;
-                                          j <
-                                              workoutsBox
-                                                  .getAt(widget.index)!
-                                                  .exercises
-                                                  .length;
-                                          ++j) {
-                                        for (int k = 0;
-                                            k <
+                                      if (workoutsBox
+                                              .getAt(widget.index)!
+                                              .isInitialized ==
+                                          false) {
+                                        for (int j = 0;
+                                            j <
                                                 workoutsBox
                                                     .getAt(widget.index)!
-                                                    .exercises[j]
-                                                    .sets;
-                                            k++) {
-                                          // repsCompleted initialized with initial reps value
-                                          workoutsBox
-                                              .getAt(widget.index)!
-                                              .exercises[j]
-                                              .repsCompleted
-                                              .add(workoutsBox
+                                                    .exercises
+                                                    .length;
+                                            ++j) {
+                                          for (int k = 0;
+                                              k <
+                                                  workoutsBox
                                                       .getAt(widget.index)!
                                                       .exercises[j]
-                                                      .reps +
-                                                  1);
+                                                      .sets;
+                                              k++) {
+                                            // repsCompleted initialized with initial reps value
+                                            workoutsBox
+                                                .getAt(widget.index)!
+                                                .exercises[j]
+                                                .repsCompleted
+                                                .add(workoutsBox
+                                                        .getAt(widget.index)!
+                                                        .exercises[j]
+                                                        .reps +
+                                                    1);
+                                          }
                                         }
-                                      }
-                                      workoutsBox
-                                          .getAt(widget.index)!
-                                          .isInitialized = true;
-                                    } else {
-                                      // adds to repsCompleted, initializes it
-                                      for (int j = 0;
-                                          j <
-                                              workoutsBox
-                                                  .getAt(widget.index)!
-                                                  .exercises[workoutsBox
-                                                          .getAt(widget.index)!
-                                                          .exercises
-                                                          .length -
-                                                      1]
-                                                  .sets;
-                                          j++) {
                                         workoutsBox
                                             .getAt(widget.index)!
-                                            .exercises[workoutsBox
-                                                    .getAt(widget.index)!
-                                                    .exercises
-                                                    .length -
-                                                1]
-                                            .repsCompleted
-                                            .add(workoutsBox
+                                            .isInitialized = true;
+                                      } else {
+                                        // adds to repsCompleted, initializes it
+                                        for (int j = 0;
+                                            j <
+                                                workoutsBox
                                                     .getAt(widget.index)!
                                                     .exercises[workoutsBox
                                                             .getAt(
@@ -6562,24 +6573,42 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                             .exercises
                                                             .length -
                                                         1]
-                                                    .reps +
-                                                1);
+                                                    .sets;
+                                            j++) {
+                                          workoutsBox
+                                              .getAt(widget.index)!
+                                              .exercises[workoutsBox
+                                                      .getAt(widget.index)!
+                                                      .exercises
+                                                      .length -
+                                                  1]
+                                              .repsCompleted
+                                              .add(workoutsBox
+                                                      .getAt(widget.index)!
+                                                      .exercises[workoutsBox
+                                                              .getAt(
+                                                                  widget.index)!
+                                                              .exercises
+                                                              .length -
+                                                          1]
+                                                      .reps +
+                                                  1);
+                                        }
+                                        setState(
+                                            () => Navigator.of(context).pop());
                                       }
-                                      setState(
-                                          () => Navigator.of(context).pop());
                                     }
-                                  }
-                                });
-                              },
-                            ),
-                          ]),
-                        ]),
-                  ),
+                                  });
+                                },
+                              ),
+                            ]),
+                      ]),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
+      ),
     );
   }
 }
@@ -6758,7 +6787,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
                           const SizedBox(height: 40),
                           Row(
                             children: <Widget>[
-                              Expanded(child: SizedBox(
+                              Expanded(
+                                  child: SizedBox(
                                 height: 50,
                                 child: OutlinedButton(
                                   child: const Text("-5lb"),
@@ -6816,109 +6846,116 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                 ),
                               )),
                               const SizedBox(width: 10),
-                              Expanded(child: SizedBox(
-                                  height: 50,
-                                  child: OutlinedButton(
-                                      child: const Text("+5lb"),
-                                      style: OutlinedButton.styleFrom(
-                                        primary: Colors.white,
-                                        backgroundColor: Colors.black,
-                                        shape: const RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(5))),
-                                      ),
-                                      onPressed: () {
-                                        // adds 5lb to text box
-                                        if (exercisesBox
-                                                    .getAt(widget.index)!
-                                                    .weight %
-                                                1 ==
-                                            0) {
-                                          setState(() {
-                                            double tempText = double.parse(
-                                                _myController.text);
-                                            tempText += 5;
-                                            _myController.text =
-                                                tempText.toInt().toString();
-                                            _myController.selection =
-                                                TextSelection.collapsed(
-                                                    offset: _myController
-                                                        .text.length);
-                                          });
-                                        }
-                                        if (exercisesBox
-                                                    .getAt(widget.index)!
-                                                    .weight %
-                                                1 !=
-                                            0) {
-                                          setState(() {
-                                            double tempText = double.parse(
-                                                _myController.text);
-                                            tempText += 5;
-                                            _myController.text =
-                                                tempText.toString();
-                                            _myController.selection =
-                                                TextSelection.collapsed(
-                                                    offset: _myController
-                                                        .text.length);
-                                          });
-                                        }
-                                      }))),
+                              Expanded(
+                                  child: SizedBox(
+                                      height: 50,
+                                      child: OutlinedButton(
+                                          child: const Text("+5lb"),
+                                          style: OutlinedButton.styleFrom(
+                                            primary: Colors.white,
+                                            backgroundColor: Colors.black,
+                                            shape: const RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(5))),
+                                          ),
+                                          onPressed: () {
+                                            // adds 5lb to text box
+                                            if (exercisesBox
+                                                        .getAt(widget.index)!
+                                                        .weight %
+                                                    1 ==
+                                                0) {
+                                              setState(() {
+                                                double tempText = double.parse(
+                                                    _myController.text);
+                                                tempText += 5;
+                                                _myController.text =
+                                                    tempText.toInt().toString();
+                                                _myController.selection =
+                                                    TextSelection.collapsed(
+                                                        offset: _myController
+                                                            .text.length);
+                                              });
+                                            }
+                                            if (exercisesBox
+                                                        .getAt(widget.index)!
+                                                        .weight %
+                                                    1 !=
+                                                0) {
+                                              setState(() {
+                                                double tempText = double.parse(
+                                                    _myController.text);
+                                                tempText += 5;
+                                                _myController.text =
+                                                    tempText.toString();
+                                                _myController.selection =
+                                                    TextSelection.collapsed(
+                                                        offset: _myController
+                                                            .text.length);
+                                              });
+                                            }
+                                          }))),
                             ],
                           ),
                           const SizedBox(height: 20),
-                          Row(mainAxisAlignment: MainAxisAlignment.end,
-                            children: <Widget>[
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                primary: redColor,
-                                textStyle: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                                alignment: Alignment.center,
-                              ),
-                              child: const Text("Cancel"),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            const SizedBox(width: 20),
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                primary: redColor,
-                                textStyle: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                                alignment: Alignment.center,
-                              ),
-                              child: const Text("OK"),
-                              onPressed: () {
-                                setState(() {
-                                  final tempEx =
-                                      Hive.box<Exercise>('exercisesBox')
-                                          .getAt(widget.index);
-                                  tempEx!.weight =
-                                      double.parse(_myController.text);
-                                  tempEx.save();
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: <Widget>[
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    primary: redColor,
+                                    textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                    alignment: Alignment.center,
+                                  ),
+                                  child: const Text("Cancel"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                const SizedBox(width: 20),
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    primary: redColor,
+                                    textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                    alignment: Alignment.center,
+                                  ),
+                                  child: const Text("OK"),
+                                  onPressed: () {
+                                    setState(() {
+                                      final tempEx =
+                                          Hive.box<Exercise>('exercisesBox')
+                                              .getAt(widget.index);
+                                      tempEx!.weight =
+                                          double.parse(_myController.text);
+                                      tempEx.save();
 
-                                  for (int i = 0; i < workoutsBox.length; i++) {
-                                    final tempWorkout =
-                                        Hive.box<Workout>('workoutsBox')
-                                            .getAt(i);
-                                    for (int j = 0;
-                                        j < tempWorkout!.exercises.length;
-                                        j++) {
-                                      if (tempWorkout.exercises[j].name ==
-                                          tempEx.name) {
-                                        tempWorkout.exercises[j].weight =
-                                            double.parse(_myController.text);
+                                      for (int i = 0;
+                                          i < workoutsBox.length;
+                                          i++) {
+                                        final tempWorkout =
+                                            Hive.box<Workout>('workoutsBox')
+                                                .getAt(i);
+                                        for (int j = 0;
+                                            j < tempWorkout!.exercises.length;
+                                            j++) {
+                                          if (tempWorkout.exercises[j].name ==
+                                              tempEx.name) {
+                                            tempWorkout.exercises[j].weight =
+                                                double.parse(
+                                                    _myController.text);
+                                          }
+                                          tempWorkout.save();
+                                        }
                                       }
-                                      tempWorkout.save();
-                                    }
-                                  }
-                                });
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ]),
+                                    });
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ]),
                         ]),
                   ),
                 ),
@@ -7022,7 +7059,8 @@ class _EditExercisePageState extends State<EditExercisePage> {
                           const SizedBox(height: 40),
                           Row(
                             children: <Widget>[
-                              Expanded(child: SizedBox(
+                              Expanded(
+                                  child: SizedBox(
                                 height: 50,
                                 child: OutlinedButton(
                                   child: const Text("-5lb"),
@@ -7080,109 +7118,116 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                 ),
                               )),
                               const SizedBox(width: 10),
-                              Expanded(child: SizedBox(
-                                  height: 50,
-                                  child: OutlinedButton(
-                                      child: const Text("+5lb"),
-                                      style: OutlinedButton.styleFrom(
-                                        primary: Colors.white,
-                                        backgroundColor: Colors.black,
-                                        shape: const RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(5))),
-                                      ),
-                                      onPressed: () {
-                                        // adds 5lb to text box
-                                        if (exercisesBox
-                                                    .getAt(widget.index)!
-                                                    .barWeight %
-                                                1 ==
-                                            0) {
-                                          setState(() {
-                                            double tempText = double.parse(
-                                                _myController.text);
-                                            tempText += 5;
-                                            _myController.text =
-                                                tempText.toInt().toString();
-                                            _myController.selection =
-                                                TextSelection.collapsed(
-                                                    offset: _myController
-                                                        .text.length);
-                                          });
-                                        }
-                                        if (exercisesBox
-                                                    .getAt(widget.index)!
-                                                    .barWeight %
-                                                1 !=
-                                            0) {
-                                          setState(() {
-                                            double tempText = double.parse(
-                                                _myController.text);
-                                            tempText += 5;
-                                            _myController.text =
-                                                tempText.toString();
-                                            _myController.selection =
-                                                TextSelection.collapsed(
-                                                    offset: _myController
-                                                        .text.length);
-                                          });
-                                        }
-                                      }))),
+                              Expanded(
+                                  child: SizedBox(
+                                      height: 50,
+                                      child: OutlinedButton(
+                                          child: const Text("+5lb"),
+                                          style: OutlinedButton.styleFrom(
+                                            primary: Colors.white,
+                                            backgroundColor: Colors.black,
+                                            shape: const RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(5))),
+                                          ),
+                                          onPressed: () {
+                                            // adds 5lb to text box
+                                            if (exercisesBox
+                                                        .getAt(widget.index)!
+                                                        .barWeight %
+                                                    1 ==
+                                                0) {
+                                              setState(() {
+                                                double tempText = double.parse(
+                                                    _myController.text);
+                                                tempText += 5;
+                                                _myController.text =
+                                                    tempText.toInt().toString();
+                                                _myController.selection =
+                                                    TextSelection.collapsed(
+                                                        offset: _myController
+                                                            .text.length);
+                                              });
+                                            }
+                                            if (exercisesBox
+                                                        .getAt(widget.index)!
+                                                        .barWeight %
+                                                    1 !=
+                                                0) {
+                                              setState(() {
+                                                double tempText = double.parse(
+                                                    _myController.text);
+                                                tempText += 5;
+                                                _myController.text =
+                                                    tempText.toString();
+                                                _myController.selection =
+                                                    TextSelection.collapsed(
+                                                        offset: _myController
+                                                            .text.length);
+                                              });
+                                            }
+                                          }))),
                             ],
                           ),
                           const SizedBox(height: 20),
-                          Row(mainAxisAlignment: MainAxisAlignment.end,
-                            children: <Widget>[
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                primary: redColor,
-                                textStyle: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                                alignment: Alignment.center,
-                              ),
-                              child: const Text("Cancel"),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            const SizedBox(width: 20),
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                primary: redColor,
-                                textStyle: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                                alignment: Alignment.center,
-                              ),
-                              child: const Text("OK"),
-                              onPressed: () {
-                                setState(() {
-                                  final tempEx =
-                                      Hive.box<Exercise>('exercisesBox')
-                                          .getAt(widget.index);
-                                  tempEx!.barWeight =
-                                      double.parse(_myController.text);
-                                  tempEx.save();
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: <Widget>[
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    primary: redColor,
+                                    textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                    alignment: Alignment.center,
+                                  ),
+                                  child: const Text("Cancel"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                const SizedBox(width: 20),
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    primary: redColor,
+                                    textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                    alignment: Alignment.center,
+                                  ),
+                                  child: const Text("OK"),
+                                  onPressed: () {
+                                    setState(() {
+                                      final tempEx =
+                                          Hive.box<Exercise>('exercisesBox')
+                                              .getAt(widget.index);
+                                      tempEx!.barWeight =
+                                          double.parse(_myController.text);
+                                      tempEx.save();
 
-                                  for (int i = 0; i < workoutsBox.length; i++) {
-                                    final tempWorkout =
-                                        Hive.box<Workout>('workoutsBox')
-                                            .getAt(i);
-                                    for (int j = 0;
-                                        j < tempWorkout!.exercises.length;
-                                        j++) {
-                                      if (tempWorkout.exercises[j].name ==
-                                          tempEx.name) {
-                                        tempWorkout.exercises[j].barWeight =
-                                            double.parse(_myController.text);
+                                      for (int i = 0;
+                                          i < workoutsBox.length;
+                                          i++) {
+                                        final tempWorkout =
+                                            Hive.box<Workout>('workoutsBox')
+                                                .getAt(i);
+                                        for (int j = 0;
+                                            j < tempWorkout!.exercises.length;
+                                            j++) {
+                                          if (tempWorkout.exercises[j].name ==
+                                              tempEx.name) {
+                                            tempWorkout.exercises[j].barWeight =
+                                                double.parse(
+                                                    _myController.text);
+                                          }
+                                          tempWorkout.save();
+                                        }
                                       }
-                                      tempWorkout.save();
-                                    }
-                                  }
-                                });
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ]),
+                                    });
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ]),
                         ]),
                   ),
                 ),
@@ -7344,129 +7389,138 @@ class _EditExercisePageState extends State<EditExercisePage> {
                             thickness: 2,
                           ),
                           const SizedBox(height: 20),
-                          Row(mainAxisAlignment: MainAxisAlignment.end,
-                            children: <Widget>[
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                primary: redColor,
-                                textStyle: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                                alignment: Alignment.center,
-                              ),
-                              child: const Text("Cancel"),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            const SizedBox(width: 20),
-                            TextButton(
-                                style: TextButton.styleFrom(
-                                  primary: redColor,
-                                  textStyle: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
-                                  alignment: Alignment.center,
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: <Widget>[
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    primary: redColor,
+                                    textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                    alignment: Alignment.center,
+                                  ),
+                                  child: const Text("Cancel"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
                                 ),
-                                child: const Text("OK"),
-                                onPressed: () {
-                                  int oldReps =
-                                      exercisesBox.getAt(widget.index)!.reps;
-                                  int oldSets =
-                                      exercisesBox.getAt(widget.index)!.sets;
-                                  setState(() {
-                                    final tempExercise =
-                                        Hive.box<Exercise>('exercisesBox')
-                                            .getAt(widget.index);
+                                const SizedBox(width: 20),
+                                TextButton(
+                                    style: TextButton.styleFrom(
+                                      primary: redColor,
+                                      textStyle: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                      alignment: Alignment.center,
+                                    ),
+                                    child: const Text("OK"),
+                                    onPressed: () {
+                                      int oldReps = exercisesBox
+                                          .getAt(widget.index)!
+                                          .reps;
+                                      int oldSets = exercisesBox
+                                          .getAt(widget.index)!
+                                          .sets;
+                                      setState(() {
+                                        final tempExercise =
+                                            Hive.box<Exercise>('exercisesBox')
+                                                .getAt(widget.index);
 
-                                    tempExercise!.sets =
-                                        int.parse(_myController.text);
-                                    tempExercise.reps =
-                                        int.parse(_myController2.text);
-                                    tempExercise.save();
+                                        tempExercise!.sets =
+                                            int.parse(_myController.text);
+                                        tempExercise.reps =
+                                            int.parse(_myController2.text);
+                                        tempExercise.save();
 
-                                    for (int i = 0;
-                                        i < workoutsBox.length;
-                                        i++) {
-                                      final tempWorkout =
-                                          Hive.box<Workout>('workoutsBox')
-                                              .getAt(i);
-                                      for (int j = 0;
-                                          j < tempWorkout!.exercises.length;
-                                          j++) {
-                                        if (tempWorkout.exercises[j].name ==
-                                            exercisesBox
-                                                .getAt(widget.index)!
-                                                .name) {
-                                          tempWorkout.exercises[j].sets =
-                                              int.parse(_myController.text);
-                                          tempWorkout.exercises[j].reps =
-                                              int.parse(_myController2.text);
+                                        for (int i = 0;
+                                            i < workoutsBox.length;
+                                            i++) {
+                                          final tempWorkout =
+                                              Hive.box<Workout>('workoutsBox')
+                                                  .getAt(i);
+                                          for (int j = 0;
+                                              j < tempWorkout!.exercises.length;
+                                              j++) {
+                                            if (tempWorkout.exercises[j].name ==
+                                                exercisesBox
+                                                    .getAt(widget.index)!
+                                                    .name) {
+                                              tempWorkout.exercises[j].sets =
+                                                  int.parse(_myController.text);
+                                              tempWorkout.exercises[j].reps =
+                                                  int.parse(
+                                                      _myController2.text);
 
-                                          if (oldSets !=
-                                              exercisesBox
-                                                  .getAt(widget.index)!
-                                                  .sets) {
-                                            for (int i = 0;
-                                                i <
-                                                    exercisesBox
+                                              if (oldSets !=
+                                                  exercisesBox
+                                                      .getAt(widget.index)!
+                                                      .sets) {
+                                                for (int i = 0;
+                                                    i <
+                                                        exercisesBox
+                                                                .getAt(widget
+                                                                    .index)!
+                                                                .sets -
+                                                            oldSets;
+                                                    i++) {
+                                                  tempWorkout.exercises[j]
+                                                      .repsCompleted
+                                                      .add(exercisesBox
+                                                              .getAt(
+                                                                  widget.index)!
+                                                              .reps +
+                                                          1);
+                                                  exercisesBox
+                                                      .getAt(widget.index)!
+                                                      .repsCompleted
+                                                      .add(exercisesBox
+                                                              .getAt(
+                                                                  widget.index)!
+                                                              .reps +
+                                                          1);
+                                                }
+                                              }
+                                              if (oldReps !=
+                                                  exercisesBox
+                                                      .getAt(widget.index)!
+                                                      .reps) {
+                                                tempWorkout
+                                                    .exercises[j].repsCompleted
+                                                    .clear();
+                                                exercisesBox
+                                                    .getAt(widget.index)!
+                                                    .repsCompleted
+                                                    .clear();
+                                                for (int k = 0;
+                                                    k <
+                                                        exercisesBox
                                                             .getAt(
                                                                 widget.index)!
-                                                            .sets -
-                                                        oldSets;
-                                                i++) {
-                                              tempWorkout
-                                                  .exercises[j].repsCompleted
-                                                  .add(exercisesBox
-                                                          .getAt(widget.index)!
-                                                          .reps +
-                                                      1);
-                                              exercisesBox
-                                                  .getAt(widget.index)!
-                                                  .repsCompleted
-                                                  .add(exercisesBox
-                                                          .getAt(widget.index)!
-                                                          .reps +
-                                                      1);
-                                            }
-                                          }
-                                          if (oldReps !=
-                                              exercisesBox
-                                                  .getAt(widget.index)!
-                                                  .reps) {
-                                            tempWorkout
-                                                .exercises[j].repsCompleted
-                                                .clear();
-                                            exercisesBox
-                                                .getAt(widget.index)!
-                                                .repsCompleted
-                                                .clear();
-                                            for (int k = 0;
-                                                k <
-                                                    exercisesBox
-                                                        .getAt(widget.index)!
-                                                        .sets;
-                                                k++) {
-                                              exercisesBox
-                                                  .getAt(widget.index)!
-                                                  .repsCompleted
-                                                  .add(exercisesBox
-                                                          .getAt(widget.index)!
-                                                          .reps +
-                                                      1);
-
-                                              tempWorkout.exercises[j] =
+                                                            .sets;
+                                                    k++) {
                                                   exercisesBox
-                                                      .getAt(widget.index)!;
+                                                      .getAt(widget.index)!
+                                                      .repsCompleted
+                                                      .add(exercisesBox
+                                                              .getAt(
+                                                                  widget.index)!
+                                                              .reps +
+                                                          1);
+
+                                                  tempWorkout.exercises[j] =
+                                                      exercisesBox
+                                                          .getAt(widget.index)!;
+                                                }
+                                              }
                                             }
+                                            tempWorkout.save();
                                           }
                                         }
-                                        tempWorkout.save();
-                                      }
-                                    }
-                                  });
-                                  Navigator.of(context).pop();
-                                }),
-                          ]),
+                                      });
+                                      Navigator.of(context).pop();
+                                    }),
+                              ]),
                         ]),
                   ),
                 ),
@@ -7575,70 +7629,74 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                 thickness: 2,
                               ),
                               const SizedBox(height: 40),
-                              Row(mainAxisAlignment: MainAxisAlignment.end,
-                                children: <Widget>[
-                                TextButton(
-                                  style: TextButton.styleFrom(
-                                    primary: redColor,
-                                    textStyle: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
-                                    alignment: Alignment.center,
-                                  ),
-                                  child: const Text("Cancel"),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                                const SizedBox(width: 20),
-                                TextButton(
-                                  style: TextButton.styleFrom(
-                                    primary: redColor,
-                                    textStyle: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
-                                    alignment: Alignment.center,
-                                  ),
-                                  child: const Text("OK"),
-                                  onPressed: () {
-                                    setState(() {
-                                      String oldName = exercisesBox
-                                          .getAt(widget.index)!
-                                          .name;
+                              Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: <Widget>[
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        primary: redColor,
+                                        textStyle: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                        alignment: Alignment.center,
+                                      ),
+                                      child: const Text("Cancel"),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    const SizedBox(width: 20),
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        primary: redColor,
+                                        textStyle: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                        alignment: Alignment.center,
+                                      ),
+                                      child: const Text("OK"),
+                                      onPressed: () {
+                                        setState(() {
+                                          String oldName = exercisesBox
+                                              .getAt(widget.index)!
+                                              .name;
 
-                                      final tempEx =
-                                          Hive.box<Exercise>('exercisesBox')
-                                              .getAt(widget.index);
-                                      tempEx!.name = _myController.text;
-                                      tempEx.save();
+                                          final tempEx =
+                                              Hive.box<Exercise>('exercisesBox')
+                                                  .getAt(widget.index);
+                                          tempEx!.name = _myController.text;
+                                          tempEx.save();
 
-                                      // despite Workout class containing list of Exercises,
-                                      // updating Exercise in exercisesBox does not update
-                                      // the list of exercises in each workout, so we must
-                                      // loop through all workouts and update accordingly
-                                      for (int i = 0;
-                                          i < workoutsBox.length;
-                                          i++) {
-                                        final tempWorkout =
-                                            Hive.box<Workout>('workoutsBox')
-                                                .getAt(i);
-                                        for (int j = 0;
-                                            j < tempWorkout!.exercises.length;
-                                            j++) {
-                                          if (tempWorkout.exercises[j].name ==
-                                              oldName) {
-                                            tempWorkout.exercises[j].name =
-                                                _myController.text;
+                                          // despite Workout class containing list of Exercises,
+                                          // updating Exercise in exercisesBox does not update
+                                          // the list of exercises in each workout, so we must
+                                          // loop through all workouts and update accordingly
+                                          for (int i = 0;
+                                              i < workoutsBox.length;
+                                              i++) {
+                                            final tempWorkout =
+                                                Hive.box<Workout>('workoutsBox')
+                                                    .getAt(i);
+                                            for (int j = 0;
+                                                j <
+                                                    tempWorkout!
+                                                        .exercises.length;
+                                                j++) {
+                                              if (tempWorkout
+                                                      .exercises[j].name ==
+                                                  oldName) {
+                                                tempWorkout.exercises[j].name =
+                                                    _myController.text;
+                                              }
+                                              tempWorkout.save();
+                                            }
                                           }
-                                          tempWorkout.save();
-                                        }
-                                      }
-                                    });
-                                    _progressCounter.value++;
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                              ]),
+                                        });
+                                        _progressCounter.value++;
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ]),
                             ]),
                       ),
                     ));
@@ -7738,47 +7796,43 @@ class _IncrementsPageState extends State<IncrementsPage> {
       ),
       body: ListView(children: <Widget>[
         TextButton(
-            style: TextButton.styleFrom(
-                primary: Colors.white,
-                textStyle: const TextStyle(fontSize: 16)),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-              child: Column(children: <Widget>[
-                Row(children: <Widget>[
-                  Expanded(
-                    flex: 4,
-                    child: Column(children: [
-                      Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text("Progressive Overload",
-                              style:
-                                  TextStyle(fontSize: 18, color: textColor))),
-                      const SizedBox(height: 8),
-                      Align(
+          style: TextButton.styleFrom(
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+            child: Row(children: <Widget>[
+                Expanded(
+                  flex: 4,
+                  child: Column(children: [
+                    Align(
                         alignment: Alignment.centerLeft,
-                        child: Text("Add weight if all sets successful",
-                            style: TextStyle(fontSize: 16, color: greyColor)),
-                      ),
-                    ]),
-                  ),
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Switch(
-                        inactiveThumbColor: greyColor,
-                        inactiveTrackColor:
-                            const Color.fromARGB(255, 207, 207, 207),
-                        activeColor: activeSwitchColor,
-                        activeTrackColor: greyColor,
-                        value: exercisesBox.getAt(widget.index)!.overload,
-                        onChanged: toggleSwitch,
-                      ),
+                        child: Text("Progressive Overload",
+                            style: TextStyle(fontSize: 18, color: textColor))),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Add weight if all sets successful",
+                          style: TextStyle(fontSize: 16, color: greyColor)),
+                    ),
+                  ]),
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Switch(
+                      inactiveThumbColor: greyColor,
+                      inactiveTrackColor:
+                          const Color.fromARGB(255, 207, 207, 207),
+                      activeColor: activeSwitchColor,
+                      activeTrackColor: greyColor,
+                      value: exercisesBox.getAt(widget.index)!.overload,
+                      onChanged: toggleSwitch,
                     ),
                   ),
-                ]),
+                ),
               ]),
-            ),
-            onPressed: (() => toggleSwitch(false)),
+          ),
+          onPressed: (() => toggleSwitch(false)),
         ),
         exercisesBox.getAt(widget.index)!.overload
             ? ValueListenableBuilder(
@@ -7790,9 +7844,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                           textStyle: const TextStyle(fontSize: 16)),
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                        child: Row(children: <Widget>[
-                          Expanded(
-                            child: Column(children: [
+                        child: Column(children: [
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text("Increments",
@@ -7817,8 +7869,6 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                             fontSize: 16, color: greyColor)),
                               ),
                             ]),
-                          ),
-                        ]),
                       ),
                       onPressed: () {
                         showDialog(
@@ -7837,9 +7887,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                         textStyle: const TextStyle(fontSize: 16)),
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                      child: Row(children: <Widget>[
-                        Expanded(
-                          child: Column(children: [
+                      child: Column(children: <Widget>[
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text("Frequency",
@@ -7862,8 +7910,6 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                           fontSize: 16, color: greyColor)),
                             ),
                           ]),
-                        ),
-                      ]),
                     ),
                     onPressed: () {
                       showDialog(
@@ -7876,8 +7922,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
             : const SizedBox(),
         const SizedBox(height: 10),
         exercisesBox.getAt(widget.index)!.overload
-            ? Flexible(
-                child: Container(
+            ? Container(
                 padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                 width: double.infinity,
                 child: ValueListenableBuilder(
@@ -7918,15 +7963,14 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                         fontSize: 14, color: greyColor)),
                       );
                     }),
-              ))
+              )
             : const SizedBox(),
         TextButton(
           style: TextButton.styleFrom(
               primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
           child: Container(
             padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-            child: Column(children: <Widget>[
-              Row(children: <Widget>[
+            child: Row(children: <Widget>[
                 Expanded(
                   flex: 4,
                   child: Column(children: [
@@ -7958,7 +8002,6 @@ class _IncrementsPageState extends State<IncrementsPage> {
                   ),
                 ),
               ]),
-            ]),
           ),
           onPressed: (() => toggleSwitch2(false)),
         ),
@@ -7972,9 +8015,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                           textStyle: const TextStyle(fontSize: 16)),
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                        child: Row(children: <Widget>[
-                          Expanded(
-                            child: Column(children: [
+                        child: Column(children: [
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text("Percentage",
@@ -7990,8 +8031,6 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                         fontSize: 16, color: greyColor)),
                               ),
                             ]),
-                          ),
-                        ]),
                       ),
                       onPressed: () {
                         showDialog(
@@ -8010,9 +8049,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                         textStyle: const TextStyle(fontSize: 16)),
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                      child: Row(children: <Widget>[
-                        Expanded(
-                          child: Column(children: [
+                      child: Column(children: [
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text("Frequency",
@@ -8035,8 +8072,6 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                           fontSize: 16, color: greyColor)),
                             ),
                           ]),
-                        ),
-                      ]),
                     ),
                     onPressed: () {
                       showDialog(
@@ -8049,8 +8084,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
             : const SizedBox(),
         const SizedBox(height: 10),
         exercisesBox.getAt(widget.index)!.deload
-            ? Flexible(
-                child: Container(
+            ? Container(
                 padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                 width: double.infinity,
                 child: ValueListenableBuilder(
@@ -8076,7 +8110,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                     TextStyle(fontSize: 14, color: greyColor)),
                       );
                     }),
-              ))
+              )
             : const SizedBox(),
       ]),
     );
@@ -8129,7 +8163,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
               const SizedBox(height: 40),
               Row(
                 children: <Widget>[
-                  Expanded(child: SizedBox(
+                  Expanded(
+                      child: SizedBox(
                     height: 50,
                     child: OutlinedButton(
                       child: const Text("-5lb"),
@@ -8169,42 +8204,46 @@ class _IncrementsPageState extends State<IncrementsPage> {
                     ),
                   )),
                   const SizedBox(width: 10),
-                  Expanded(child: SizedBox(
-                      height: 50,
-                      child: OutlinedButton(
-                        child: const Text("+5lb"),
-                        style: OutlinedButton.styleFrom(
-                          primary: Colors.white,
-                          backgroundColor: Colors.black,
-                          shape: const RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(5))),
-                        ),
-                        onPressed: () {
-                          // subtracts 5lb from text box
-                          double tempText = double.parse(_myController.text);
-                          if (tempText % 1 == 0) {
-                            setState(() {
-                              tempText += 5;
-                              _myController.text = tempText.toInt().toString();
-                              _myController.selection = TextSelection.collapsed(
-                                  offset: _myController.text.length);
-                            });
-                          } else {
-                            setState(() {
-                              tempText += 5;
-                              _myController.text = tempText.toString();
-                              _myController.selection = TextSelection.collapsed(
-                                  offset: _myController.text.length);
-                            });
-                          }
-                        },
-                      ))),
+                  Expanded(
+                      child: SizedBox(
+                          height: 50,
+                          child: OutlinedButton(
+                            child: const Text("+5lb"),
+                            style: OutlinedButton.styleFrom(
+                              primary: Colors.white,
+                              backgroundColor: Colors.black,
+                              shape: const RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(5))),
+                            ),
+                            onPressed: () {
+                              // subtracts 5lb from text box
+                              double tempText =
+                                  double.parse(_myController.text);
+                              if (tempText % 1 == 0) {
+                                setState(() {
+                                  tempText += 5;
+                                  _myController.text =
+                                      tempText.toInt().toString();
+                                  _myController.selection =
+                                      TextSelection.collapsed(
+                                          offset: _myController.text.length);
+                                });
+                              } else {
+                                setState(() {
+                                  tempText += 5;
+                                  _myController.text = tempText.toString();
+                                  _myController.selection =
+                                      TextSelection.collapsed(
+                                          offset: _myController.text.length);
+                                });
+                              }
+                            },
+                          ))),
                 ],
               ),
               const SizedBox(height: 20),
-              Row(mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
+              Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
                 TextButton(
                   style: TextButton.styleFrom(
                     primary: redColor,
@@ -8322,43 +8361,44 @@ class _IncrementsPageState extends State<IncrementsPage> {
                         ),
                       ])),
                   const SizedBox(height: 30),
-                  Row(mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        primary: redColor,
-                        textStyle: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                        alignment: Alignment.center,
-                      ),
-                      child: const Text("Cancel"),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    const SizedBox(width: 20),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        primary: redColor,
-                        textStyle: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                        alignment: Alignment.center,
-                      ),
-                      child: const Text("OK"),
-                      onPressed: () {
-                        setState(() {
-                          final tempExercise =
-                              Hive.box<Exercise>('exercisesBox')
-                                  .getAt(widget.index);
-                          tempExercise!.incrementFrequency = freq;
-                          tempExercise.save();
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            primary: redColor,
+                            textStyle: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                            alignment: Alignment.center,
+                          ),
+                          child: const Text("Cancel"),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        const SizedBox(width: 20),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            primary: redColor,
+                            textStyle: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                            alignment: Alignment.center,
+                          ),
+                          child: const Text("OK"),
+                          onPressed: () {
+                            setState(() {
+                              final tempExercise =
+                                  Hive.box<Exercise>('exercisesBox')
+                                      .getAt(widget.index);
+                              tempExercise!.incrementFrequency = freq;
+                              tempExercise.save();
 
-                          _incrementsCounter.value++;
-                          Navigator.of(context).pop();
-                        });
-                      },
-                    ),
-                  ]),
+                              _incrementsCounter.value++;
+                              Navigator.of(context).pop();
+                            });
+                          },
+                        ),
+                      ]),
                 ])));
   }
 
@@ -8431,43 +8471,44 @@ class _IncrementsPageState extends State<IncrementsPage> {
                         ),
                       ])),
                   const SizedBox(height: 30),
-                  Row(mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        primary: redColor,
-                        textStyle: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                        alignment: Alignment.center,
-                      ),
-                      child: const Text("Cancel"),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    const SizedBox(width: 20),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        primary: redColor,
-                        textStyle: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                        alignment: Alignment.center,
-                      ),
-                      child: const Text("OK"),
-                      onPressed: () {
-                        setState(() {
-                          final tempExercise =
-                              Hive.box<Exercise>('exercisesBox')
-                                  .getAt(widget.index);
-                          tempExercise!.deloadPercent = percent;
-                          tempExercise.save();
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            primary: redColor,
+                            textStyle: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                            alignment: Alignment.center,
+                          ),
+                          child: const Text("Cancel"),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        const SizedBox(width: 20),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            primary: redColor,
+                            textStyle: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                            alignment: Alignment.center,
+                          ),
+                          child: const Text("OK"),
+                          onPressed: () {
+                            setState(() {
+                              final tempExercise =
+                                  Hive.box<Exercise>('exercisesBox')
+                                      .getAt(widget.index);
+                              tempExercise!.deloadPercent = percent;
+                              tempExercise.save();
 
-                          _incrementsCounter.value++;
-                          Navigator.of(context).pop();
-                        });
-                      },
-                    ),
-                  ]),
+                              _incrementsCounter.value++;
+                              Navigator.of(context).pop();
+                            });
+                          },
+                        ),
+                      ]),
                 ])));
   }
 
@@ -8551,43 +8592,44 @@ class _IncrementsPageState extends State<IncrementsPage> {
                         ),
                       ])),
                   const SizedBox(height: 30),
-                  Row(mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        primary: redColor,
-                        textStyle: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                        alignment: Alignment.center,
-                      ),
-                      child: const Text("Cancel"),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    const SizedBox(width: 20),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        primary: redColor,
-                        textStyle: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                        alignment: Alignment.center,
-                      ),
-                      child: const Text("OK"),
-                      onPressed: () {
-                        setState(() {
-                          final tempExercise =
-                              Hive.box<Exercise>('exercisesBox')
-                                  .getAt(widget.index);
-                          tempExercise!.deloadFrequency = freq;
-                          tempExercise.save();
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            primary: redColor,
+                            textStyle: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                            alignment: Alignment.center,
+                          ),
+                          child: const Text("Cancel"),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        const SizedBox(width: 20),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            primary: redColor,
+                            textStyle: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                            alignment: Alignment.center,
+                          ),
+                          child: const Text("OK"),
+                          onPressed: () {
+                            setState(() {
+                              final tempExercise =
+                                  Hive.box<Exercise>('exercisesBox')
+                                      .getAt(widget.index);
+                              tempExercise!.deloadFrequency = freq;
+                              tempExercise.save();
 
-                          _incrementsCounter.value++;
-                          Navigator.of(context).pop();
-                        });
-                      },
-                    ),
-                  ]),
+                              _incrementsCounter.value++;
+                              Navigator.of(context).pop();
+                            });
+                          },
+                        ),
+                      ]),
                 ])));
   }
 }
@@ -8843,109 +8885,87 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                         alignment: Alignment.centerLeft,
                         child: Wrap(
                             direction: Axis.horizontal,
-                            spacing: (MediaQuery.of(context)
-                                                .size
-                                                .width -
-                                            300) / 4.01,
+                            spacing: (MediaQuery.of(context).size.width - 300) /
+                                4.01,
                             runSpacing: 15,
                             children: <Widget>[
-                                // one circle for each set, initialized with number of reps
-                                for (int j = 0;
-                                    j <
-                                        indivWorkoutsBox
-                                            .getAt(widget.index)!
-                                            .setsPlanned[i];
-                                    j++)
-                                  // circle, onTap decrement, loops back to rep number
-                                    SizedBox(
-                                    width: 50,
-                                    height: 50,
-                                    child: MaterialButton(
-                                      elevation: 0,
-                                      splashColor: Colors.transparent,
-                                      animationDuration:
-                                          const Duration(milliseconds: 0),
-                                      shape: const CircleBorder(
-                                          side: BorderSide(
-                                              width: 1,
-                                              style: BorderStyle.none)),
-                                      child: indivWorkoutsBox
-                                                  .getAt(widget.index)!
-                                                  .repsCompleted[i][j] >
-                                              indivWorkoutsBox
-                                                  .getAt(widget.index)!
-                                                  .repsPlanned[i]
-                                          ? indivWorkoutsBox
-                                                  .getAt(widget.index)!
-                                                  .repsCompleted[i][j] < 10
-                                            ? FittedBox(child: Text(
-                                                indivWorkoutsBox
+                              // one circle for each set, initialized with number of reps
+                              for (int j = 0;
+                                  j <
+                                      indivWorkoutsBox
+                                          .getAt(widget.index)!
+                                          .setsPlanned[i];
+                                  j++)
+                                // circle, onTap decrement, loops back to rep number
+                                SizedBox(
+                                  width: 50,
+                                  height: 50,
+                                  child: MaterialButton(
+                                    elevation: 0,
+                                    splashColor: Colors.transparent,
+                                    animationDuration:
+                                        const Duration(milliseconds: 0),
+                                    shape: const CircleBorder(
+                                        side: BorderSide(
+                                            width: 1, style: BorderStyle.none)),
+                                    child: indivWorkoutsBox
+                                                .getAt(widget.index)!
+                                                .repsCompleted[i][j] >
+                                            indivWorkoutsBox
+                                                .getAt(widget.index)!
+                                                .repsPlanned[i]
+                                        ? indivWorkoutsBox
                                                     .getAt(widget.index)!
-                                                    .repsPlanned[i]
-                                                    .toString(),
-                                                style:
-                                                    const TextStyle(fontSize: 18)))
-                                            : FittedBox(child: Text(
-                                                indivWorkoutsBox
-                                                    .getAt(widget.index)!
-                                                    .repsPlanned[i]
-                                                    .toString(),
-                                                style:
-                                                    const TextStyle(fontSize: 12)))
-                                          
-                                          : indivWorkoutsBox
-                                                  .getAt(widget.index)!
-                                                  .repsCompleted[i][j] < 10
-                                            ? FittedBox(child: Text(
-                                                indivWorkoutsBox
-                                                    .getAt(widget.index)!
-                                                    .repsCompleted[i][j]
-                                                    .toString(),
-                                                style: const TextStyle(
-                                                    fontSize: 18)))
-                                            : FittedBox(child: Text(
-                                              indivWorkoutsBox
-                                                  .getAt(widget.index)!
-                                                  .repsCompleted[i][j]
-                                                  .toString(),
-                                              style: const TextStyle(
-                                                  fontSize: 12))),
-
-                                      color: indivWorkoutsBox
-                                                  .getAt(widget.index)!
-                                                  .repsCompleted[i][j] >
-                                              indivWorkoutsBox
-                                                  .getAt(widget.index)!
-                                                  .repsPlanned[i]
-                                          ? circleColor
-                                          : redColor,
-                                      textColor: indivWorkoutsBox
-                                                  .getAt(widget.index)!
-                                                  .repsCompleted[i][j] >
-                                              indivWorkoutsBox
-                                                  .getAt(widget.index)!
-                                                  .repsPlanned[i]
-                                          ? emptyCircleTextColor
-                                          : Colors.white,
-                                      onPressed: () {
-                                        changesMade = true;
-                                        final tempIndiv =
-                                            Hive.box<IndivWorkout>(
-                                                    'indivWorkoutsBox')
-                                                .getAt(widget.index);
-                                        // loops around
-                                        if (tempIndiv!.repsCompleted[i][j] ==
-                                            0) {
-                                          setState(() =>
-                                              tempIndiv.repsCompleted[i][j] =
-                                                  tempIndiv.repsPlanned[i] + 1);
-                                        } else {
-                                          setState(() => tempIndiv
-                                              .repsCompleted[i][j] -= 1);
-                                        }
-                                      },
-                                    ),
+                                                    .repsCompleted[i][j] <
+                                                10
+                                            ? FittedBox(
+                                                child: Text(
+                                                    indivWorkoutsBox
+                                                        .getAt(widget.index)!
+                                                        .repsPlanned[i]
+                                                        .toString(),
+                                                    style: const TextStyle(
+                                                        fontSize: 18)))
+                                            : FittedBox(
+                                                child: Text(
+                                                    indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i].toString(),
+                                                    style: const TextStyle(fontSize: 12)))
+                                        : indivWorkoutsBox.getAt(widget.index)!.repsCompleted[i][j] < 10
+                                            ? FittedBox(child: Text(indivWorkoutsBox.getAt(widget.index)!.repsCompleted[i][j].toString(), style: const TextStyle(fontSize: 18)))
+                                            : FittedBox(child: Text(indivWorkoutsBox.getAt(widget.index)!.repsCompleted[i][j].toString(), style: const TextStyle(fontSize: 12))),
+                                    color: indivWorkoutsBox
+                                                .getAt(widget.index)!
+                                                .repsCompleted[i][j] >
+                                            indivWorkoutsBox
+                                                .getAt(widget.index)!
+                                                .repsPlanned[i]
+                                        ? circleColor
+                                        : redColor,
+                                    textColor: indivWorkoutsBox
+                                                .getAt(widget.index)!
+                                                .repsCompleted[i][j] >
+                                            indivWorkoutsBox
+                                                .getAt(widget.index)!
+                                                .repsPlanned[i]
+                                        ? emptyCircleTextColor
+                                        : Colors.white,
+                                    onPressed: () {
+                                      changesMade = true;
+                                      final tempIndiv = Hive.box<IndivWorkout>(
+                                              'indivWorkoutsBox')
+                                          .getAt(widget.index);
+                                      // loops around
+                                      if (tempIndiv!.repsCompleted[i][j] == 0) {
+                                        setState(() =>
+                                            tempIndiv.repsCompleted[i][j] =
+                                                tempIndiv.repsPlanned[i] + 1);
+                                      } else {
+                                        setState(() =>
+                                            tempIndiv.repsCompleted[i][j] -= 1);
+                                      }
+                                    },
                                   ),
+                                ),
                             ]),
                       ),
                       const SizedBox(height: 10),
@@ -9063,7 +9083,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                               index + 50,
                                                                         },
                                                                       )),
-                                                                  const SizedBox(width: 5),
+                                                                  const SizedBox(
+                                                                      width: 5),
                                                                   const SizedBox(
                                                                     height: 45,
                                                                     child:
@@ -9122,7 +9143,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                               index,
                                                                         },
                                                                       )),
-                                                                  const SizedBox(width: 5),
+                                                                  const SizedBox(
+                                                                      width: 5),
                                                                   const SizedBox(
                                                                     height: 40,
                                                                     child:
@@ -9142,73 +9164,75 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                 ])),
                                                             const SizedBox(
                                                                 height: 30),
-                                                            Row(mainAxisAlignment: MainAxisAlignment.end,
-                                                              children: <
-                                                                Widget>[
-                                                              TextButton(
-                                                                style: TextButton
-                                                                    .styleFrom(
-                                                                  primary:
-                                                                      redColor,
-                                                                  textStyle: const TextStyle(
-                                                                      fontSize:
-                                                                          16,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .center,
-                                                                ),
-                                                                child: const Text(
-                                                                    "Cancel"),
-                                                                onPressed: () {
-                                                                  Navigator.of(
-                                                                          context)
-                                                                      .pop();
-                                                                },
-                                                              ),
-                                                              const SizedBox(
-                                                                  width: 20),
-                                                              TextButton(
-                                                                style: TextButton
-                                                                    .styleFrom(
-                                                                  primary:
-                                                                      redColor,
-                                                                  textStyle: const TextStyle(
-                                                                      fontSize:
-                                                                          16,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .center,
-                                                                ),
-                                                                child:
-                                                                    const Text(
-                                                                        "OK"),
-                                                                onPressed: () {
-                                                                  setState(
-                                                                    () => postTempBodyWeight =
-                                                                        scrollBodyWeightInt +
-                                                                            0.1 *
-                                                                                scrollBodyWeightDec,
-                                                                  );
-                                                                  if (postTempBodyWeight !=
-                                                                      indivWorkoutsBox
-                                                                          .getAt(
-                                                                              widget.index)!
-                                                                          .bodyWeight) {
-                                                                    changesMade =
-                                                                        true;
-                                                                  }
-                                                                  Navigator.of(
-                                                                          context)
-                                                                      .pop();
-                                                                },
-                                                              ),
-                                                            ]),
+                                                            Row(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .end,
+                                                                children: <
+                                                                    Widget>[
+                                                                  TextButton(
+                                                                    style: TextButton
+                                                                        .styleFrom(
+                                                                      primary:
+                                                                          redColor,
+                                                                      textStyle: const TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                          fontWeight:
+                                                                              FontWeight.bold),
+                                                                      alignment:
+                                                                          Alignment
+                                                                              .center,
+                                                                    ),
+                                                                    child: const Text(
+                                                                        "Cancel"),
+                                                                    onPressed:
+                                                                        () {
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop();
+                                                                    },
+                                                                  ),
+                                                                  const SizedBox(
+                                                                      width:
+                                                                          20),
+                                                                  TextButton(
+                                                                    style: TextButton
+                                                                        .styleFrom(
+                                                                      primary:
+                                                                          redColor,
+                                                                      textStyle: const TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                          fontWeight:
+                                                                              FontWeight.bold),
+                                                                      alignment:
+                                                                          Alignment
+                                                                              .center,
+                                                                    ),
+                                                                    child:
+                                                                        const Text(
+                                                                            "OK"),
+                                                                    onPressed:
+                                                                        () {
+                                                                      setState(
+                                                                        () => postTempBodyWeight =
+                                                                            scrollBodyWeightInt +
+                                                                                0.1 * scrollBodyWeightDec,
+                                                                      );
+                                                                      if (postTempBodyWeight !=
+                                                                          indivWorkoutsBox
+                                                                              .getAt(widget.index)!
+                                                                              .bodyWeight) {
+                                                                        changesMade =
+                                                                            true;
+                                                                      }
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop();
+                                                                    },
+                                                                  ),
+                                                                ]),
                                                           ]))));
                                         },
                                         child: Align(
@@ -9221,91 +9245,96 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                   fontWeight: FontWeight.bold,
                                                 )))))),
                           ])),
-                const SizedBox(height: 50),
+                  const SizedBox(height: 50),
                 ])),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-          Container(
-            //height: MediaQuery.of(context).size.height * 0.05,
-            width: double.infinity,
-            color: backColor,
-            padding: const EdgeInsets.only(left: 15, right: 15),
-            child: Row(mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-              Expanded(
-                child: Align(
-                  alignment: Alignment.bottomLeft,
-                  child: TextButton(
-                      onPressed: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) =>
-                                PostWorkoutNotesPage(widget.index)));
-                      },
-                      child: const Text("Note"),
-                      style: TextButton.styleFrom(
-                        primary: redColor,
-                        textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                        alignment: Alignment.center,
-                      )),
-                ),
-              ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: TextButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: Text('Delete Workout',
-                                style:
-                                    TextStyle(fontSize: 20, color: textColor)),
-                            content: Text(
-                                'Are you sure you want to delete this workout?',
-                                style:
-                                    TextStyle(fontSize: 15, color: textColor)),
-                            actions: [
-                              TextButton(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              Container(
+                  //height: MediaQuery.of(context).size.height * 0.05,
+                  width: double.infinity,
+                  color: backColor,
+                  padding: const EdgeInsets.only(left: 15, right: 15),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.bottomLeft,
+                            child: TextButton(
                                 onPressed: () {
-                                  Navigator.pop(context);
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) =>
+                                          PostWorkoutNotesPage(widget.index)));
                                 },
-                                child: const Text(
-                                  'Cancel',
-                                  style:
-                                      TextStyle(fontSize: 16, color: redColor),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  indivWorkoutsBox.deleteAt(widget.index);
-                                  _calendarCounter.value++;
-                                  Navigator.of(context).pop();
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text(
-                                  'Delete',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: redColor,
-                                  ),
-                                ),
-                              ),
-                            ],
+                                child: const Text("Note"),
+                                style: TextButton.styleFrom(
+                                  primary: redColor,
+                                  textStyle: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                  alignment: Alignment.center,
+                                )),
                           ),
-                        );
-                      },
-                      child: const Text("Delete"),
-                      style: TextButton.styleFrom(
-                        primary: redColor,
-                        textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                        alignment: Alignment.center,
-                      )),
-                ),
-              ),
-            ]))]),
+                        ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.bottomRight,
+                            child: TextButton(
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text('Delete Workout',
+                                          style: TextStyle(
+                                              fontSize: 20, color: textColor)),
+                                      content: Text(
+                                          'Are you sure you want to delete this workout?',
+                                          style: TextStyle(
+                                              fontSize: 15, color: textColor)),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text(
+                                            'Cancel',
+                                            style: TextStyle(
+                                                fontSize: 16, color: redColor),
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            indivWorkoutsBox
+                                                .deleteAt(widget.index);
+                                            _calendarCounter.value++;
+                                            Navigator.of(context).pop();
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const Text(
+                                            'Delete',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: redColor,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                                child: const Text("Delete"),
+                                style: TextButton.styleFrom(
+                                  primary: redColor,
+                                  textStyle: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                  alignment: Alignment.center,
+                                )),
+                          ),
+                        ),
+                      ]))
+            ]),
       ),
     );
   }
@@ -9460,98 +9489,103 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   thickness: 2,
                 ),
                 const SizedBox(height: 20),
-                Row(mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      primary: redColor,
-                      textStyle: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold),
-                      alignment: Alignment.center,
-                    ),
-                    child: const Text("Cancel"),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  const SizedBox(width: 20),
-                  TextButton(
-                      style: TextButton.styleFrom(
-                        primary: redColor,
-                        textStyle: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                        alignment: Alignment.center,
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          primary: redColor,
+                          textStyle: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                          alignment: Alignment.center,
+                        ),
+                        child: const Text("Cancel"),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
                       ),
-                      child: const Text("OK"),
-                      onPressed: () {
-                        int oldReps =
-                            indivWorkoutsBox.getAt(idx)!.repsPlanned[exIdx];
-                        int oldSets =
-                            indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx];
-                        if (indivWorkoutsBox.getAt(idx)!.weights[exIdx] !=
-                            double.parse(_weightsController.text)) {
-                          changesMade = true;
-                        }
-                        setState(() => {
-                              indivWorkoutsBox.getAt(idx)!.weights[exIdx] =
-                                  double.parse(_weightsController.text),
-                              indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx] =
-                                  int.parse(_myController.text),
-                              indivWorkoutsBox.getAt(idx)!.repsPlanned[exIdx] =
-                                  int.parse(_myController2.text),
-                              if (oldSets !=
+                      const SizedBox(width: 20),
+                      TextButton(
+                          style: TextButton.styleFrom(
+                            primary: redColor,
+                            textStyle: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                            alignment: Alignment.center,
+                          ),
+                          child: const Text("OK"),
+                          onPressed: () {
+                            int oldReps =
+                                indivWorkoutsBox.getAt(idx)!.repsPlanned[exIdx];
+                            int oldSets =
+                                indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx];
+                            if (indivWorkoutsBox.getAt(idx)!.weights[exIdx] !=
+                                double.parse(_weightsController.text)) {
+                              changesMade = true;
+                            }
+                            setState(() => {
+                                  indivWorkoutsBox.getAt(idx)!.weights[exIdx] =
+                                      double.parse(_weightsController.text),
                                   indivWorkoutsBox
-                                      .getAt(idx)!
-                                      .setsPlanned[exIdx])
-                                {
-                                  changesMade = true,
-                                  for (int i = 0;
-                                      i <
-                                          indivWorkoutsBox
-                                                  .getAt(idx)!
-                                                  .setsPlanned[exIdx] -
-                                              oldSets;
-                                      i++)
-                                    {
+                                          .getAt(idx)!
+                                          .setsPlanned[exIdx] =
+                                      int.parse(_myController.text),
+                                  indivWorkoutsBox
+                                          .getAt(idx)!
+                                          .repsPlanned[exIdx] =
+                                      int.parse(_myController2.text),
+                                  if (oldSets !=
                                       indivWorkoutsBox
                                           .getAt(idx)!
-                                          .repsCompleted[exIdx]
-                                          .add(indivWorkoutsBox
-                                                  .getAt(idx)!
-                                                  .repsPlanned[exIdx] +
-                                              1),
-                                    },
-                                },
-                              if (oldReps !=
-                                  indivWorkoutsBox
-                                      .getAt(idx)!
-                                      .repsPlanned[exIdx])
-                                {
-                                  changesMade = true,
-                                  indivWorkoutsBox
-                                      .getAt(idx)!
-                                      .repsCompleted[exIdx]
-                                      .clear(),
-                                  for (int j = 0;
-                                      j <
+                                          .setsPlanned[exIdx])
+                                    {
+                                      changesMade = true,
+                                      for (int i = 0;
+                                          i <
+                                              indivWorkoutsBox
+                                                      .getAt(idx)!
+                                                      .setsPlanned[exIdx] -
+                                                  oldSets;
+                                          i++)
+                                        {
                                           indivWorkoutsBox
                                               .getAt(idx)!
-                                              .setsPlanned[exIdx];
-                                      ++j)
+                                              .repsCompleted[exIdx]
+                                              .add(indivWorkoutsBox
+                                                      .getAt(idx)!
+                                                      .repsPlanned[exIdx] +
+                                                  1),
+                                        },
+                                    },
+                                  if (oldReps !=
+                                      indivWorkoutsBox
+                                          .getAt(idx)!
+                                          .repsPlanned[exIdx])
                                     {
+                                      changesMade = true,
                                       indivWorkoutsBox
                                           .getAt(idx)!
                                           .repsCompleted[exIdx]
-                                          .add(indivWorkoutsBox
+                                          .clear(),
+                                      for (int j = 0;
+                                          j <
+                                              indivWorkoutsBox
                                                   .getAt(idx)!
-                                                  .repsPlanned[exIdx] +
-                                              1),
-                                    },
-                                }
-                            });
-                        Navigator.of(context).pop();
-                      }),
-                ]),
+                                                  .setsPlanned[exIdx];
+                                          ++j)
+                                        {
+                                          indivWorkoutsBox
+                                              .getAt(idx)!
+                                              .repsCompleted[exIdx]
+                                              .add(indivWorkoutsBox
+                                                      .getAt(idx)!
+                                                      .repsPlanned[exIdx] +
+                                                  1),
+                                        },
+                                    }
+                                });
+                            Navigator.of(context).pop();
+                          }),
+                    ]),
               ]),
         ),
       ),
