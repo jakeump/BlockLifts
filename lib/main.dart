@@ -114,6 +114,9 @@ late bool failed;
 bool changesMade = false;
 late String lbKg;
 
+List<int> successTimes = [];
+List<int> failureTimes = [];
+
 late Color headerColor;
 late Color backColor;
 late Color tileColor;
@@ -447,7 +450,6 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
   final workoutsBox = Hive.box<Workout>('workoutsBox');
   final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(workoutIndex);
   final boolBox = Hive.box<bool>('boolBox');
-  bool showNotification = false;
   lastSet = false;
 
   void addTime(Timer? timer) {
@@ -483,7 +485,6 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
       if (boolBox.getAt(1)!) {
         showTimer = true;
       }
-      showNotification = true;
       startTimer(timer);
       tempWorkout.exercises[exIdx].repsCompleted[setIdx] -= 2;
       tempWorkout.save();
@@ -510,7 +511,6 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
       if (boolBox.getAt(1)!) {
         showTimer = true;
       }
-      showNotification = true;
       startTimer(timer);
       tempWorkout.exercises[exIdx].repsCompleted[setIdx] -= 1;
       tempWorkout.save();
@@ -521,10 +521,6 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
         failed = true;
       }
     }
-  }
-
-  if (showNotification == true) {
-    createNotification(exIdx, setIdx);
   }
 
   // if last set, set to 0
@@ -592,7 +588,13 @@ void createNotification(int exIdx, int setIdx) {
         // workout status, no timer
         id: 123,
         channelKey: 'workout_channel',
-        title: "$minutes:$seconds - Rest ",
+        title: lastSet ? "$minutes:$seconds - Set equipment, then lift"
+          : failed ? failureTimes.isEmpty ? "$minutes:$seconds - Rest"
+            : failureTimes.last % 60 == 0 ? "$minutes:$seconds - Rest ${(failureTimes.last ~/ 60).toString()}min"
+              : "$minutes:$seconds - Rest ${(failureTimes.last ~/ 60).toString()}min ${(failureTimes.last % 60).toString()}s"
+          : successTimes.isEmpty ? "$minutes:$seconds - Rest"
+            : successTimes.last % 60 == 0 ? "$minutes:$seconds - Rest ${(successTimes.last ~/ 60).toString()}min"
+              : "$minutes:$seconds - Rest ${(successTimes.last ~/ 60).toString()}min ${(successTimes.last % 60).toString()}s",
         body: setIdx ==
                 workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets - 1
             ? workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight %
@@ -4851,8 +4853,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
   late final Box<Plate> platesBox;
   late final Box<String> tempNoteBox;
   late final Box<double> tempBodyWeightBox;
-  final List<int> successTimes = [];
-  final List<int> failureTimes = [];
 
   @override
   void initState() {
@@ -4873,6 +4873,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
   }
 
   void getTimes() {
+    successTimes.clear();
+    failureTimes.clear();
     for (int i = 0; i < successTimerBox.length; i++) {
       successTimes.add(successTimerBox.getAt(i)!.time);
     }
@@ -5696,49 +5698,50 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                             top: 15, bottom: 15),
                                         child: Row(children: <Widget>[
                                           buildTime(),
-                                          
                                           Flexible(
-                                            child: Align(alignment: Alignment.centerRight, child:
-                                                  lastSet ? const Text("Set equipment, then lift", overflow: TextOverflow.fade)
-                                                  : failed
-                                                      ? failureTimes.isEmpty
-                                                          ? const Text(
-                                                              "No failure timer")
-                                                          : failureTimes.last %
-                                                                      60 ==
-                                                                  0
-                                                              ? Text(
-                                                                  "Rest ${(failureTimes.last ~/ 60).toString()}min",
-                                                                  style: TextStyle(
-                                                                      color:
-                                                                          textColor))
-                                                              : Text(
-                                                                  "Rest ${(failureTimes.last ~/ 60).toString()}min ${(failureTimes.last % 60).toString()}s",
-                                                                  style: TextStyle(
-                                                                      color:
-                                                                          textColor))
-                                                      : successTimes.isEmpty
-                                                          ? const Text(
-                                                              "No success timer")
-                                                          : successTimes.last %
-                                                                      60 ==
-                                                                  0
-                                                              ? Text(
-                                                                  "Rest ${(successTimes.last ~/ 60).toString()}min",
-                                                                  style: TextStyle(
-                                                                      color:
-                                                                          textColor))
-                                                              : Text(
-                                                                  "Rest ${(successTimes.last ~/ 60).toString()}min ${(successTimes.last % 60).toString()}s",
-                                                                  style: TextStyle(
-                                                                      color:
-                                                                          textColor)),
+                                              child: Align(
+                                            alignment: Alignment.centerRight,
+                                            child: lastSet
+                                                ? const Text(
+                                                    "Set equipment, then lift",
+                                                    overflow: TextOverflow.fade)
+                                                : failed
+                                                    ? failureTimes.isEmpty
+                                                        ? const Text(
+                                                            "No failure timer")
+                                                        : failureTimes.last %
+                                                                    60 ==
+                                                                0
+                                                            ? Text(
+                                                                "Rest ${(failureTimes.last ~/ 60).toString()}min",
+                                                                style: TextStyle(
+                                                                    color:
+                                                                        textColor))
+                                                            : Text(
+                                                                "Rest ${(failureTimes.last ~/ 60).toString()}min ${(failureTimes.last % 60).toString()}s",
+                                                                style: TextStyle(
+                                                                    color:
+                                                                        textColor))
+                                                    : successTimes.isEmpty
+                                                        ? const Text(
+                                                            "No success timer")
+                                                        : successTimes.last %
+                                                                    60 ==
+                                                                0
+                                                            ? Text(
+                                                                "Rest ${(successTimes.last ~/ 60).toString()}min",
+                                                                style: TextStyle(
+                                                                    color:
+                                                                        textColor))
+                                                            : Text(
+                                                                "Rest ${(successTimes.last ~/ 60).toString()}min ${(successTimes.last % 60).toString()}s",
+                                                                style: TextStyle(
+                                                                    color:
+                                                                        textColor)),
                                           )),
                                           IconButton(
-                                              icon: const Icon(
-                                                  Icons.close),
-                                              onPressed: () =>
-                                                  setState(() {
+                                              icon: const Icon(Icons.close),
+                                              onPressed: () => setState(() {
                                                     showTimer = false;
                                                     AwesomeNotifications()
                                                         .cancelAll();
