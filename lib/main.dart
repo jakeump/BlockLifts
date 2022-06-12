@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -13,11 +15,14 @@ import 'package:paged_vertical_calendar/paged_vertical_calendar.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:wakelock/wakelock.dart';
 import 'dart:typed_data';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 
 part 'main.g.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeService();
   final androidInfo = await DeviceInfoPlugin().androidInfo;
   final androidSdkVersion = androidInfo.version.sdkInt ?? 0;
   final directory = await pathprovider.getApplicationDocumentsDirectory();
@@ -353,6 +358,90 @@ void defaultState() async {
   _progressCounter.value++;
   _calendarCounter.value++;
   _themeCounter.value++;
+}
+
+Future<void> initializeService() async {
+  final service = FlutterBackgroundService();
+  await service.configure(
+    androidConfiguration: AndroidConfiguration(
+      // this will execute when app is in foreground or background in separated isolate
+      onStart: onStart,
+
+      // auto start service
+      autoStart: true,
+      isForegroundMode: true,
+    ),
+    iosConfiguration: IosConfiguration(
+      // auto start service
+      autoStart: true,
+
+      // this will executed when app is in foreground in separated isolate
+      onForeground: onStart,
+
+      // you have to enable background fetch capability on xcode project
+      onBackground: onIosBackground,
+    ),
+  );
+  service.startService();
+}
+
+// to ensure this executes
+// run app from xcode, then from xcode menu, select Simulate Background Fetch
+bool onIosBackground(ServiceInstance service) {
+  WidgetsFlutterBinding.ensureInitialized();
+  return true;
+}
+
+void onStart(ServiceInstance service) async {
+
+  // Only available for flutter 3.0.0 and later
+  DartPluginRegistrant.ensureInitialized();
+
+  if (service is AndroidServiceInstance) {
+    service.on('setAsForeground').listen((event) {
+      service.setAsForegroundService();
+    });
+
+    service.on('setAsBackground').listen((event) {
+      service.setAsBackgroundService();
+    });
+  }
+
+  service.on('stopService').listen((event) {
+    service.stopSelf();
+  });
+
+  // bring to foreground
+  Timer.periodic(const Duration(seconds: 1), (timer) async {
+
+    if (service is AndroidServiceInstance) {
+      service.setForegroundNotificationInfo(
+        title: "My App Service",
+        content: "Updated at ${DateTime.now()}",
+      );
+    }
+
+    // test using external plugin
+    final deviceInfo = DeviceInfoPlugin();
+    String? device;
+    if (Platform.isAndroid) {
+      final androidInfo = await deviceInfo.androidInfo;
+      device = androidInfo.model;
+    }
+
+    if (Platform.isIOS) {
+      final iosInfo = await deviceInfo.iosInfo;
+      device = iosInfo.model;
+    }
+
+    service.invoke(
+      'update',
+      {
+        "current_date": DateTime.now().toIso8601String(),
+        "device": device,
+      },
+    );
+  });
 }
 
 void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
@@ -2218,13 +2307,14 @@ class _SettingsState extends State<Settings> {
                   primary: redColor,
                   textStyle: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.bold),
-                  alignment: Alignment.center,
+                  alignment: Alignment.centerLeft,
                 ),
                 onPressed: () {
                   setState(() {
                     boolBox.putAt(7, tempUnit == 0 ? true : false);
                     lbKg = tempUnit == 0 ? "lb" : "kg";
                   });
+                  _progressCounter.value++;
                   _counter.value++;
                   Navigator.of(context).pop();
                 }),
@@ -2669,7 +2759,13 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
       if (k != indivWorkoutsBox.getAt(i)!.setsPlanned[j] - 1) {
         output += "/";
       } else {
-        if (successCounter == indivWorkoutsBox.getAt(i)!.setsPlanned[j]) {
+        if (indivWorkoutsBox.getAt(i)!.setsPlanned[j] == 1) {
+          output = "";
+          output += "1";
+          output += "×";
+          output += indivWorkoutsBox.getAt(i)!.repsCompleted[j][k].toString();
+        }
+        else if (successCounter == indivWorkoutsBox.getAt(i)!.setsPlanned[j]) {
           output = "";
           output += indivWorkoutsBox.getAt(i)!.setsPlanned[j].toString();
           output += "×";

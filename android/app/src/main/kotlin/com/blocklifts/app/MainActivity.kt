@@ -1,4 +1,4 @@
-package com.example.sl_app
+package com.blocklifts.app
 
 import io.flutter.embedding.android.FlutterActivity
 
