@@ -275,7 +275,6 @@ void defaultState() async {
   benchPress.bookmarked = true;
   deadlift.bookmarked = true;
   deadlift.sets = 1;
-  deadlift.reps = 1;
   deadlift.increment = 10;
 
   defaultA.exercises.add(squat);
@@ -348,12 +347,12 @@ void defaultState() async {
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('resetToDefault', false);
-  
+
   showTimer = false;
   _counter.value++;
   _progressCounter.value++;
   _calendarCounter.value++;
-  _themeCounter.value++;  
+  _themeCounter.value++;
 }
 
 void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
@@ -3534,34 +3533,30 @@ class _PlatesState extends State<PlatesPage> {
                         primary: Colors.white,
                         backgroundColor: Colors.black,
                         shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                                Radius.circular(5))),
+                            borderRadius: BorderRadius.all(Radius.circular(5))),
                       ),
                       onPressed: () {
                         // subtracts 5lb/2.5kg from text box
                         setState(() {
-                            double tempText =
-                              double.parse(_myController.text);
-                            if (boolBox.getAt(7)!) {
-                              if (tempText <= 5) {
-                                tempText = 0;
-                              } else {
-                                tempText -= 5;
-                              }
+                          double tempText = double.parse(_myController.text);
+                          if (boolBox.getAt(7)!) {
+                            if (tempText <= 5) {
+                              tempText = 0;
+                            } else {
+                              tempText -= 5;
                             }
-                            else {
-                              if (tempText <= 2.5) {
-                                tempText = 0;
-                              } else {
-                                tempText -= 2.5;
-                              }
+                          } else {
+                            if (tempText <= 2.5) {
+                              tempText = 0;
+                            } else {
+                              tempText -= 2.5;
                             }
-                            tempText % 1 == 0
-                            ? _myController.text = tempText.toInt().toString()
-                            : _myController.text = tempText.toString();
-                          _myController.selection =
-                              TextSelection.collapsed(
-                                  offset: _myController.text.length);
+                          }
+                          tempText % 1 == 0
+                              ? _myController.text = tempText.toInt().toString()
+                              : _myController.text = tempText.toString();
+                          _myController.selection = TextSelection.collapsed(
+                              offset: _myController.text.length);
                         });
                       },
                     ),
@@ -3879,9 +3874,14 @@ class _ListState extends State<ListPage> {
       if (k != indivWorkoutsBox.getAt(i)!.setsPlanned[j] - 1) {
         output += "/";
       } else {
-        if (successCounter == indivWorkoutsBox.getAt(i)!.setsPlanned[j]) {
+        if (successCounter == indivWorkoutsBox.getAt(i)!.setsPlanned[j] &&
+            indivWorkoutsBox.getAt(i)!.setsPlanned[j] != 1) {
           output = "";
           output += indivWorkoutsBox.getAt(i)!.setsPlanned[j].toString();
+          output += "×";
+          output += indivWorkoutsBox.getAt(i)!.repsPlanned[j].toString();
+          output += " ";
+        } else if (indivWorkoutsBox.getAt(i)!.setsPlanned[j] == 1) {
           output += "×";
         } else {
           output += " ";
@@ -4939,185 +4939,72 @@ class _WorkoutPageState extends State<WorkoutPage> {
                   ),
                   child: const Text("Finish"),
                   onPressed: () {
-                    AwesomeNotifications().cancelAll();
-                    widget.index == workoutsBox.length - 1
-                        ? {counterBox.putAt(0, 0), counterBox.putAt(1, 0)}
-                        // loops counter according to selected workout
-                        : {
-                            counterBox.putAt(0, widget.index + 1),
-                            counterBox.putAt(1, widget.index + 1)
-                          };
-
-                    showTimer = false;
-                    timer?.cancel();
-                    boolBox.putAt(5, false);
-
-                    String name = workoutsBox.getAt(widget.index)!.name;
-                    DateTime now = DateTime.now();
-                    String date = DateFormat('E, d MMM yyyy').format(now);
-                    String sortableDate = DateFormat('yyyyMMdd').format(now);
-                    List<String> exercisesCompleted = [];
-                    List<double> weights = [];
-                    List<int> repsPlanned = [];
-                    List<int> setsPlanned = [];
-                    List<List<int>> repsCompleted = [];
-
+                    bool complete = true;
+                    bool allIncomplete = true;
                     for (int i = 0;
                         i < workoutsBox.getAt(widget.index)!.exercises.length;
                         i++) {
-                      bool exerciseFailed = false;
-
-                      exercisesCompleted.add(
-                          workoutsBox.getAt(widget.index)!.exercises[i].name);
-                      weights.add(
-                          workoutsBox.getAt(widget.index)!.exercises[i].weight);
-                      repsPlanned.add(
-                          workoutsBox.getAt(widget.index)!.exercises[i].reps);
-                      setsPlanned.add(
-                          workoutsBox.getAt(widget.index)!.exercises[i].sets);
-
-                      // extremely weird error (appeared to be pass-by-reference
-                      // with the repsCompleted, despite that not being possible)
-                      // this is the roundabout solution I found
-                      repsCompleted.add([0]);
-                      repsCompleted[i].add(workoutsBox
-                          .getAt(widget.index)!
-                          .exercises[i]
-                          .repsCompleted[0]);
-                      repsCompleted[i].removeAt(0);
-
-                      final tempWorkout =
-                          Hive.box<Workout>('workoutsBox').getAt(widget.index);
-
-                      if (tempWorkout!.exercises[i].repsCompleted[0] !=
-                          tempWorkout.exercises[i].reps) {
-                        exerciseFailed = true;
-                      }
-                      for (int j = 1;
-                          j < tempWorkout.exercises[i].repsCompleted.length;
+                      for (int j = 0;
+                          j <
+                              workoutsBox
+                                  .getAt(widget.index)!
+                                  .exercises[i]
+                                  .sets;
                           j++) {
-                        repsCompleted[i]
-                            .add(tempWorkout.exercises[i].repsCompleted[j]);
-
-                        if (tempWorkout.exercises[i].repsCompleted[j] !=
-                            tempWorkout.exercises[i].reps) {
-                          exerciseFailed = true;
-                        }
-                      }
-
-                      tempWorkout.exercises[i].repsCompleted.clear();
-                      String name = tempWorkout.exercises[i].name;
-                      tempWorkout.save();
-
-                      int exIdx = 0;
-                      for (int i = 0; i < exercisesBox.length; i++) {
-                        if (exercisesBox.getAt(i)!.name == name) {
-                          exIdx = i;
-                        }
-                      }
-
-                      if (exerciseFailed == true) {
-                        // deloads
-                        if (exercisesBox.getAt(exIdx)!.deload &&
-                            exercisesBox.getAt(exIdx)!.failed + 1 >=
-                                exercisesBox.getAt(exIdx)!.deloadFrequency) {
-                          exercisesBox.getAt(exIdx)!.failed = 0;
-                          exercisesBox.getAt(exIdx)!.success = 0;
-                          decrementWeight(exIdx);
-                          exercisesBox.getAt(exIdx)!.save();
-
-                          // because of how Hive works, we also have to
-                          // go through each individual workout
-                          // inefficient, but I can't find a better way
-                          for (int i = 0; i < workoutsBox.length; i++) {
-                            final tempWorkout =
-                                Hive.box<Workout>('workoutsBox').getAt(i);
-                            for (int j = 0;
-                                j < tempWorkout!.exercises.length;
-                                j++) {
-                              if (tempWorkout.exercises[j].name == name) {
-                                tempWorkout.exercises[j].weight =
-                                    exercisesBox.getAt(exIdx)!.weight;
-                              }
-                              tempWorkout.save();
-                            }
-                          }
-                        }
-                        // increments failure counter, not yet at deload
-                        else {
-                          exercisesBox.getAt(exIdx)!.success = 0;
-                          exercisesBox.getAt(exIdx)!.failed += 1;
-                          exercisesBox.getAt(exIdx)!.save();
-                        }
-                      }
-                      // increment for all exercises with the same name
-                      // if success count matches increment frequency
-                      // and overload is on
-                      else if (exerciseFailed == false) {
-                        // increments for all and resets success counter
-                        if (exercisesBox.getAt(exIdx)!.overload &&
-                            exercisesBox.getAt(exIdx)!.success + 1 >=
-                                exercisesBox.getAt(exIdx)!.incrementFrequency) {
-                          exercisesBox.getAt(exIdx)!.weight +=
-                              exercisesBox.getAt(exIdx)!.increment;
-                          exercisesBox.getAt(exIdx)!.success = 0;
-                          exercisesBox.getAt(exIdx)!.failed = 0;
-                          exercisesBox.getAt(exIdx)!.save();
-
-                          for (int i = 0; i < workoutsBox.length; i++) {
-                            final tempWorkout =
-                                Hive.box<Workout>('workoutsBox').getAt(i);
-                            for (int j = 0;
-                                j < tempWorkout!.exercises.length;
-                                j++) {
-                              if (tempWorkout.exercises[j].name == name) {
-                                tempWorkout.exercises[j].weight =
-                                    exercisesBox.getAt(exIdx)!.weight;
-                              }
-                              tempWorkout.save();
-                            }
-                          }
-                        }
-                        // increments success counter, but does not add weight because
-                        // not at frequency to increment yet
-                        else {
-                          exercisesBox.getAt(exIdx)!.success += 1;
-                          exercisesBox.getAt(exIdx)!.failed = 0;
-                          exercisesBox.getAt(exIdx)!.save();
+                        if (workoutsBox
+                                .getAt(widget.index)!
+                                .exercises[i]
+                                .repsCompleted[j] ==
+                            workoutsBox.getAt(widget.index)!.exercises[i].reps +
+                                1) {
+                          complete = false;
+                        } else {
+                          allIncomplete = false;
                         }
                       }
                     }
-
-                    indivWorkoutsBox.add(IndivWorkout(
-                        name,
-                        date,
-                        sortableDate,
-                        exercisesCompleted,
-                        weights,
-                        repsPlanned,
-                        setsPlanned,
-                        repsCompleted,
-                        tempNoteBox.getAt(0)!,
-                        tempBodyWeightBox.getAt(0)!));
-
-                    tempNoteBox.putAt(0, ""); // clears note for next workout
-
-                    _counter.value++;
-                    _progressCounter.value++;
-                    _calendarCounter.value++;
-
-                    for (int i = 0; i < workoutsBox.length; i++) {
-                      final tempWorkout =
-                          Hive.box<Workout>('workoutsBox').getAt(i);
-                      tempWorkout!.isInitialized = false;
-
-                      for (int j = 0; j < tempWorkout.exercises.length; j++) {
-                        tempWorkout.exercises[j].repsCompleted.clear();
-                        tempWorkout.save();
-                      }
+                    if (!complete) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          backgroundColor: tileColor,
+                          title: Text('Finish Workout?',
+                              style: TextStyle(fontSize: 20, color: textColor)),
+                          content: Text(
+                              'You haven\'t logged all sets. Are you sure you want to finish this workout?',
+                              style: TextStyle(fontSize: 15, color: textColor)),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(fontSize: 16, color: redColor),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                if (allIncomplete) {}
+                                else {
+                                  workoutFinish();
+                                }
+                              },
+                              child: const Text(
+                                'Finish',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: redColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ));
                     }
-
-                    Navigator.of(context).pop();
+                    else {
+                      workoutFinish();
+                    }
                   },
                 ),
               ],
@@ -5759,6 +5646,172 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                 ])),
                       ]);
                 })));
+  }
+
+  void workoutFinish() {
+    AwesomeNotifications().cancelAll();
+    widget.index == workoutsBox.length - 1
+        ? {counterBox.putAt(0, 0), counterBox.putAt(1, 0)}
+        // loops counter according to selected workout
+        : {
+            counterBox.putAt(0, widget.index + 1),
+            counterBox.putAt(1, widget.index + 1)
+          };
+
+    showTimer = false;
+    timer?.cancel();
+    boolBox.putAt(5, false);
+
+    String name = workoutsBox.getAt(widget.index)!.name;
+    DateTime now = DateTime.now();
+    String date = DateFormat('E, d MMM yyyy').format(now);
+    String sortableDate = DateFormat('yyyyMMdd').format(now);
+    List<String> exercisesCompleted = [];
+    List<double> weights = [];
+    List<int> repsPlanned = [];
+    List<int> setsPlanned = [];
+    List<List<int>> repsCompleted = [];
+
+    for (int i = 0;
+        i < workoutsBox.getAt(widget.index)!.exercises.length;
+        i++) {
+      bool exerciseFailed = false;
+
+      exercisesCompleted
+          .add(workoutsBox.getAt(widget.index)!.exercises[i].name);
+      weights.add(workoutsBox.getAt(widget.index)!.exercises[i].weight);
+      repsPlanned.add(workoutsBox.getAt(widget.index)!.exercises[i].reps);
+      setsPlanned.add(workoutsBox.getAt(widget.index)!.exercises[i].sets);
+
+      // extremely weird error (appeared to be pass-by-reference
+      // with the repsCompleted, despite that not being possible)
+      // this is the roundabout solution I found
+      repsCompleted.add([0]);
+      repsCompleted[i]
+          .add(workoutsBox.getAt(widget.index)!.exercises[i].repsCompleted[0]);
+      repsCompleted[i].removeAt(0);
+
+      final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(widget.index);
+
+      if (tempWorkout!.exercises[i].repsCompleted[0] !=
+          tempWorkout.exercises[i].reps) {
+        exerciseFailed = true;
+      }
+      for (int j = 1; j < tempWorkout.exercises[i].repsCompleted.length; j++) {
+        repsCompleted[i].add(tempWorkout.exercises[i].repsCompleted[j]);
+
+        if (tempWorkout.exercises[i].repsCompleted[j] !=
+            tempWorkout.exercises[i].reps) {
+          exerciseFailed = true;
+        }
+      }
+
+      tempWorkout.exercises[i].repsCompleted.clear();
+      String name = tempWorkout.exercises[i].name;
+      tempWorkout.save();
+
+      int exIdx = 0;
+      for (int i = 0; i < exercisesBox.length; i++) {
+        if (exercisesBox.getAt(i)!.name == name) {
+          exIdx = i;
+        }
+      }
+
+      if (exerciseFailed == true) {
+        // deloads
+        if (exercisesBox.getAt(exIdx)!.deload &&
+            exercisesBox.getAt(exIdx)!.failed + 1 >=
+                exercisesBox.getAt(exIdx)!.deloadFrequency) {
+          exercisesBox.getAt(exIdx)!.failed = 0;
+          exercisesBox.getAt(exIdx)!.success = 0;
+          decrementWeight(exIdx);
+          exercisesBox.getAt(exIdx)!.save();
+
+          // because of how Hive works, we also have to
+          // go through each individual workout
+          // inefficient, but I can't find a better way
+          for (int i = 0; i < workoutsBox.length; i++) {
+            final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(i);
+            for (int j = 0; j < tempWorkout!.exercises.length; j++) {
+              if (tempWorkout.exercises[j].name == name) {
+                tempWorkout.exercises[j].weight =
+                    exercisesBox.getAt(exIdx)!.weight;
+              }
+              tempWorkout.save();
+            }
+          }
+        }
+        // increments failure counter, not yet at deload
+        else {
+          exercisesBox.getAt(exIdx)!.success = 0;
+          exercisesBox.getAt(exIdx)!.failed += 1;
+          exercisesBox.getAt(exIdx)!.save();
+        }
+      }
+      // increment for all exercises with the same name
+      // if success count matches increment frequency
+      // and overload is on
+      else if (exerciseFailed == false) {
+        // increments for all and resets success counter
+        if (exercisesBox.getAt(exIdx)!.overload &&
+            exercisesBox.getAt(exIdx)!.success + 1 >=
+                exercisesBox.getAt(exIdx)!.incrementFrequency) {
+          exercisesBox.getAt(exIdx)!.weight +=
+              exercisesBox.getAt(exIdx)!.increment;
+          exercisesBox.getAt(exIdx)!.success = 0;
+          exercisesBox.getAt(exIdx)!.failed = 0;
+          exercisesBox.getAt(exIdx)!.save();
+
+          for (int i = 0; i < workoutsBox.length; i++) {
+            final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(i);
+            for (int j = 0; j < tempWorkout!.exercises.length; j++) {
+              if (tempWorkout.exercises[j].name == name) {
+                tempWorkout.exercises[j].weight =
+                    exercisesBox.getAt(exIdx)!.weight;
+              }
+              tempWorkout.save();
+            }
+          }
+        }
+        // increments success counter, but does not add weight because
+        // not at frequency to increment yet
+        else {
+          exercisesBox.getAt(exIdx)!.success += 1;
+          exercisesBox.getAt(exIdx)!.failed = 0;
+          exercisesBox.getAt(exIdx)!.save();
+        }
+      }
+    }
+
+    indivWorkoutsBox.add(IndivWorkout(
+        name,
+        date,
+        sortableDate,
+        exercisesCompleted,
+        weights,
+        repsPlanned,
+        setsPlanned,
+        repsCompleted,
+        tempNoteBox.getAt(0)!,
+        tempBodyWeightBox.getAt(0)!));
+
+    tempNoteBox.putAt(0, ""); // clears note for next workout
+
+    _counter.value++;
+    _progressCounter.value++;
+    _calendarCounter.value++;
+
+    for (int i = 0; i < workoutsBox.length; i++) {
+      final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(i);
+      tempWorkout!.isInitialized = false;
+
+      for (int j = 0; j < tempWorkout.exercises.length; j++) {
+        tempWorkout.exercises[j].repsCompleted.clear();
+        tempWorkout.save();
+      }
+    }
+
+    Navigator.of(context).pop();
   }
 
   Future<bool> _onBackPressed() async {
@@ -6893,28 +6946,30 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                   onPressed: () {
                                     // subtracts 5lb/2.5kg from text box
                                     setState(() {
-                                        double tempText =
+                                      double tempText =
                                           double.parse(_myController.text);
-                                        if (boolBox.getAt(7)!) {
-                                          if (tempText <= 5) {
-                                            tempText = 0;
-                                          } else {
-                                            tempText -= 5;
-                                          }
+                                      if (boolBox.getAt(7)!) {
+                                        if (tempText <= 5) {
+                                          tempText = 0;
+                                        } else {
+                                          tempText -= 5;
                                         }
-                                        else {
-                                          if (tempText <= 2.5) {
-                                            tempText = 0;
-                                          } else {
-                                            tempText -= 2.5;
-                                          }
+                                      } else {
+                                        if (tempText <= 2.5) {
+                                          tempText = 0;
+                                        } else {
+                                          tempText -= 2.5;
                                         }
-                                        tempText % 1 == 0
-                                        ? _myController.text = tempText.toInt().toString()
-                                        : _myController.text = tempText.toString();
+                                      }
+                                      tempText % 1 == 0
+                                          ? _myController.text =
+                                              tempText.toInt().toString()
+                                          : _myController.text =
+                                              tempText.toString();
                                       _myController.selection =
                                           TextSelection.collapsed(
-                                              offset: _myController.text.length);
+                                              offset:
+                                                  _myController.text.length);
                                     });
                                   },
                                 ),
@@ -6931,22 +6986,28 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                     primary: Colors.white,
                                     backgroundColor: Colors.black,
                                     shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(5))),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(5))),
                                   ),
                                   onPressed: () {
                                     // adds 5lb/2.5kg to text box
                                     setState(() {
-                                      double tempText = double.parse(_myController.text);
+                                      double tempText =
+                                          double.parse(_myController.text);
                                       if (boolBox.getAt(7)!) {
                                         tempText += 5;
                                       } else {
                                         tempText += 2.5;
                                       }
                                       tempText % 1 == 0
-                                          ? _myController.text = tempText.toInt().toString()
-                                          : _myController.text = tempText.toString();
-                                      _myController.selection = TextSelection.collapsed(
-                                          offset: _myController.text.length);
+                                          ? _myController.text =
+                                              tempText.toInt().toString()
+                                          : _myController.text =
+                                              tempText.toString();
+                                      _myController.selection =
+                                          TextSelection.collapsed(
+                                              offset:
+                                                  _myController.text.length);
                                     });
                                   },
                                 ),
@@ -7132,28 +7193,30 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                   onPressed: () {
                                     // subtracts 5lb/2.5kg from text box
                                     setState(() {
-                                        double tempText =
+                                      double tempText =
                                           double.parse(_myController.text);
-                                        if (boolBox.getAt(7)!) {
-                                          if (tempText <= 5) {
-                                            tempText = 0;
-                                          } else {
-                                            tempText -= 5;
-                                          }
+                                      if (boolBox.getAt(7)!) {
+                                        if (tempText <= 5) {
+                                          tempText = 0;
+                                        } else {
+                                          tempText -= 5;
                                         }
-                                        else {
-                                          if (tempText <= 2.5) {
-                                            tempText = 0;
-                                          } else {
-                                            tempText -= 2.5;
-                                          }
+                                      } else {
+                                        if (tempText <= 2.5) {
+                                          tempText = 0;
+                                        } else {
+                                          tempText -= 2.5;
                                         }
-                                        tempText % 1 == 0
-                                        ? _myController.text = tempText.toInt().toString()
-                                        : _myController.text = tempText.toString();
+                                      }
+                                      tempText % 1 == 0
+                                          ? _myController.text =
+                                              tempText.toInt().toString()
+                                          : _myController.text =
+                                              tempText.toString();
                                       _myController.selection =
                                           TextSelection.collapsed(
-                                              offset: _myController.text.length);
+                                              offset:
+                                                  _myController.text.length);
                                     });
                                   },
                                 ),
@@ -7170,22 +7233,28 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                     primary: Colors.white,
                                     backgroundColor: Colors.black,
                                     shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(5))),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(5))),
                                   ),
                                   onPressed: () {
                                     // adds 5lb/2.5kg to text box
                                     setState(() {
-                                      double tempText = double.parse(_myController.text);
+                                      double tempText =
+                                          double.parse(_myController.text);
                                       if (boolBox.getAt(7)!) {
                                         tempText += 5;
                                       } else {
                                         tempText += 2.5;
                                       }
                                       tempText % 1 == 0
-                                          ? _myController.text = tempText.toInt().toString()
-                                          : _myController.text = tempText.toString();
-                                      _myController.selection = TextSelection.collapsed(
-                                          offset: _myController.text.length);
+                                          ? _myController.text =
+                                              tempText.toInt().toString()
+                                          : _myController.text =
+                                              tempText.toString();
+                                      _myController.selection =
+                                          TextSelection.collapsed(
+                                              offset:
+                                                  _myController.text.length);
                                     });
                                   },
                                 ),
@@ -8195,34 +8264,30 @@ class _IncrementsPageState extends State<IncrementsPage> {
                         primary: Colors.white,
                         backgroundColor: Colors.black,
                         shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                                Radius.circular(5))),
+                            borderRadius: BorderRadius.all(Radius.circular(5))),
                       ),
                       onPressed: () {
                         // subtracts 5lb/2.5kg from text box
                         setState(() {
-                            double tempText =
-                              double.parse(_myController.text);
-                            if (boolBox.getAt(7)!) {
-                              if (tempText <= 5) {
-                                tempText = 0;
-                              } else {
-                                tempText -= 5;
-                              }
+                          double tempText = double.parse(_myController.text);
+                          if (boolBox.getAt(7)!) {
+                            if (tempText <= 5) {
+                              tempText = 0;
+                            } else {
+                              tempText -= 5;
                             }
-                            else {
-                              if (tempText <= 2.5) {
-                                tempText = 0;
-                              } else {
-                                tempText -= 2.5;
-                              }
+                          } else {
+                            if (tempText <= 2.5) {
+                              tempText = 0;
+                            } else {
+                              tempText -= 2.5;
                             }
-                            tempText % 1 == 0
-                            ? _myController.text = tempText.toInt().toString()
-                            : _myController.text = tempText.toString();
-                          _myController.selection =
-                              TextSelection.collapsed(
-                                  offset: _myController.text.length);
+                          }
+                          tempText % 1 == 0
+                              ? _myController.text = tempText.toInt().toString()
+                              : _myController.text = tempText.toString();
+                          _myController.selection = TextSelection.collapsed(
+                              offset: _myController.text.length);
                         });
                       },
                     ),
