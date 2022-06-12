@@ -36,7 +36,7 @@ void main() async {
   // idx 0 is actual counter, 1 is temp counter
   await Hive.openBox<int>('counterBox');
   // boolBox contains: theme, timer, ring, vibration,
-  // notifications, workout in progres, keep awake
+  // notifications, workout in progres, keep awake, lb/kg
   await Hive.openBox<bool>('boolBox');
   await Hive.openBox<TimerMap>('successTimerBox');
   await Hive.openBox<TimerMap>('failTimerBox');
@@ -106,6 +106,7 @@ int exerciseIndex = 0;
 int setIndex = 0;
 late bool failed;
 bool changesMade = false;
+late String lbKg;
 
 late Color headerColor;
 late Color backColor;
@@ -136,7 +137,6 @@ ValueNotifier<int> _progressCounter =
 ValueNotifier<int> _calendarCounter =
     ValueNotifier<int>(0); // for calendar page
 ValueNotifier<int> _themeCounter = ValueNotifier<int>(0); // for dark/light mode
-ValueNotifier<int> _timerPageCounter = ValueNotifier<int>(0); // for timer page
 
 @HiveType(typeId: 1)
 class Workout extends HiveObject {
@@ -251,11 +251,6 @@ class IndivWorkout extends HiveObject {
 Exercise customxyz = Exercise("Custom Exercise", 0, 0, 0);
 
 void defaultState() async {
-  showTimer = false;
-  _counter.value++;
-  _progressCounter.value++;
-  _calendarCounter.value++;
-  _themeCounter.value++;
   AwesomeNotifications().cancelAll();
 
   Box<double> defaultsBox = Hive.box<double>('defaultsBox');
@@ -335,6 +330,8 @@ void defaultState() async {
   boolBox.add(false);
   boolBox.add(false);
   boolBox.add(true);
+  boolBox.add(true);
+  lbKg = "lb";
 
   Box<TimerMap> successTimerBox = Hive.box<TimerMap>('successTimerBox');
   successTimerBox.deleteAll(successTimerBox.keys);
@@ -351,6 +348,12 @@ void defaultState() async {
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('resetToDefault', false);
+  
+  showTimer = false;
+  _counter.value++;
+  _progressCounter.value++;
+  _calendarCounter.value++;
+  _themeCounter.value++;  
 }
 
 void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
@@ -503,11 +506,11 @@ void createNotification(int exIdx, int setIdx) {
             ? workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight %
                         1 ==
                     0
-                ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].reps}×${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight.toInt()}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
-                : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].reps}×${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight}lb - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
+                ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].reps}×${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight.toInt()}$lbKg - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
+                : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].reps}×${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight}$lbKg - Set 1/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].sets}"
             : workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight % 1 == 0
-                ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].reps}×${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight.toInt()}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}"
-                : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].reps}×${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight}lb - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}",
+                ? "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].reps}×${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight.toInt()}$lbKg - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}"
+                : "${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].reps}×${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].weight}$lbKg - Set ${setIdx + 2}/${workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets}",
         payload: {"name": "BlockLifts"},
         autoDismissible: false,
         locked: true,
@@ -561,7 +564,7 @@ class MyApp extends StatelessWidget {
         incrementCircles(workoutIndex, exerciseIndex, setIndex + 1, true);
       }
     });
-
+    boolBox.getAt(7)! ? lbKg = "lb" : lbKg = "kg";
     return ValueListenableBuilder(
         valueListenable: _themeCounter,
         builder: (_, model, __) {
@@ -1018,7 +1021,8 @@ class _HomeState extends State<Home> {
               elevation: 0,
               centerTitle: true,
               backgroundColor: headerColor,
-              title: const Text("BlockLifts"),
+              title: const Text("BLOCKLIFTS",
+                  style: TextStyle(fontFamily: 'Teko')),
               titleTextStyle: TextStyle(fontSize: 22, color: textColor),
               actions: <Widget>[
                 TextButton(
@@ -1250,7 +1254,7 @@ class _HomeState extends State<Home> {
                                 child: Align(
                                     alignment: Alignment.centerRight,
                                     child: Text(
-                                        "${workoutsBox.getAt(i)!.exercises[j].sets}×${workoutsBox.getAt(i)!.exercises[j].reps} ${workoutsBox.getAt(i)!.exercises[j].weight ~/ 1}lb",
+                                        "${workoutsBox.getAt(i)!.exercises[j].sets}×${workoutsBox.getAt(i)!.exercises[j].reps} ${workoutsBox.getAt(i)!.exercises[j].weight ~/ 1}$lbKg",
                                         style: TextStyle(
                                           fontSize: 17,
                                           color: textColor,
@@ -1260,7 +1264,7 @@ class _HomeState extends State<Home> {
                                 child: Align(
                                     alignment: Alignment.centerRight,
                                     child: Text(
-                                        "${workoutsBox.getAt(i)!.exercises[j].sets}×${workoutsBox.getAt(i)!.exercises[j].reps} ${workoutsBox.getAt(i)!.exercises[j].weight.toString()}lb",
+                                        "${workoutsBox.getAt(i)!.exercises[j].sets}×${workoutsBox.getAt(i)!.exercises[j].reps} ${workoutsBox.getAt(i)!.exercises[j].weight.toString()}$lbKg",
                                         style: TextStyle(
                                           fontSize: 17,
                                           color: textColor,
@@ -1428,11 +1432,11 @@ class _ProgressState extends State<Progress> {
                                                       1 ==
                                                   0
                                               ? Text(
-                                                  "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
+                                                  "${exercisesBox.getAt(i)!.weight.toInt().toString()}$lbKg",
                                                   style: TextStyle(
                                                       color: greyColor))
                                               : Text(
-                                                  "${exercisesBox.getAt(i)!.weight.toString()}lb",
+                                                  "${exercisesBox.getAt(i)!.weight.toString()}$lbKg",
                                                   style: TextStyle(
                                                       color: greyColor)),
                                         ),
@@ -1482,7 +1486,7 @@ class _ProgressState extends State<Progress> {
                                       Align(
                                         alignment: Alignment.centerLeft,
                                         child: indivWorkoutsBox.isEmpty
-                                            ? Text("150lb",
+                                            ? Text("150$lbKg",
                                                 style:
                                                     TextStyle(color: greyColor))
                                             : indivWorkoutsBox
@@ -1494,11 +1498,11 @@ class _ProgressState extends State<Progress> {
                                                         1 ==
                                                     0
                                                 ? Text(
-                                                    "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toInt().toString()}lb",
+                                                    "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toInt().toString()}$lbKg",
                                                     style: TextStyle(
                                                         color: greyColor))
                                                 : Text(
-                                                    "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toString()}lb",
+                                                    "${indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.bodyWeight.toString()}$lbKg",
                                                     style: TextStyle(
                                                         color: greyColor)),
                                       ),
@@ -1554,11 +1558,11 @@ class _ProgressState extends State<Progress> {
                                                         1 ==
                                                     0
                                                 ? Text(
-                                                    "${exercisesBox.getAt(i)!.weight.toInt().toString()}lb",
+                                                    "${exercisesBox.getAt(i)!.weight.toInt().toString()}$lbKg",
                                                     style: TextStyle(
                                                         color: greyColor))
                                                 : Text(
-                                                    "${exercisesBox.getAt(i)!.weight.toString()}lb",
+                                                    "${exercisesBox.getAt(i)!.weight.toString()}$lbKg",
                                                     style: TextStyle(
                                                         color: greyColor)),
                                           ),
@@ -1621,7 +1625,7 @@ class _SettingsState extends State<Settings> {
       platesBox.getAt(i)!.weight % 1 == 0
           ? output += platesBox.getAt(i)!.weight.toInt().toString()
           : output += platesBox.getAt(i)!.weight.toString();
-      i == platesBox.length - 1 ? output += 'lb' : output += ' ⋅ ';
+      i == platesBox.length - 1 ? output += lbKg : output += ' ⋅ ';
     }
     return output;
   }
@@ -1719,6 +1723,34 @@ class _SettingsState extends State<Settings> {
                 child: Column(children: [
                   Align(
                     alignment: Alignment.centerLeft,
+                    child:
+                        Text("Weight Unit", style: TextStyle(color: textColor)),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: boolBox.getAt(7)! == true
+                        ? Text("lb", style: TextStyle(color: greyColor))
+                        : Text("kg", style: TextStyle(color: greyColor)),
+                  ),
+                ]),
+              ),
+            ]),
+          ),
+          onPressed: () {
+            showDialog(context: context, builder: (context) => unitSelector());
+          },
+        ),
+        TextButton(
+          style: TextButton.styleFrom(
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Row(children: <Widget>[
+              Expanded(
+                child: Column(children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
                     child: Text("Plates", style: TextStyle(color: textColor)),
                   ),
                   const SizedBox(height: 8),
@@ -1746,25 +1778,25 @@ class _SettingsState extends State<Settings> {
           child: Container(
             padding: const EdgeInsets.all(10),
             child: Column(children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text("Default Bar Weight",
-                        style: TextStyle(color: textColor)),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: defaultsBox.getAt(0)! % 1 == 0
-                        ? Text(defaultsBox.getAt(0)!.toInt().toString() + "lb",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: greyColor))
-                        : Text(defaultsBox.getAt(0)!.toString() + "lb",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: greyColor)),
-                  ),
-                ]),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text("Default Bar Weight",
+                    style: TextStyle(color: textColor)),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: defaultsBox.getAt(0)! % 1 == 0
+                    ? Text(defaultsBox.getAt(0)!.toInt().toString() + lbKg,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: greyColor))
+                    : Text(defaultsBox.getAt(0)!.toString() + lbKg,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: greyColor)),
+              ),
+            ]),
           ),
           onPressed: () {
             defaultsBox.getAt(0)! % 1 == 0
@@ -1983,81 +2015,81 @@ class _SettingsState extends State<Settings> {
           onPressed: () {
             _myController.text = defaultsBox.getAt(2)!.toInt().toString();
             showDialog(
-                context: context,
-                builder: (context) => Dialog(
-                      insetPadding: const EdgeInsets.all(10),
-                      child: Container(
-                        color: tileColor,
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text("Default Reps",
-                                      style: TextStyle(
-                                          fontSize: 20, color: textColor))),
-                              const SizedBox(height: 20),
-                              TextField(
-                                inputFormatters: <TextInputFormatter>[
-                                  FilteringTextInputFormatter(RegExp(r'[0-99]'),
-                                      allow: true)
-                                ],
-                                style: TextStyle(color: textColor),
-                                controller: _myController,
-                                autofocus: true,
-                                keyboardType: TextInputType.number,
-                                textAlignVertical: TextAlignVertical.bottom,
-                                decoration: const InputDecoration(
-                                  contentPadding: EdgeInsets.only(bottom: 10),
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
+              context: context,
+              builder: (context) => Dialog(
+                  insetPadding: const EdgeInsets.all(10),
+                  child: Container(
+                    color: tileColor,
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text("Default Reps",
+                                  style: TextStyle(
+                                      fontSize: 20, color: textColor))),
+                          const SizedBox(height: 20),
+                          TextField(
+                            inputFormatters: <TextInputFormatter>[
+                              FilteringTextInputFormatter(RegExp(r'[0-99]'),
+                                  allow: true)
+                            ],
+                            style: TextStyle(color: textColor),
+                            controller: _myController,
+                            autofocus: true,
+                            keyboardType: TextInputType.number,
+                            textAlignVertical: TextAlignVertical.bottom,
+                            decoration: const InputDecoration(
+                              contentPadding: EdgeInsets.only(bottom: 10),
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                            ),
+                          ),
+                          Divider(
+                            color: underlineColor,
+                            height: 2,
+                            thickness: 2,
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: <Widget>[
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    primary: redColor,
+                                    textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                    alignment: Alignment.center,
+                                  ),
+                                  child: const Text("Cancel"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
                                 ),
-                              ),
-                              Divider(
-                                color: underlineColor,
-                                height: 2,
-                                thickness: 2,
-                              ),
-                              const SizedBox(height: 20),
-                              Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: <Widget>[
-                                    TextButton(
-                                      style: TextButton.styleFrom(
-                                        primary: redColor,
-                                        textStyle: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                        alignment: Alignment.center,
-                                      ),
-                                      child: const Text("Cancel"),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                    const SizedBox(width: 20),
-                                    TextButton(
-                                      style: TextButton.styleFrom(
-                                        primary: redColor,
-                                        textStyle: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                        alignment: Alignment.center,
-                                      ),
-                                      child: const Text("OK"),
-                                      onPressed: () {
-                                        setState(() {
-                                          defaultsBox.putAt(2,
-                                              double.parse(_myController.text));
-                                        });
-                                        Navigator.of(context).pop();
-                                      },
-                                    )
-                                  ]),
-                            ]),
-                      )),
-                    );
+                                const SizedBox(width: 20),
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    primary: redColor,
+                                    textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                    alignment: Alignment.center,
+                                  ),
+                                  child: const Text("OK"),
+                                  onPressed: () {
+                                    setState(() {
+                                      defaultsBox.putAt(
+                                          2, double.parse(_myController.text));
+                                    });
+                                    Navigator.of(context).pop();
+                                  },
+                                )
+                              ]),
+                        ]),
+                  )),
+            );
           },
         ),
         TextButton(
@@ -2141,6 +2173,77 @@ class _SettingsState extends State<Settings> {
             }),
       ]),
     );
+  }
+
+  Widget unitSelector() {
+    int tempUnit = boolBox.getAt(7)! ? 0 : 1;
+    return StatefulBuilder(builder: (context, _setState) {
+      return Dialog(
+        backgroundColor: tileColor,
+        insetPadding: const EdgeInsets.fromLTRB(50, 0, 50, 0),
+        child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+          Container(
+            padding: const EdgeInsets.all(20),
+            child: const Align(
+                alignment: Alignment.centerLeft,
+                child: Text("Weight Unit", style: TextStyle(fontSize: 18))),
+          ),
+          RadioListTile<int>(
+              title: const Text("lb", style: TextStyle(fontSize: 15)),
+              activeColor: redColor,
+              dense: true,
+              value: 0,
+              groupValue: tempUnit,
+              onChanged: (value) {
+                _setState(() {
+                  tempUnit = value!;
+                });
+              }),
+          RadioListTile<int>(
+              title: const Text("kg", style: TextStyle(fontSize: 15)),
+              activeColor: redColor,
+              dense: true,
+              value: 1,
+              groupValue: tempUnit,
+              onChanged: (value) {
+                _setState(() {
+                  tempUnit = value!;
+                });
+              }),
+          Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
+            TextButton(
+                child: const Text("Cancel"),
+                style: TextButton.styleFrom(
+                  primary: redColor,
+                  textStyle: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                  alignment: Alignment.center,
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                }),
+            const SizedBox(width: 20),
+            TextButton(
+                child: const Text("OK"),
+                style: TextButton.styleFrom(
+                  primary: redColor,
+                  textStyle: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                  alignment: Alignment.center,
+                ),
+                onPressed: () {
+                  setState(() {
+                    boolBox.putAt(7, tempUnit == 0 ? true : false);
+                    lbKg = tempUnit == 0 ? "lb" : "kg";
+                  });
+                  _counter.value++;
+                  Navigator.of(context).pop();
+                }),
+          ]),
+          const SizedBox(height: 10),
+        ]),
+      );
+    });
   }
 }
 
@@ -2339,9 +2442,10 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: graphWeight % 1 == 0
-                                  ? Text("${graphWeight.toInt().toString()}lb",
+                                  ? Text(
+                                      "${graphWeight.toInt().toString()}$lbKg",
                                       style: const TextStyle(fontSize: 18))
-                                  : Text("${graphWeight.toString()}lb",
+                                  : Text("${graphWeight.toString()}$lbKg",
                                       style: const TextStyle(fontSize: 18)),
                             ),
                             Align(
@@ -2537,7 +2641,6 @@ class _TimerState extends State<TimerPage> {
         boolBox.putAt(1, false);
       });
     }
-    _timerPageCounter.value++;
   }
 
   // ring
@@ -2551,7 +2654,6 @@ class _TimerState extends State<TimerPage> {
         boolBox.putAt(2, false);
       });
     }
-    _timerPageCounter.value++;
   }
 
   // vibration
@@ -2565,7 +2667,6 @@ class _TimerState extends State<TimerPage> {
         boolBox.putAt(3, false);
       });
     }
-    _timerPageCounter.value++;
   }
 
   @override
@@ -2612,24 +2713,63 @@ class _TimerState extends State<TimerPage> {
   Widget build(BuildContext context) {
     successTimes = addTimes(successTimerBox);
     failTimes = addTimes(failTimerBox);
-    return ValueListenableBuilder(
-        valueListenable: _timerPageCounter,
-        builder: (context, index, child) {
-          return Scaffold(
-            backgroundColor: backColor,
-            appBar: AppBar(
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios),
-                iconSize: 18,
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              backgroundColor: headerColor,
-              title: const Text("Timer"),
-              titleTextStyle: TextStyle(fontSize: 22, color: textColor),
-            ),
-            body: ListView(children: <Widget>[
-              TextButton(
+    return Scaffold(
+      backgroundColor: backColor,
+      appBar: AppBar(
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          iconSize: 18,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        backgroundColor: headerColor,
+        title: const Text("Timer"),
+        titleTextStyle: TextStyle(fontSize: 22, color: textColor),
+      ),
+      body: ListView(children: <Widget>[
+        TextButton(
+          style: TextButton.styleFrom(
+              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            child: Column(children: <Widget>[
+              Row(children: <Widget>[
+                Expanded(
+                  child: Column(children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Timer", style: TextStyle(color: textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: boolBox.getAt(1)! == true
+                          ? Text("On", style: TextStyle(color: greyColor))
+                          : Text("Off", style: TextStyle(color: greyColor)),
+                    ),
+                  ]),
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Switch(
+                      inactiveThumbColor: greyColor,
+                      inactiveTrackColor:
+                          const Color.fromARGB(255, 207, 207, 207),
+                      activeColor: activeSwitchColor,
+                      activeTrackColor: greyColor,
+                      value: boolBox.getAt(1)!,
+                      onChanged: toggleSwitch,
+                    ),
+                  ),
+                ),
+              ]),
+            ]),
+          ),
+          onPressed: (() => toggleSwitch(false)),
+        ),
+        boolBox.getAt(1)!
+            ? TextButton(
                 style: TextButton.styleFrom(
                     primary: Colors.white,
                     textStyle: const TextStyle(fontSize: 16)),
@@ -2641,15 +2781,16 @@ class _TimerState extends State<TimerPage> {
                         child: Column(children: [
                           Align(
                             alignment: Alignment.centerLeft,
-                            child: Text("Timer",
+                            child: Text("Ring",
                                 style: TextStyle(color: textColor)),
                           ),
                           const SizedBox(height: 8),
                           Align(
                             alignment: Alignment.centerLeft,
-                            child: boolBox.getAt(1)! == true
-                                ? Text("On", style: TextStyle(color: greyColor))
-                                : Text("Off",
+                            child: boolBox.getAt(2)! == true
+                                ? Text("Enabled",
+                                    style: TextStyle(color: greyColor))
+                                : Text("Disabled",
                                     style: TextStyle(color: greyColor)),
                           ),
                         ]),
@@ -2663,193 +2804,145 @@ class _TimerState extends State<TimerPage> {
                                 const Color.fromARGB(255, 207, 207, 207),
                             activeColor: activeSwitchColor,
                             activeTrackColor: greyColor,
-                            value: boolBox.getAt(1)!,
-                            onChanged: toggleSwitch,
+                            value: boolBox.getAt(2)!,
+                            onChanged: toggleSwitch2,
                           ),
                         ),
                       ),
                     ]),
                   ]),
                 ),
-                onPressed: (() => toggleSwitch(false)),
-              ),
-              boolBox.getAt(1)!
-                  ? TextButton(
-                      style: TextButton.styleFrom(
-                          primary: Colors.white,
-                          textStyle: const TextStyle(fontSize: 16)),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(children: <Widget>[
-                          Row(children: <Widget>[
-                            Expanded(
-                              child: Column(children: [
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text("Ring",
-                                      style: TextStyle(color: textColor)),
-                                ),
-                                const SizedBox(height: 8),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: boolBox.getAt(2)! == true
-                                      ? Text("Enabled",
-                                          style: TextStyle(color: greyColor))
-                                      : Text("Disabled",
-                                          style: TextStyle(color: greyColor)),
-                                ),
-                              ]),
-                            ),
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.centerRight,
-                                child: Switch(
-                                  inactiveThumbColor: greyColor,
-                                  inactiveTrackColor:
-                                      const Color.fromARGB(255, 207, 207, 207),
-                                  activeColor: activeSwitchColor,
-                                  activeTrackColor: greyColor,
-                                  value: boolBox.getAt(2)!,
-                                  onChanged: toggleSwitch2,
-                                ),
-                              ),
-                            ),
-                          ]),
-                        ]),
-                      ),
-                      onPressed: (() => toggleSwitch2(false)),
-                    )
-                  : const SizedBox(),
-              boolBox.getAt(1)!
-                  ? TextButton(
-                      style: TextButton.styleFrom(
-                          primary: Colors.white,
-                          textStyle: const TextStyle(fontSize: 16)),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(children: <Widget>[
-                          Row(children: <Widget>[
-                            Flexible(
-                              flex: 3,
-                              child: Column(children: [
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text("Vibration",
-                                      style: TextStyle(color: textColor)),
-                                ),
-                                const SizedBox(height: 8),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: boolBox.getAt(3)! == true
-                                      ? Text("Enabled",
-                                          style: TextStyle(color: greyColor))
-                                      : Text("Disabled",
-                                          style: TextStyle(color: greyColor)),
-                                ),
-                                boolBox.getAt(3)!
-                                    ? const SizedBox(height: 8)
-                                    : const SizedBox(),
-                                boolBox.getAt(3)!
-                                    ? Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                            "Notification vibrations must be enabled",
-                                            style: TextStyle(
-                                                color: greyColor,
-                                                fontSize: 12)),
-                                      )
-                                    : const SizedBox(),
-                              ]),
-                            ),
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.centerRight,
-                                child: Switch(
-                                  inactiveThumbColor: greyColor,
-                                  inactiveTrackColor:
-                                      const Color.fromARGB(255, 207, 207, 207),
-                                  activeColor: activeSwitchColor,
-                                  activeTrackColor: greyColor,
-                                  value: boolBox.getAt(3)!,
-                                  onChanged: toggleSwitch3,
-                                ),
-                              ),
-                            ),
-                          ]),
-                        ]),
-                      ),
-                      onPressed: (() => toggleSwitch3(false)),
-                    )
-                  : const SizedBox(),
-              boolBox.getAt(1)!
-                  ? TextButton(
-                      style: TextButton.styleFrom(
-                          primary: Colors.white,
-                          textStyle: const TextStyle(fontSize: 16)),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(children: <Widget>[
+                onPressed: (() => toggleSwitch2(false)),
+              )
+            : const SizedBox(),
+        boolBox.getAt(1)!
+            ? TextButton(
+                style: TextButton.styleFrom(
+                    primary: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16)),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(children: <Widget>[
+                    Row(children: <Widget>[
+                      Flexible(
+                        flex: 3,
+                        child: Column(children: [
                           Align(
                             alignment: Alignment.centerLeft,
-                            child: Text("Success Timer",
+                            child: Text("Vibration",
                                 style: TextStyle(color: textColor)),
                           ),
                           const SizedBox(height: 8),
                           Align(
                             alignment: Alignment.centerLeft,
-                            child: Text(successTimes,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: greyColor)),
+                            child: boolBox.getAt(3)! == true
+                                ? Text("Enabled",
+                                    style: TextStyle(color: greyColor))
+                                : Text("Disabled",
+                                    style: TextStyle(color: greyColor)),
                           ),
+                          boolBox.getAt(3)!
+                              ? const SizedBox(height: 8)
+                              : const SizedBox(),
+                          boolBox.getAt(3)!
+                              ? Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                      "Notification vibrations must be enabled",
+                                      style: TextStyle(
+                                          color: greyColor, fontSize: 12)),
+                                )
+                              : const SizedBox(),
                         ]),
                       ),
-                      onPressed: () {
-                        Navigator.of(context)
-                            .push(MaterialPageRoute(
-                                builder: (context) => const SetTimerPage(0)))
-                            .then((value) {
-                          setState(() {});
-                        });
-                      },
-                    )
-                  : const SizedBox(),
-              boolBox.getAt(1)!
-                  ? TextButton(
-                      style: TextButton.styleFrom(
-                          primary: Colors.white,
-                          textStyle: const TextStyle(fontSize: 16)),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(children: <Widget>[
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text("Fail Timer",
-                                style: TextStyle(color: textColor)),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Switch(
+                            inactiveThumbColor: greyColor,
+                            inactiveTrackColor:
+                                const Color.fromARGB(255, 207, 207, 207),
+                            activeColor: activeSwitchColor,
+                            activeTrackColor: greyColor,
+                            value: boolBox.getAt(3)!,
+                            onChanged: toggleSwitch3,
                           ),
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(failTimes,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: greyColor)),
-                          ),
-                        ]),
+                        ),
                       ),
-                      onPressed: () {
-                        Navigator.of(context)
-                            .push(MaterialPageRoute(
-                                builder: (context) => const SetTimerPage(1)))
-                            .then((value) {
-                          setState(() {});
-                        });
-                      },
-                    )
-                  : const SizedBox(),
-            ]),
-          );
-        });
+                    ]),
+                  ]),
+                ),
+                onPressed: (() => toggleSwitch3(false)),
+              )
+            : const SizedBox(),
+        boolBox.getAt(1)!
+            ? TextButton(
+                style: TextButton.styleFrom(
+                    primary: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16)),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(children: <Widget>[
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Success Timer",
+                          style: TextStyle(color: textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(successTimes,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: greyColor)),
+                    ),
+                  ]),
+                ),
+                onPressed: () {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(
+                          builder: (context) => const SetTimerPage(0)))
+                      .then((value) {
+                    setState(() {});
+                  });
+                },
+              )
+            : const SizedBox(),
+        boolBox.getAt(1)!
+            ? TextButton(
+                style: TextButton.styleFrom(
+                    primary: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16)),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(children: <Widget>[
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Fail Timer",
+                          style: TextStyle(color: textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(failTimes,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: greyColor)),
+                    ),
+                  ]),
+                ),
+                onPressed: () {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(
+                          builder: (context) => const SetTimerPage(1)))
+                      .then((value) {
+                    setState(() {});
+                  });
+                },
+              )
+            : const SizedBox(),
+      ]),
+    );
   }
 }
 
@@ -3197,13 +3290,15 @@ class _SetTimerState extends State<SetTimerPage> {
 
 class _PlatesState extends State<PlatesPage> {
   late final Box<Plate> platesBox;
+  late final Box<bool> boolBox;
 
   List<int> nums = [for (int i = 0; i < 51; i++) i * 2];
 
   @override
   void initState() {
-    super.initState();
     platesBox = Hive.box<Plate>('platesBox');
+    boolBox = Hive.box<bool>('boolBox');
+    super.initState();
   }
 
   @override
@@ -3239,10 +3334,10 @@ class _PlatesState extends State<PlatesPage> {
                                   alignment: Alignment.centerLeft,
                                   child: platesBox.getAt(i)!.weight % 1 == 0
                                       ? Text(
-                                          "${platesBox.getAt(i)!.weight.toInt().toString()}lb",
+                                          "${platesBox.getAt(i)!.weight.toInt().toString()}$lbKg",
                                           style: TextStyle(color: textColor))
                                       : Text(
-                                          "${platesBox.getAt(i)!.weight.toString()}lb",
+                                          "${platesBox.getAt(i)!.weight.toString()}$lbKg",
                                           style: TextStyle(color: textColor))),
                               const SizedBox(height: 8),
                               Align(
@@ -3295,10 +3390,10 @@ class _PlatesState extends State<PlatesPage> {
                   alignment: Alignment.centerLeft,
                   child: platesBox.getAt(i)!.weight % 1 == 0
                       ? Text(
-                          "${platesBox.getAt(i)!.weight.toInt().toString()}lb Plates",
+                          "${platesBox.getAt(i)!.weight.toInt().toString()}$lbKg Plates",
                           style: const TextStyle(fontSize: 18))
                       : Text(
-                          "${platesBox.getAt(i)!.weight.toString()}lb Plates",
+                          "${platesBox.getAt(i)!.weight.toString()}$lbKg Plates",
                           style: const TextStyle(fontSize: 18)),
                 ),
               ),
@@ -3401,7 +3496,7 @@ class _PlatesState extends State<PlatesPage> {
                   style: TextStyle(
                     fontSize: 18,
                   )),
-              const Text("Plate weight in LB",
+              const Text("Plate weight",
                   style: TextStyle(
                     fontSize: 14,
                   )),
@@ -3432,7 +3527,53 @@ class _PlatesState extends State<PlatesPage> {
                       child: SizedBox(
                     height: 50,
                     child: OutlinedButton(
-                      child: const Text("-5lb"),
+                      child: boolBox.getAt(7)!
+                          ? const Text("-5lb")
+                          : const Text("-2.5kg"),
+                      style: OutlinedButton.styleFrom(
+                        primary: Colors.white,
+                        backgroundColor: Colors.black,
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(5))),
+                      ),
+                      onPressed: () {
+                        // subtracts 5lb/2.5kg from text box
+                        setState(() {
+                            double tempText =
+                              double.parse(_myController.text);
+                            if (boolBox.getAt(7)!) {
+                              if (tempText <= 5) {
+                                tempText = 0;
+                              } else {
+                                tempText -= 5;
+                              }
+                            }
+                            else {
+                              if (tempText <= 2.5) {
+                                tempText = 0;
+                              } else {
+                                tempText -= 2.5;
+                              }
+                            }
+                            tempText % 1 == 0
+                            ? _myController.text = tempText.toInt().toString()
+                            : _myController.text = tempText.toString();
+                          _myController.selection =
+                              TextSelection.collapsed(
+                                  offset: _myController.text.length);
+                        });
+                      },
+                    ),
+                  )),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: SizedBox(
+                    height: 50,
+                    child: OutlinedButton(
+                      child: boolBox.getAt(7)!
+                          ? const Text("+5lb")
+                          : const Text("+2.5kg"),
                       style: OutlinedButton.styleFrom(
                         primary: Colors.white,
                         backgroundColor: Colors.black,
@@ -3440,71 +3581,23 @@ class _PlatesState extends State<PlatesPage> {
                             borderRadius: BorderRadius.all(Radius.circular(5))),
                       ),
                       onPressed: () {
-                        // subtracts 5lb from text box
-                        double tempText = double.parse(_myController.text);
-                        if (tempText % 1 == 0) {
-                          setState(() {
-                            if (tempText <= 5) {
-                              _myController.text = "0";
-                            } else {
-                              tempText -= 5;
-                              _myController.text = tempText.toInt().toString();
-                            }
-                            _myController.selection = TextSelection.collapsed(
-                                offset: _myController.text.length);
-                          });
-                        } else {
-                          setState(() {
-                            if (tempText <= 5) {
-                              _myController.text = "0";
-                            } else {
-                              tempText -= 5;
-                              _myController.text = tempText.toString();
-                            }
-                            _myController.selection = TextSelection.collapsed(
-                                offset: _myController.text.length);
-                          });
-                        }
+                        // adds 5lb/2.5kg to text box
+                        setState(() {
+                          double tempText = double.parse(_myController.text);
+                          if (boolBox.getAt(7)!) {
+                            tempText += 5;
+                          } else {
+                            tempText += 2.5;
+                          }
+                          tempText % 1 == 0
+                              ? _myController.text = tempText.toInt().toString()
+                              : _myController.text = tempText.toString();
+                          _myController.selection = TextSelection.collapsed(
+                              offset: _myController.text.length);
+                        });
                       },
                     ),
                   )),
-                  const SizedBox(width: 10),
-                  Expanded(
-                      child: SizedBox(
-                          height: 50,
-                          child: OutlinedButton(
-                            child: const Text("+5lb"),
-                            style: OutlinedButton.styleFrom(
-                              primary: Colors.white,
-                              backgroundColor: Colors.black,
-                              shape: const RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(5))),
-                            ),
-                            onPressed: () {
-                              // subtracts 5lb from text box
-                              double tempText =
-                                  double.parse(_myController.text);
-                              if (tempText % 1 == 0) {
-                                setState(() {
-                                  tempText += 5;
-                                  _myController.text =
-                                      tempText.toInt().toString();
-                                  _myController.selection =
-                                      TextSelection.collapsed(
-                                          offset: _myController.text.length);
-                                });
-                              } else {
-                                setState(() {
-                                  tempText += 5;
-                                  _myController.text = tempText.toString();
-                                  _myController.selection =
-                                      TextSelection.collapsed(
-                                          offset: _myController.text.length);
-                                });
-                              }
-                            },
-                          ))),
                 ],
               ),
               const SizedBox(height: 20),
@@ -3654,115 +3747,109 @@ class _ListState extends State<ListPage> {
                                           });
                                         },
                                         child: Container(
-                                                padding:
-                                                    const EdgeInsets.all(20),
-                                                decoration: BoxDecoration(
-                                                  border: Border.all(
-                                                      color: borderColor),
-                                                  borderRadius:
-                                                      BorderRadius.circular(6),
-                                                  color: tileColor,
+                                            padding: const EdgeInsets.all(20),
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                  color: borderColor),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              color: tileColor,
+                                            ),
+                                            alignment: Alignment.topLeft,
+                                            child: Column(children: [
+                                              Row(children: <Widget>[
+                                                Expanded(
+                                                  child: Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                        indivWorkoutsBox
+                                                            .getAt(i)!
+                                                            .name,
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          color: greyColor,
+                                                        )),
+                                                  ),
                                                 ),
-                                                alignment: Alignment.topLeft,
-                                                child: Column(children: [
-                                                  Row(children: <Widget>[
-                                                    Expanded(
-                                                      child: Align(
-                                                        alignment: Alignment
-                                                            .centerLeft,
-                                                        child: Text(
-                                                            indivWorkoutsBox
-                                                                .getAt(i)!
-                                                                .name,
-                                                            style: TextStyle(
-                                                              fontSize: 16,
-                                                              color: greyColor,
-                                                            )),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: Align(
-                                                        alignment: Alignment
-                                                            .centerRight,
-                                                        child: Text(
-                                                            indivWorkoutsBox
-                                                                .getAt(i)!
-                                                                .date,
-                                                            style: TextStyle(
-                                                              fontSize: 16,
-                                                              color: greyColor,
-                                                            )),
-                                                      ),
-                                                    ),
-                                                  ]),
-                                                  const Divider(
-                                                      height: 15,
-                                                      color:
-                                                          Colors.transparent),
-                                                  Column(children: [
-                                                    for (int j = 0;
-                                                        j <
-                                                            indivWorkoutsBox
-                                                                .getAt(i)!
-                                                                .exercisesCompleted
-                                                                .length;
-                                                        j++)
-                                                      Column(children: <Widget>[
-                                                        Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            children: <Widget>[
-                                                              Expanded(
-                                                                child: Align(
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .centerLeft,
-                                                                  child: Text(
-                                                                      indivWorkoutsBox
-                                                                          .getAt(
-                                                                              i)!
-                                                                          .exercisesCompleted[j],
-                                                                      style: TextStyle(
+                                                Expanded(
+                                                  child: Align(
+                                                    alignment:
+                                                        Alignment.centerRight,
+                                                    child: Text(
+                                                        indivWorkoutsBox
+                                                            .getAt(i)!
+                                                            .date,
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          color: greyColor,
+                                                        )),
+                                                  ),
+                                                ),
+                                              ]),
+                                              const Divider(
+                                                  height: 15,
+                                                  color: Colors.transparent),
+                                              Column(children: [
+                                                for (int j = 0;
+                                                    j <
+                                                        indivWorkoutsBox
+                                                            .getAt(i)!
+                                                            .exercisesCompleted
+                                                            .length;
+                                                    j++)
+                                                  Column(children: <Widget>[
+                                                    Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: <Widget>[
+                                                          Expanded(
+                                                            child: Align(
+                                                              alignment: Alignment
+                                                                  .centerLeft,
+                                                              child: Text(
+                                                                  indivWorkoutsBox
+                                                                      .getAt(i)!
+                                                                      .exercisesCompleted[j],
+                                                                  style: TextStyle(
+                                                                    fontSize:
+                                                                        16,
+                                                                    color:
+                                                                        textColor,
+                                                                  )),
+                                                            ),
+                                                          ),
+                                                          Expanded(
+                                                            child: Align(
+                                                                alignment: Alignment
+                                                                    .centerRight,
+                                                                child: Text(
+                                                                    makeCompletionString(
+                                                                        i, j),
+                                                                    style: TextStyle(
                                                                         fontSize:
                                                                             16,
                                                                         color:
-                                                                            textColor,
-                                                                      )),
-                                                                ),
-                                                              ),
-                                                              Expanded(
-                                                                child: Align(
-                                                                    alignment:
-                                                                        Alignment
-                                                                            .centerRight,
-                                                                    child: Text(
-                                                                        makeCompletionString(
-                                                                            i,
-                                                                            j),
-                                                                        style: TextStyle(
-                                                                            fontSize:
-                                                                                16,
-                                                                            color:
-                                                                                textColor))),
-                                                              )
-                                                            ]),
-                                                        Divider(
-                                                            // larger divider if not at end of list
-                                                            height: j !=
-                                                                    indivWorkoutsBox
-                                                                            .getAt(
-                                                                                i)!
-                                                                            .exercisesCompleted
-                                                                            .length -
-                                                                        1
-                                                                ? 15
-                                                                : 0,
-                                                            color: Colors
-                                                                .transparent),
-                                                      ])
-                                                  ]),
-                                                ]))),
+                                                                            textColor))),
+                                                          )
+                                                        ]),
+                                                    Divider(
+                                                        // larger divider if not at end of list
+                                                        height: j !=
+                                                                indivWorkoutsBox
+                                                                        .getAt(
+                                                                            i)!
+                                                                        .exercisesCompleted
+                                                                        .length -
+                                                                    1
+                                                            ? 15
+                                                            : 0,
+                                                        color:
+                                                            Colors.transparent),
+                                                  ])
+                                              ]),
+                                            ]))),
                                     const Divider(
                                         height: 5, color: Colors.transparent),
                                   ]),
@@ -3803,7 +3890,7 @@ class _ListState extends State<ListPage> {
         indivWorkoutsBox.getAt(i)!.weights[j] % 1 == 0
             ? output += indivWorkoutsBox.getAt(i)!.weights[j].toInt().toString()
             : output += indivWorkoutsBox.getAt(i)!.weights[j].toString();
-        output += "lb";
+        output += lbKg;
       }
 
       if (skippedCounter == indivWorkoutsBox.getAt(i)!.setsPlanned[j]) {
@@ -5102,7 +5189,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                         alignment: Alignment
                                                             .centerRight,
                                                         child: Text(
-                                                            "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight ~/ 1}lb",
+                                                            "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight ~/ 1}$lbKg",
                                                             style:
                                                                 const TextStyle(
                                                               fontSize: 17,
@@ -5113,7 +5200,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                         alignment: Alignment
                                                             .centerRight,
                                                         child: Text(
-                                                            "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight.toString()}lb",
+                                                            "${workoutsBox.getAt(widget.index)!.exercises[i].sets}×${workoutsBox.getAt(widget.index)!.exercises[i].reps} ${workoutsBox.getAt(widget.index)!.exercises[i].weight.toString()}$lbKg",
                                                             style:
                                                                 const TextStyle(
                                                                     fontSize:
@@ -5454,7 +5541,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                       const SizedBox(
                                                                           width:
                                                                               5),
-                                                                      const SizedBox(
+                                                                      SizedBox(
                                                                         height:
                                                                             40,
                                                                         child:
@@ -5462,8 +5549,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                           alignment:
                                                                               Alignment.topCenter,
                                                                           child: Text(
-                                                                              "lb",
-                                                                              style: TextStyle(
+                                                                              lbKg,
+                                                                              style: const TextStyle(
                                                                                 fontSize: 14,
                                                                               )),
                                                                         ),
@@ -5530,7 +5617,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                 alignment:
                                                     Alignment.centerRight,
                                                 child: Text(
-                                                    "${tempBodyWeightBox.getAt(0)!.toString()}lb",
+                                                    "${tempBodyWeightBox.getAt(0)!.toString()}$lbKg",
                                                     style: const TextStyle(
                                                       fontSize: 17,
                                                       color: redColor,
@@ -6619,6 +6706,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
   late final Box<Exercise> exercisesBox;
   late final Box<Workout> workoutsBox;
   late final Box<Plate> platesBox;
+  late final Box<bool> boolBox;
 
   @override
   void initState() {
@@ -6626,6 +6714,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
     exercisesBox = Hive.box<Exercise>('exercisesBox');
     workoutsBox = Hive.box<Workout>('workoutsBox');
     platesBox = Hive.box<Plate>('platesBox');
+    boolBox = Hive.box<bool>('boolBox');
   }
 
   @override
@@ -6668,7 +6757,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "${exercisesBox.getAt(widget.index)!.weight.toInt().toString()}lb (${(((exercisesBox.getAt(widget.index)!.weight) - exercisesBox.getAt(widget.index)!.barWeight) ~/ 2)}/side)",
+                  "${exercisesBox.getAt(widget.index)!.weight.toInt().toString()}$lbKg (${(((exercisesBox.getAt(widget.index)!.weight) - exercisesBox.getAt(widget.index)!.barWeight) ~/ 2)}/side)",
                   style: TextStyle(
                     fontSize: 14,
                     color: textColor,
@@ -6684,7 +6773,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "${exercisesBox.getAt(widget.index)!.weight.toInt().toString()}lb (${(((exercisesBox.getAt(widget.index)!.weight) - exercisesBox.getAt(widget.index)!.barWeight) / 2).toString()}/side)",
+                  "${exercisesBox.getAt(widget.index)!.weight.toInt().toString()}$lbKg (${(((exercisesBox.getAt(widget.index)!.weight) - exercisesBox.getAt(widget.index)!.barWeight) / 2).toString()}/side)",
                   style: TextStyle(
                     fontSize: 14,
                     color: textColor,
@@ -6717,7 +6806,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "${exercisesBox.getAt(widget.index)!.weight.toString()}lb (${((exercisesBox.getAt(widget.index)!.weight - exercisesBox.getAt(widget.index)!.barWeight) / 2).toString()}/side)",
+                  "${exercisesBox.getAt(widget.index)!.weight.toString()}$lbKg (${((exercisesBox.getAt(widget.index)!.weight - exercisesBox.getAt(widget.index)!.barWeight) / 2).toString()}/side)",
                   style: TextStyle(
                     fontSize: 14,
                     color: textColor,
@@ -6791,7 +6880,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                   child: SizedBox(
                                 height: 50,
                                 child: OutlinedButton(
-                                  child: const Text("-5lb"),
+                                  child: boolBox.getAt(7)!
+                                      ? const Text("-5lb")
+                                      : const Text("-2.5kg"),
                                   style: OutlinedButton.styleFrom(
                                     primary: Colors.white,
                                     backgroundColor: Colors.black,
@@ -6800,101 +6891,66 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                             Radius.circular(5))),
                                   ),
                                   onPressed: () {
-                                    // subtracts 5lb from text box
-                                    if (exercisesBox
-                                                .getAt(widget.index)!
-                                                .weight %
-                                            1 ==
-                                        0) {
-                                      setState(() {
+                                    // subtracts 5lb/2.5kg from text box
+                                    setState(() {
                                         double tempText =
-                                            double.parse(_myController.text);
-                                        if (tempText <= 5) {
-                                          _myController.text = "0";
-                                        } else {
-                                          tempText -= 5;
-                                          _myController.text =
-                                              tempText.toInt().toString();
+                                          double.parse(_myController.text);
+                                        if (boolBox.getAt(7)!) {
+                                          if (tempText <= 5) {
+                                            tempText = 0;
+                                          } else {
+                                            tempText -= 5;
+                                          }
                                         }
-                                        _myController.selection =
-                                            TextSelection.collapsed(
-                                                offset:
-                                                    _myController.text.length);
-                                      });
-                                    } else if (exercisesBox
-                                                .getAt(widget.index)!
-                                                .weight %
-                                            1 !=
-                                        0) {
-                                      setState(() {
-                                        double tempText =
-                                            double.parse(_myController.text);
-                                        if (tempText <= 5) {
-                                          _myController.text = "0";
-                                        } else {
-                                          tempText -= 5;
-                                          _myController.text =
-                                              tempText.toString();
+                                        else {
+                                          if (tempText <= 2.5) {
+                                            tempText = 0;
+                                          } else {
+                                            tempText -= 2.5;
+                                          }
                                         }
-                                        _myController.selection =
-                                            TextSelection.collapsed(
-                                                offset:
-                                                    _myController.text.length);
-                                      });
-                                    }
+                                        tempText % 1 == 0
+                                        ? _myController.text = tempText.toInt().toString()
+                                        : _myController.text = tempText.toString();
+                                      _myController.selection =
+                                          TextSelection.collapsed(
+                                              offset: _myController.text.length);
+                                    });
                                   },
                                 ),
                               )),
                               const SizedBox(width: 10),
                               Expanded(
                                   child: SizedBox(
-                                      height: 50,
-                                      child: OutlinedButton(
-                                          child: const Text("+5lb"),
-                                          style: OutlinedButton.styleFrom(
-                                            primary: Colors.white,
-                                            backgroundColor: Colors.black,
-                                            shape: const RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.all(
-                                                    Radius.circular(5))),
-                                          ),
-                                          onPressed: () {
-                                            // adds 5lb to text box
-                                            if (exercisesBox
-                                                        .getAt(widget.index)!
-                                                        .weight %
-                                                    1 ==
-                                                0) {
-                                              setState(() {
-                                                double tempText = double.parse(
-                                                    _myController.text);
-                                                tempText += 5;
-                                                _myController.text =
-                                                    tempText.toInt().toString();
-                                                _myController.selection =
-                                                    TextSelection.collapsed(
-                                                        offset: _myController
-                                                            .text.length);
-                                              });
-                                            }
-                                            if (exercisesBox
-                                                        .getAt(widget.index)!
-                                                        .weight %
-                                                    1 !=
-                                                0) {
-                                              setState(() {
-                                                double tempText = double.parse(
-                                                    _myController.text);
-                                                tempText += 5;
-                                                _myController.text =
-                                                    tempText.toString();
-                                                _myController.selection =
-                                                    TextSelection.collapsed(
-                                                        offset: _myController
-                                                            .text.length);
-                                              });
-                                            }
-                                          }))),
+                                height: 50,
+                                child: OutlinedButton(
+                                  child: boolBox.getAt(7)!
+                                      ? const Text("+5lb")
+                                      : const Text("+2.5kg"),
+                                  style: OutlinedButton.styleFrom(
+                                    primary: Colors.white,
+                                    backgroundColor: Colors.black,
+                                    shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(5))),
+                                  ),
+                                  onPressed: () {
+                                    // adds 5lb/2.5kg to text box
+                                    setState(() {
+                                      double tempText = double.parse(_myController.text);
+                                      if (boolBox.getAt(7)!) {
+                                        tempText += 5;
+                                      } else {
+                                        tempText += 2.5;
+                                      }
+                                      tempText % 1 == 0
+                                          ? _myController.text = tempText.toInt().toString()
+                                          : _myController.text = tempText.toString();
+                                      _myController.selection = TextSelection.collapsed(
+                                          offset: _myController.text.length);
+                                    });
+                                  },
+                                ),
+                              )),
                             ],
                           ),
                           const SizedBox(height: 20),
@@ -6981,7 +7037,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "${exercisesBox.getAt(widget.index)!.weight.toInt().toString()}lb",
+                            "${exercisesBox.getAt(widget.index)!.weight.toInt().toString()}$lbKg",
                             style: TextStyle(
                               fontSize: 16,
                               color: greyColor,
@@ -6992,7 +7048,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "${exercisesBox.getAt(widget.index)!.weight.toString()}lb",
+                            "${exercisesBox.getAt(widget.index)!.weight.toString()}$lbKg",
                             style: TextStyle(
                               fontSize: 16,
                               color: greyColor,
@@ -7031,7 +7087,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                               style: TextStyle(
                                 fontSize: 18,
                               )),
-                          const Text("Weight of the bar (LB)",
+                          const Text("Weight of the bar",
                               style: TextStyle(
                                 fontSize: 14,
                               )),
@@ -7063,7 +7119,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                   child: SizedBox(
                                 height: 50,
                                 child: OutlinedButton(
-                                  child: const Text("-5lb"),
+                                  child: boolBox.getAt(7)!
+                                      ? const Text("-5lb")
+                                      : const Text("-2.5kg"),
                                   style: OutlinedButton.styleFrom(
                                     primary: Colors.white,
                                     backgroundColor: Colors.black,
@@ -7072,101 +7130,66 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                             Radius.circular(5))),
                                   ),
                                   onPressed: () {
-                                    // subtracts 5lb from text box
-                                    if (exercisesBox
-                                                .getAt(widget.index)!
-                                                .barWeight %
-                                            1 ==
-                                        0) {
-                                      setState(() {
+                                    // subtracts 5lb/2.5kg from text box
+                                    setState(() {
                                         double tempText =
-                                            double.parse(_myController.text);
-                                        if (tempText <= 5) {
-                                          _myController.text = "0";
-                                        } else {
-                                          tempText -= 5;
-                                          _myController.text =
-                                              tempText.toInt().toString();
+                                          double.parse(_myController.text);
+                                        if (boolBox.getAt(7)!) {
+                                          if (tempText <= 5) {
+                                            tempText = 0;
+                                          } else {
+                                            tempText -= 5;
+                                          }
                                         }
-                                        _myController.selection =
-                                            TextSelection.collapsed(
-                                                offset:
-                                                    _myController.text.length);
-                                      });
-                                    } else if (exercisesBox
-                                                .getAt(widget.index)!
-                                                .barWeight %
-                                            1 !=
-                                        0) {
-                                      setState(() {
-                                        double tempText =
-                                            double.parse(_myController.text);
-                                        if (tempText <= 5) {
-                                          _myController.text = "0";
-                                        } else {
-                                          tempText -= 5;
-                                          _myController.text =
-                                              tempText.toString();
+                                        else {
+                                          if (tempText <= 2.5) {
+                                            tempText = 0;
+                                          } else {
+                                            tempText -= 2.5;
+                                          }
                                         }
-                                        _myController.selection =
-                                            TextSelection.collapsed(
-                                                offset:
-                                                    _myController.text.length);
-                                      });
-                                    }
+                                        tempText % 1 == 0
+                                        ? _myController.text = tempText.toInt().toString()
+                                        : _myController.text = tempText.toString();
+                                      _myController.selection =
+                                          TextSelection.collapsed(
+                                              offset: _myController.text.length);
+                                    });
                                   },
                                 ),
                               )),
                               const SizedBox(width: 10),
                               Expanded(
                                   child: SizedBox(
-                                      height: 50,
-                                      child: OutlinedButton(
-                                          child: const Text("+5lb"),
-                                          style: OutlinedButton.styleFrom(
-                                            primary: Colors.white,
-                                            backgroundColor: Colors.black,
-                                            shape: const RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.all(
-                                                    Radius.circular(5))),
-                                          ),
-                                          onPressed: () {
-                                            // adds 5lb to text box
-                                            if (exercisesBox
-                                                        .getAt(widget.index)!
-                                                        .barWeight %
-                                                    1 ==
-                                                0) {
-                                              setState(() {
-                                                double tempText = double.parse(
-                                                    _myController.text);
-                                                tempText += 5;
-                                                _myController.text =
-                                                    tempText.toInt().toString();
-                                                _myController.selection =
-                                                    TextSelection.collapsed(
-                                                        offset: _myController
-                                                            .text.length);
-                                              });
-                                            }
-                                            if (exercisesBox
-                                                        .getAt(widget.index)!
-                                                        .barWeight %
-                                                    1 !=
-                                                0) {
-                                              setState(() {
-                                                double tempText = double.parse(
-                                                    _myController.text);
-                                                tempText += 5;
-                                                _myController.text =
-                                                    tempText.toString();
-                                                _myController.selection =
-                                                    TextSelection.collapsed(
-                                                        offset: _myController
-                                                            .text.length);
-                                              });
-                                            }
-                                          }))),
+                                height: 50,
+                                child: OutlinedButton(
+                                  child: boolBox.getAt(7)!
+                                      ? const Text("+5lb")
+                                      : const Text("+2.5kg"),
+                                  style: OutlinedButton.styleFrom(
+                                    primary: Colors.white,
+                                    backgroundColor: Colors.black,
+                                    shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(5))),
+                                  ),
+                                  onPressed: () {
+                                    // adds 5lb/2.5kg to text box
+                                    setState(() {
+                                      double tempText = double.parse(_myController.text);
+                                      if (boolBox.getAt(7)!) {
+                                        tempText += 5;
+                                      } else {
+                                        tempText += 2.5;
+                                      }
+                                      tempText % 1 == 0
+                                          ? _myController.text = tempText.toInt().toString()
+                                          : _myController.text = tempText.toString();
+                                      _myController.selection = TextSelection.collapsed(
+                                          offset: _myController.text.length);
+                                    });
+                                  },
+                                ),
+                              )),
                             ],
                           ),
                           const SizedBox(height: 20),
@@ -7253,7 +7276,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "${exercisesBox.getAt(widget.index)!.barWeight.toInt().toString()}lb",
+                            "${exercisesBox.getAt(widget.index)!.barWeight.toInt().toString()}$lbKg",
                             style: TextStyle(
                               fontSize: 16,
                               color: greyColor,
@@ -7264,7 +7287,7 @@ class _EditExercisePageState extends State<EditExercisePage> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "${exercisesBox.getAt(widget.index)!.barWeight.toString()}lb",
+                            "${exercisesBox.getAt(widget.index)!.barWeight.toString()}$lbKg",
                             style: TextStyle(
                               fontSize: 16,
                               color: greyColor,
@@ -7293,10 +7316,10 @@ class _EditExercisePageState extends State<EditExercisePage> {
                 alignment: Alignment.centerLeft,
                 child: exercisesBox.getAt(widget.index)!.increment % 1 == 0
                     ? Text(
-                        "${exercisesBox.getAt(widget.index)!.increment.toInt().toString()}lb",
+                        "${exercisesBox.getAt(widget.index)!.increment.toInt().toString()}$lbKg",
                         style: TextStyle(fontSize: 16, color: greyColor))
                     : Text(
-                        "${exercisesBox.getAt(widget.index)!.increment.toString()}lb",
+                        "${exercisesBox.getAt(widget.index)!.increment.toString()}$lbKg",
                         style: TextStyle(fontSize: 16, color: greyColor)),
               ),
             ]),
@@ -7742,11 +7765,13 @@ class _EditExercisePageState extends State<EditExercisePage> {
 
 class _IncrementsPageState extends State<IncrementsPage> {
   late final Box<Exercise> exercisesBox;
+  late final Box<bool> boolBox;
 
   @override
   void initState() {
-    super.initState();
     exercisesBox = Hive.box<Exercise>('exercisesBox');
+    boolBox = Hive.box<bool>('boolBox');
+    super.initState();
   }
 
   void toggleSwitch(bool value) {
@@ -7801,36 +7826,36 @@ class _IncrementsPageState extends State<IncrementsPage> {
           child: Container(
             padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
             child: Row(children: <Widget>[
-                Expanded(
-                  flex: 4,
-                  child: Column(children: [
-                    Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text("Progressive Overload",
-                            style: TextStyle(fontSize: 18, color: textColor))),
-                    const SizedBox(height: 8),
-                    Align(
+              Expanded(
+                flex: 4,
+                child: Column(children: [
+                  Align(
                       alignment: Alignment.centerLeft,
-                      child: Text("Add weight if all sets successful",
-                          style: TextStyle(fontSize: 16, color: greyColor)),
-                    ),
-                  ]),
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Switch(
-                      inactiveThumbColor: greyColor,
-                      inactiveTrackColor:
-                          const Color.fromARGB(255, 207, 207, 207),
-                      activeColor: activeSwitchColor,
-                      activeTrackColor: greyColor,
-                      value: exercisesBox.getAt(widget.index)!.overload,
-                      onChanged: toggleSwitch,
-                    ),
+                      child: Text("Progressive Overload",
+                          style: TextStyle(fontSize: 18, color: textColor))),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Add weight if all sets successful",
+                        style: TextStyle(fontSize: 16, color: greyColor)),
+                  ),
+                ]),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Switch(
+                    inactiveThumbColor: greyColor,
+                    inactiveTrackColor:
+                        const Color.fromARGB(255, 207, 207, 207),
+                    activeColor: activeSwitchColor,
+                    activeTrackColor: greyColor,
+                    value: exercisesBox.getAt(widget.index)!.overload,
+                    onChanged: toggleSwitch,
                   ),
                 ),
-              ]),
+              ),
+            ]),
           ),
           onPressed: (() => toggleSwitch(false)),
         ),
@@ -7845,30 +7870,28 @@ class _IncrementsPageState extends State<IncrementsPage> {
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                         child: Column(children: [
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text("Increments",
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text("Increments",
+                                style:
+                                    TextStyle(fontSize: 18, color: textColor)),
+                          ),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: exercisesBox.getAt(widget.index)!.increment %
+                                        1 ==
+                                    0
+                                ? Text(
+                                    "${exercisesBox.getAt(widget.index)!.increment.toInt().toString()}$lbKg",
                                     style: TextStyle(
-                                        fontSize: 18, color: textColor)),
-                              ),
-                              const SizedBox(height: 8),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: exercisesBox
-                                                .getAt(widget.index)!
-                                                .increment %
-                                            1 ==
-                                        0
-                                    ? Text(
-                                        "${exercisesBox.getAt(widget.index)!.increment.toInt().toString()}lb",
-                                        style: TextStyle(
-                                            fontSize: 16, color: greyColor))
-                                    : Text(
-                                        "${exercisesBox.getAt(widget.index)!.increment.toString()}lb",
-                                        style: TextStyle(
-                                            fontSize: 16, color: greyColor)),
-                              ),
-                            ]),
+                                        fontSize: 16, color: greyColor))
+                                : Text(
+                                    "${exercisesBox.getAt(widget.index)!.increment.toString()}$lbKg",
+                                    style: TextStyle(
+                                        fontSize: 16, color: greyColor)),
+                          ),
+                        ]),
                       ),
                       onPressed: () {
                         showDialog(
@@ -7888,28 +7911,27 @@ class _IncrementsPageState extends State<IncrementsPage> {
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                       child: Column(children: <Widget>[
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text("Frequency",
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text("Frequency",
+                              style: TextStyle(fontSize: 18, color: textColor)),
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: exercisesBox
+                                      .getAt(widget.index)!
+                                      .incrementFrequency ==
+                                  1
+                              ? Text("Every Time",
+                                  style:
+                                      TextStyle(fontSize: 16, color: greyColor))
+                              : Text(
+                                  "Every ${exercisesBox.getAt(widget.index)!.incrementFrequency.toString()} Times",
                                   style: TextStyle(
-                                      fontSize: 18, color: textColor)),
-                            ),
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: exercisesBox
-                                          .getAt(widget.index)!
-                                          .incrementFrequency ==
-                                      1
-                                  ? Text("Every Time",
-                                      style: TextStyle(
-                                          fontSize: 16, color: greyColor))
-                                  : Text(
-                                      "Every ${exercisesBox.getAt(widget.index)!.incrementFrequency.toString()} Times",
-                                      style: TextStyle(
-                                          fontSize: 16, color: greyColor)),
-                            ),
-                          ]),
+                                      fontSize: 16, color: greyColor)),
+                        ),
+                      ]),
                     ),
                     onPressed: () {
                       showDialog(
@@ -7942,11 +7964,11 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                         .incrementFrequency ==
                                     1
                                 ? Text(
-                                    "Weight increases by ${exercisesBox.getAt(widget.index)!.increment.toInt()}lb in total if you completed all sets on this exercise the last time.",
+                                    "Weight increases by ${exercisesBox.getAt(widget.index)!.increment.toInt()}$lbKg in total if you completed all sets on this exercise the last time.",
                                     style: TextStyle(
                                         fontSize: 14, color: greyColor))
                                 : Text(
-                                    "Weight increases by ${exercisesBox.getAt(widget.index)!.increment.toInt()}lb in total if you completed all sets on this exercise the last ${exercisesBox.getAt(widget.index)!.incrementFrequency} times.",
+                                    "Weight increases by ${exercisesBox.getAt(widget.index)!.increment.toInt()}$lbKg in total if you completed all sets on this exercise the last ${exercisesBox.getAt(widget.index)!.incrementFrequency} times.",
                                     style: TextStyle(
                                         fontSize: 14, color: greyColor))
                             : exercisesBox
@@ -7954,11 +7976,11 @@ class _IncrementsPageState extends State<IncrementsPage> {
                                         .incrementFrequency ==
                                     1
                                 ? Text(
-                                    "Weight increases by ${exercisesBox.getAt(widget.index)!.increment}lb in total if you completed all sets on this exercise the last time.",
+                                    "Weight increases by ${exercisesBox.getAt(widget.index)!.increment}$lbKg in total if you completed all sets on this exercise the last time.",
                                     style: TextStyle(
                                         fontSize: 14, color: greyColor))
                                 : Text(
-                                    "Weight increases by ${exercisesBox.getAt(widget.index)!.increment}lb in total if you completed all sets on this exercise the last ${exercisesBox.getAt(widget.index)!.incrementFrequency} times.",
+                                    "Weight increases by ${exercisesBox.getAt(widget.index)!.increment}$lbKg in total if you completed all sets on this exercise the last ${exercisesBox.getAt(widget.index)!.incrementFrequency} times.",
                                     style: TextStyle(
                                         fontSize: 14, color: greyColor)),
                       );
@@ -7971,37 +7993,37 @@ class _IncrementsPageState extends State<IncrementsPage> {
           child: Container(
             padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
             child: Row(children: <Widget>[
-                Expanded(
-                  flex: 4,
-                  child: Column(children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Deload",
-                          style: TextStyle(fontSize: 18, color: textColor)),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Decrease weight if failed sets",
-                          style: TextStyle(fontSize: 16, color: greyColor)),
-                    ),
-                  ]),
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Switch(
-                      inactiveThumbColor: greyColor,
-                      inactiveTrackColor:
-                          const Color.fromARGB(255, 207, 207, 207),
-                      activeColor: activeSwitchColor,
-                      activeTrackColor: greyColor,
-                      value: exercisesBox.getAt(widget.index)!.deload,
-                      onChanged: toggleSwitch2,
-                    ),
+              Expanded(
+                flex: 4,
+                child: Column(children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Deload",
+                        style: TextStyle(fontSize: 18, color: textColor)),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Decrease weight if failed sets",
+                        style: TextStyle(fontSize: 16, color: greyColor)),
+                  ),
+                ]),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Switch(
+                    inactiveThumbColor: greyColor,
+                    inactiveTrackColor:
+                        const Color.fromARGB(255, 207, 207, 207),
+                    activeColor: activeSwitchColor,
+                    activeTrackColor: greyColor,
+                    value: exercisesBox.getAt(widget.index)!.deload,
+                    onChanged: toggleSwitch2,
                   ),
                 ),
-              ]),
+              ),
+            ]),
           ),
           onPressed: (() => toggleSwitch2(false)),
         ),
@@ -8016,21 +8038,21 @@ class _IncrementsPageState extends State<IncrementsPage> {
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                         child: Column(children: [
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text("Percentage",
-                                    style: TextStyle(
-                                        fontSize: 18, color: textColor)),
-                              ),
-                              const SizedBox(height: 8),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                    "${exercisesBox.getAt(widget.index)!.deloadPercent.toString()}%",
-                                    style: TextStyle(
-                                        fontSize: 16, color: greyColor)),
-                              ),
-                            ]),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text("Percentage",
+                                style:
+                                    TextStyle(fontSize: 18, color: textColor)),
+                          ),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                                "${exercisesBox.getAt(widget.index)!.deloadPercent.toString()}%",
+                                style:
+                                    TextStyle(fontSize: 16, color: greyColor)),
+                          ),
+                        ]),
                       ),
                       onPressed: () {
                         showDialog(
@@ -8050,28 +8072,27 @@ class _IncrementsPageState extends State<IncrementsPage> {
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                       child: Column(children: [
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text("Frequency",
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text("Frequency",
+                              style: TextStyle(fontSize: 18, color: textColor)),
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: exercisesBox
+                                      .getAt(widget.index)!
+                                      .deloadFrequency ==
+                                  1
+                              ? Text("Every Time",
+                                  style:
+                                      TextStyle(fontSize: 16, color: greyColor))
+                              : Text(
+                                  "Every ${exercisesBox.getAt(widget.index)!.deloadFrequency.toString()} Times",
                                   style: TextStyle(
-                                      fontSize: 18, color: textColor)),
-                            ),
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: exercisesBox
-                                          .getAt(widget.index)!
-                                          .deloadFrequency ==
-                                      1
-                                  ? Text("Every Time",
-                                      style: TextStyle(
-                                          fontSize: 16, color: greyColor))
-                                  : Text(
-                                      "Every ${exercisesBox.getAt(widget.index)!.deloadFrequency.toString()} Times",
-                                      style: TextStyle(
-                                          fontSize: 16, color: greyColor)),
-                            ),
-                          ]),
+                                      fontSize: 16, color: greyColor)),
+                        ),
+                      ]),
                     ),
                     onPressed: () {
                       showDialog(
@@ -8167,7 +8188,53 @@ class _IncrementsPageState extends State<IncrementsPage> {
                       child: SizedBox(
                     height: 50,
                     child: OutlinedButton(
-                      child: const Text("-5lb"),
+                      child: boolBox.getAt(7)!
+                          ? const Text("-5lb")
+                          : const Text("-2.5kg"),
+                      style: OutlinedButton.styleFrom(
+                        primary: Colors.white,
+                        backgroundColor: Colors.black,
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(5))),
+                      ),
+                      onPressed: () {
+                        // subtracts 5lb/2.5kg from text box
+                        setState(() {
+                            double tempText =
+                              double.parse(_myController.text);
+                            if (boolBox.getAt(7)!) {
+                              if (tempText <= 5) {
+                                tempText = 0;
+                              } else {
+                                tempText -= 5;
+                              }
+                            }
+                            else {
+                              if (tempText <= 2.5) {
+                                tempText = 0;
+                              } else {
+                                tempText -= 2.5;
+                              }
+                            }
+                            tempText % 1 == 0
+                            ? _myController.text = tempText.toInt().toString()
+                            : _myController.text = tempText.toString();
+                          _myController.selection =
+                              TextSelection.collapsed(
+                                  offset: _myController.text.length);
+                        });
+                      },
+                    ),
+                  )),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: SizedBox(
+                    height: 50,
+                    child: OutlinedButton(
+                      child: boolBox.getAt(7)!
+                          ? const Text("+5lb")
+                          : const Text("+2.5kg"),
                       style: OutlinedButton.styleFrom(
                         primary: Colors.white,
                         backgroundColor: Colors.black,
@@ -8175,71 +8242,23 @@ class _IncrementsPageState extends State<IncrementsPage> {
                             borderRadius: BorderRadius.all(Radius.circular(5))),
                       ),
                       onPressed: () {
-                        // subtracts 5lb from text box
-                        double tempText = double.parse(_myController.text);
-                        if (tempText % 1 == 0) {
-                          setState(() {
-                            if (tempText <= 5) {
-                              _myController.text = "0";
-                            } else {
-                              tempText -= 5;
-                              _myController.text = tempText.toInt().toString();
-                            }
-                            _myController.selection = TextSelection.collapsed(
-                                offset: _myController.text.length);
-                          });
-                        } else {
-                          setState(() {
-                            if (tempText <= 5) {
-                              _myController.text = "0";
-                            } else {
-                              tempText -= 5;
-                              _myController.text = tempText.toString();
-                            }
-                            _myController.selection = TextSelection.collapsed(
-                                offset: _myController.text.length);
-                          });
-                        }
+                        // adds 5lb/2.5kg to text box
+                        setState(() {
+                          double tempText = double.parse(_myController.text);
+                          if (boolBox.getAt(7)!) {
+                            tempText += 5;
+                          } else {
+                            tempText += 2.5;
+                          }
+                          tempText % 1 == 0
+                              ? _myController.text = tempText.toInt().toString()
+                              : _myController.text = tempText.toString();
+                          _myController.selection = TextSelection.collapsed(
+                              offset: _myController.text.length);
+                        });
                       },
                     ),
                   )),
-                  const SizedBox(width: 10),
-                  Expanded(
-                      child: SizedBox(
-                          height: 50,
-                          child: OutlinedButton(
-                            child: const Text("+5lb"),
-                            style: OutlinedButton.styleFrom(
-                              primary: Colors.white,
-                              backgroundColor: Colors.black,
-                              shape: const RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(5))),
-                            ),
-                            onPressed: () {
-                              // subtracts 5lb from text box
-                              double tempText =
-                                  double.parse(_myController.text);
-                              if (tempText % 1 == 0) {
-                                setState(() {
-                                  tempText += 5;
-                                  _myController.text =
-                                      tempText.toInt().toString();
-                                  _myController.selection =
-                                      TextSelection.collapsed(
-                                          offset: _myController.text.length);
-                                });
-                              } else {
-                                setState(() {
-                                  tempText += 5;
-                                  _myController.text = tempText.toString();
-                                  _myController.selection =
-                                      TextSelection.collapsed(
-                                          offset: _myController.text.length);
-                                });
-                              }
-                            },
-                          ))),
                 ],
               ),
               const SizedBox(height: 20),
@@ -8849,7 +8868,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                     alignment:
                                                         Alignment.centerRight,
                                                     child: Text(
-                                                        "${indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]}×${indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]} ${indivWorkoutsBox.getAt(widget.index)!.weights[i] ~/ 1}lb",
+                                                        "${indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]}×${indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]} ${indivWorkoutsBox.getAt(widget.index)!.weights[i] ~/ 1}$lbKg",
                                                         style: const TextStyle(
                                                           fontSize: 17,
                                                         ))))
@@ -8859,7 +8878,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                     alignment:
                                                         Alignment.centerRight,
                                                     child: Text(
-                                                        "${indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]}×${indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]} ${indivWorkoutsBox.getAt(widget.index)!.weights[i].toString()}lb",
+                                                        "${indivWorkoutsBox.getAt(widget.index)!.setsPlanned[i]}×${indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i]} ${indivWorkoutsBox.getAt(widget.index)!.weights[i].toString()}$lbKg",
                                                         style: const TextStyle(
                                                             fontSize: 17)))),
                                           SizedBox(
@@ -9145,7 +9164,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                       )),
                                                                   const SizedBox(
                                                                       width: 5),
-                                                                  const SizedBox(
+                                                                  SizedBox(
                                                                     height: 40,
                                                                     child:
                                                                         Align(
@@ -9153,9 +9172,9 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                           Alignment
                                                                               .topCenter,
                                                                       child: Text(
-                                                                          "lb",
+                                                                          lbKg,
                                                                           style:
-                                                                              TextStyle(
+                                                                              const TextStyle(
                                                                             fontSize:
                                                                                 14,
                                                                           )),
@@ -9238,7 +9257,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                         child: Align(
                                             alignment: Alignment.centerRight,
                                             child: Text(
-                                                "${postTempBodyWeight.toString()}lb",
+                                                "${postTempBodyWeight.toString()}$lbKg",
                                                 style: const TextStyle(
                                                   fontSize: 17,
                                                   color: redColor,
@@ -9253,7 +9272,6 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
               Container(
-                  //height: MediaQuery.of(context).size.height * 0.05,
                   width: double.infinity,
                   color: backColor,
                   padding: const EdgeInsets.only(left: 15, right: 15),
