@@ -1305,19 +1305,21 @@ class _HistoryState extends State<History> {
                   title: const Text("History"),
                   titleTextStyle: TextStyle(fontSize: 22, color: textColor),
                   bottom: TabBar(
+                    padding: const EdgeInsets.only(left: 10, right: 10),
+                    isScrollable: false,
                     indicatorColor: redColor,
                     labelColor: textColor,
                     indicatorWeight: 3,
                     indicatorSize: TabBarIndicatorSize.tab,
                     tabs: const [
                       Tab(
-                        text: 'List',
+                        child:Text('List', style: TextStyle(fontSize: 16)),
                       ),
                       Tab(
-                        text: 'Calendar',
+                        child:Text('Calendar', style: TextStyle(fontSize: 16)),
                       ),
                       Tab(
-                        text: 'Notes',
+                        child:Text('Notes', style: TextStyle(fontSize: 16)),
                       ),
                     ],
                   ),
@@ -1403,17 +1405,14 @@ class _ProgressState extends State<Progress> {
                                                         .size
                                                         .width *
                                                     0.7),
-                                            child: RichText(
-                                                text: TextSpan(
-                                                  text: exercisesBox
+                                            child: Text(
+                                                  exercisesBox
                                                       .getAt(i)!
                                                       .name,
                                                   style: TextStyle(
-                                                      fontSize: 22,
+                                                      fontSize: 17,
                                                       color: textColor),
                                                 ),
-                                                overflow:
-                                                    TextOverflow.ellipsis),
                                           ),
                                           Container(
                                             padding:
@@ -1465,9 +1464,13 @@ class _ProgressState extends State<Progress> {
                             padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
                             child: Row(children: <Widget>[
                               Expanded(
-                                child: Column(children: [
-                                  Align(
-                                    alignment: Alignment.centerLeft,
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                  Container(
+                                    constraints: BoxConstraints(
+                                        maxWidth: MediaQuery.of(context)
+                                                .size
+                                                .width * 0.8),
                                     child: Text(
                                       "Body Weight",
                                       style: TextStyle(
@@ -1526,15 +1529,17 @@ class _ProgressState extends State<Progress> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Align(
-                                            alignment: Alignment.centerLeft,
+                                          Container(
+                                            constraints: BoxConstraints(
+                                                maxWidth: MediaQuery.of(context)
+                                                        .size
+                                                        .width * 0.8),
                                             child: Text(
                                                 exercisesBox.getAt(i)!.name,
                                                 style: TextStyle(
                                                     fontSize: 17,
                                                     color: textColor),
-                                                overflow:
-                                                    TextOverflow.ellipsis),
+                                            ),
                                           ),
                                           const SizedBox(height: 8),
                                           Align(
@@ -2192,6 +2197,7 @@ class _GraphPageState extends State<GraphPage> {
               ),
           ],
           bottom: TabBar(
+            isScrollable: false,
             indicatorColor: redColor,
             labelColor: textColor,
             indicatorWeight: 3,
@@ -2965,7 +2971,8 @@ class _SetTimerState extends State<SetTimerPage> {
           ),
       ]),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: SizedBox(width: 150, child: OutlinedButton(
+      floatingActionButton: SizedBox(
+          child: OutlinedButton(
             child: const Text("Add Timer", style: TextStyle(fontSize: 16)),
             style: OutlinedButton.styleFrom(
               fixedSize: const Size.fromHeight(50),
@@ -3309,6 +3316,7 @@ class _PlatesState extends State<PlatesPage> {
                 children: <Widget>[
                 const SizedBox(width: 10),
                 Expanded(
+                  flex: 4,
                   child: Align(alignment: Alignment.centerLeft,
                     child: TextButton(
                       child: const Text("Delete"),
@@ -3326,6 +3334,7 @@ class _PlatesState extends State<PlatesPage> {
                 )),
                 const Expanded(child: Text("")),
                 Expanded(
+                  flex: 4,
                   child: Align(alignment: Alignment.centerRight,
                     child: TextButton(
                       child: const Text("Cancel"),
@@ -3340,6 +3349,7 @@ class _PlatesState extends State<PlatesPage> {
                       }),
                 )),
                 Expanded(
+                  flex: 2,
                   child: Align(alignment: Alignment.centerRight,
                   child: TextButton(
                       child: const Text("OK"),
@@ -3684,9 +3694,9 @@ class _ListState extends State<ListPage> {
                                                                 .length;
                                                         j++)
                                                       Column(children: <Widget>[
-                                                        Row(children: <Widget>[
+                                                        Row(mainAxisAlignment: MainAxisAlignment.center,
+                                                          children: <Widget>[
                                                           Expanded(
-                                                            flex: 3,
                                                             child: Align(
                                                               alignment: Alignment
                                                                   .centerLeft,
@@ -3703,69 +3713,10 @@ class _ListState extends State<ListPage> {
                                                             ),
                                                           ),
                                                           Expanded(
-                                                              flex: 4,
-                                                              child: Align(
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .centerRight,
-                                                                  child: Row(
-                                                                      mainAxisAlignment:
-                                                                          MainAxisAlignment
-                                                                              .end,
-                                                                      children: <
-                                                                          Widget>[
-                                                                        for (int k =
-                                                                                0;
-                                                                            k < indivWorkoutsBox.getAt(i)!.setsPlanned[j];
-                                                                            k++)
-                                                                          if (k == 5 && indivWorkoutsBox.getAt(i)!.weights[j] % 1 == 0)
-                                                                            Text("... ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
-                                                                                style: TextStyle(
-                                                                                  fontSize: 16,
-                                                                                  color: textColor,
-                                                                                ))
-                                                                          else if (k == 5 && indivWorkoutsBox.getAt(i)!.weights[j] % 1 != 0)
-                                                                            Text("... ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
-                                                                                style: TextStyle(
-                                                                                  fontSize: 16,
-                                                                                  color: textColor,
-                                                                                ))
-                                                                          else if (k > 5)
-                                                                            const SizedBox(width: 0)
-                                                                          else if (k == indivWorkoutsBox.getAt(i)!.setsPlanned[j] - 1 && indivWorkoutsBox.getAt(i)!.weights[j] % 1 == 0)
-                                                                            indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] == indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
-                                                                                ? Text("0 ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
-                                                                                    style: TextStyle(
-                                                                                      fontSize: 16,
-                                                                                      color: textColor,
-                                                                                    ))
-                                                                                : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j] ~/ 1}lb",
-                                                                                    style: TextStyle(
-                                                                                      fontSize: 16,
-                                                                                      color: textColor,
-                                                                                    ))
-                                                                          else if (k == indivWorkoutsBox.getAt(i)!.setsPlanned[j] - 1 && indivWorkoutsBox.getAt(i)!.weights[j] % 1 != 0)
-                                                                            indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] == indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
-                                                                                ? Text("0 ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
-                                                                                    style: const TextStyle(
-                                                                                      fontSize: 16,
-                                                                                    ))
-                                                                                : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]} ${indivWorkoutsBox.getAt(i)!.weights[j]}lb",
-                                                                                    style: const TextStyle(
-                                                                                      fontSize: 16,
-                                                                                    ))
-                                                                          else
-                                                                            indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] == indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1
-                                                                                ? const Text("0/",
-                                                                                    style: TextStyle(
-                                                                                      fontSize: 16,
-                                                                                    ))
-                                                                                : Text("${indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]}/",
-                                                                                    style: const TextStyle(
-                                                                                      fontSize: 16,
-                                                                                    ))
-                                                                      ])))
-                                                        ]),
+                                                              child: Align(alignment: Alignment.centerRight,
+                                                              child: Text(makeCompletionString(i, j), 
+                                                              style: TextStyle(fontSize: 16, color: textColor))),
+                                                      )]),
                                                         Divider(
                                                             // larger divider if not at end of list
                                                             height: j !=
@@ -3788,6 +3739,53 @@ class _ListState extends State<ListPage> {
                               ]);
                   }));
         });
+  }
+
+  String makeCompletionString(int i, int j) {
+    String output = "";
+    int skippedCounter = 0;
+    int successCounter = 0;
+
+    for (int k = 0; k < indivWorkoutsBox.getAt(i)!.setsPlanned[j]; k++) {
+
+      if (indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
+          indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1) {
+          output += "0";
+          skippedCounter++;
+      }
+      else {
+        if (indivWorkoutsBox.getAt(i)!.repsCompleted[j][k] ==
+            indivWorkoutsBox.getAt(i)!.repsPlanned[j]) {
+          successCounter++;
+        }
+        output += indivWorkoutsBox.getAt(i)!.repsCompleted[j][k].toString();
+      }
+      
+      if (k != indivWorkoutsBox.getAt(i)!.setsPlanned[j] - 1) {
+        output += "/";
+      }
+      else {
+        if (successCounter == indivWorkoutsBox.getAt(i)!.setsPlanned[j]) {
+          output = "";
+          output += indivWorkoutsBox.getAt(i)!.setsPlanned[j].toString();
+          output += "×";
+        }
+        else {
+          output += " ";
+        }
+
+        indivWorkoutsBox.getAt(i)!.weights[j] % 1 == 0
+        ? output += indivWorkoutsBox.getAt(i)!.weights[j].toInt().toString()
+        : output += indivWorkoutsBox.getAt(i)!.weights[j].toString();
+        output += "lb";
+      }
+
+      if (skippedCounter == indivWorkoutsBox.getAt(i)!.setsPlanned[j]) {
+        output = "";
+        output += "Skipped";
+      }
+    }
+    return output;
   }
 }
 
@@ -4448,9 +4446,8 @@ class _EditState extends State<Edit> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: SizedBox(
-          width: 150,
           child: OutlinedButton(
-            child: const Text("Add Workout"),
+            child: const Text("Add Workout", style: TextStyle(fontSize: 16)),
             style: OutlinedButton.styleFrom(
               fixedSize: const Size.fromHeight(50),
               primary: Colors.white,
@@ -5007,11 +5004,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
             ),
             body: Container(
                 padding: const EdgeInsets.all(10),
-                constraints: BoxConstraints(
-                  maxHeight: boolBox.getAt(1)!
-                      ? MediaQuery.of(context).size.height * 0.76
-                      : MediaQuery.of(context).size.height * 0.87,
-                ),
                 child: ListView(
                     scrollDirection: Axis.vertical,
                     shrinkWrap: true,
@@ -5352,7 +5344,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                           height:
                                                                               120,
                                                                           width:
-                                                                              70,
+                                                                              80,
                                                                           child:
                                                                               CupertinoPicker(
                                                                             scrollController:
@@ -5525,6 +5517,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                           FontWeight.bold,
                                                     )))))),
                               ])),
+                    SizedBox(height: boolBox.getAt(1)! ? 150 : 50),
                     ])),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
@@ -5537,18 +5530,13 @@ class _WorkoutPageState extends State<WorkoutPage> {
                       children: <Widget>[
                         showTimer
                             ? Container(
-                                width: double.infinity,
-                                height:
-                                    MediaQuery.of(context).size.height * 0.1,
                                 padding:
                                     const EdgeInsets.only(left: 15, right: 15),
                                 child: Align(
                                     alignment: Alignment.center,
                                     child: Container(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.1,
-                                        width: double.infinity,
+                                      padding: const EdgeInsets.only(
+                                          top: 15, bottom: 15),
                                         child: Row(children: <Widget>[
                                           Flexible(
                                               child: Row(
@@ -5612,7 +5600,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                         ))))
                             : Container(),
                         Container(
-                            height: MediaQuery.of(context).size.height * 0.05,
                             width: double.infinity,
                             color: backColor,
                             padding: const EdgeInsets.only(left: 15, right: 15),
@@ -5634,7 +5621,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                             primary: redColor,
                                             textStyle: const TextStyle(
                                                 fontWeight: FontWeight.bold),
-                                            alignment: Alignment.bottomCenter,
+                                            alignment: Alignment.center,
                                           )),
                                     ),
                                   ),
@@ -5657,7 +5644,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                             primary: redColor,
                                             textStyle: const TextStyle(
                                                 fontWeight: FontWeight.bold),
-                                            alignment: Alignment.bottomCenter,
+                                            alignment: Alignment.center,
                                           )),
                                     ),
                                   ),
@@ -6150,9 +6137,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: SizedBox(
-          width: 150,
           child: OutlinedButton(
-            child: const Text("Add Exercise"),
+            child: const Text("Add Exercise", style: TextStyle(fontSize: 16)),
             style: OutlinedButton.styleFrom(
               fixedSize: const Size.fromHeight(50),
               primary: Colors.white,
@@ -8295,7 +8281,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                         const SizedBox(width: 5),
                         SizedBox(
                             height: 120,
-                            width: 70,
+                            width: 80,
                             child: CupertinoPicker(
                               scrollController: _controller,
                               children: freqs,
@@ -8774,9 +8760,6 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
         ),
         body: Container(
             padding: const EdgeInsets.all(10),
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.88,
-            ),
             child: ListView(
                 scrollDirection: Axis.vertical,
                 shrinkWrap: true,
@@ -9238,14 +9221,20 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                   fontWeight: FontWeight.bold,
                                                 )))))),
                           ])),
+                const SizedBox(height: 50),
                 ])),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: Container(
-            height: MediaQuery.of(context).size.height * 0.05,
+        floatingActionButton: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+          Container(
+            //height: MediaQuery.of(context).size.height * 0.05,
             width: double.infinity,
             color: backColor,
             padding: const EdgeInsets.only(left: 15, right: 15),
-            child: Row(children: <Widget>[
+            child: Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
               Expanded(
                 child: Align(
                   alignment: Alignment.bottomLeft,
@@ -9259,7 +9248,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                       style: TextButton.styleFrom(
                         primary: redColor,
                         textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                        alignment: Alignment.bottomCenter,
+                        alignment: Alignment.center,
                       )),
                 ),
               ),
@@ -9312,11 +9301,11 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                       style: TextButton.styleFrom(
                         primary: redColor,
                         textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                        alignment: Alignment.bottomCenter,
+                        alignment: Alignment.center,
                       )),
                 ),
               ),
-            ])),
+            ]))]),
       ),
     );
   }
