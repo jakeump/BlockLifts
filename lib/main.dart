@@ -1105,8 +1105,8 @@ class _HomeState extends State<Home> {
     String twoDigits(int n) => n.toString();
     final minutes = twoDigits(workoutDuration.inMinutes.remainder(60));
     return Text(
-        "${minutes}min",
-        style: TextStyle(color: textColor, fontSize: 12),
+      "${minutes}min",
+      style: TextStyle(color: textColor, fontSize: 12),
     );
   }
 
@@ -1419,15 +1419,9 @@ class _HistoryState extends State<History> {
                     indicatorWeight: 3,
                     indicatorSize: TabBarIndicatorSize.tab,
                     tabs: const [
-                      Tab(
-                        text: 'List'
-                      ),
-                      Tab(
-                       text: 'Calendar'
-                      ),
-                      Tab(
-                        text: 'Notes'
-                      ),
+                      Tab(text: 'List'),
+                      Tab(text: 'Calendar'),
+                      Tab(text: 'Notes'),
                     ],
                   ),
                 ),
@@ -2272,69 +2266,70 @@ class _SettingsState extends State<Settings> {
     int tempUnit = boolBox.getAt(7)! ? 0 : 1;
     return StatefulBuilder(builder: (context, _setState) {
       return Dialog(
-        backgroundColor: tileColor,
-        insetPadding: const EdgeInsets.fromLTRB(50, 0, 50, 0),
-        child: Container(padding: const EdgeInsets.all(20),
-          child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-          const Align(
+          backgroundColor: tileColor,
+          insetPadding: const EdgeInsets.fromLTRB(50, 0, 50, 0),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+              const Align(
                 alignment: Alignment.centerLeft,
                 child: Text("Weight Unit", style: TextStyle(fontSize: 18)),
-          ),
-          RadioListTile<int>(
-              title: const Text("lb", style: TextStyle(fontSize: 15)),
-              activeColor: redColor,
-              dense: true,
-              value: 0,
-              groupValue: tempUnit,
-              onChanged: (value) {
-                _setState(() {
-                  tempUnit = value!;
-                });
-              }),
-          RadioListTile<int>(
-              title: const Text("kg", style: TextStyle(fontSize: 15)),
-              activeColor: redColor,
-              dense: true,
-              value: 1,
-              groupValue: tempUnit,
-              onChanged: (value) {
-                _setState(() {
-                  tempUnit = value!;
-                });
-              }),
-          Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
-            TextButton(
-                child: const Text("Cancel"),
-                style: TextButton.styleFrom(
-                  primary: redColor,
-                  textStyle: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                  alignment: Alignment.center,
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                }),
-            const SizedBox(width: 20),
-            TextButton(
-                child: const Text("OK"),
-                style: TextButton.styleFrom(
-                  primary: redColor,
-                  textStyle: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                  alignment: Alignment.center,
-                ),
-                onPressed: () {
-                  setState(() {
-                    boolBox.putAt(7, tempUnit == 0 ? true : false);
-                    lbKg = tempUnit == 0 ? "lb" : "kg";
-                  });
-                  _progressCounter.value++;
-                  _counter.value++;
-                  Navigator.of(context).pop();
-                }),
-          ]),
-        ]),
-      ));
+              ),
+              RadioListTile<int>(
+                  title: const Text("lb", style: TextStyle(fontSize: 15)),
+                  activeColor: redColor,
+                  dense: true,
+                  value: 0,
+                  groupValue: tempUnit,
+                  onChanged: (value) {
+                    _setState(() {
+                      tempUnit = value!;
+                    });
+                  }),
+              RadioListTile<int>(
+                  title: const Text("kg", style: TextStyle(fontSize: 15)),
+                  activeColor: redColor,
+                  dense: true,
+                  value: 1,
+                  groupValue: tempUnit,
+                  onChanged: (value) {
+                    _setState(() {
+                      tempUnit = value!;
+                    });
+                  }),
+              Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
+                TextButton(
+                    child: const Text("Cancel"),
+                    style: TextButton.styleFrom(
+                      primary: redColor,
+                      textStyle: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                      alignment: Alignment.center,
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    }),
+                const SizedBox(width: 20),
+                TextButton(
+                    child: const Text("OK"),
+                    style: TextButton.styleFrom(
+                      primary: redColor,
+                      textStyle: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                      alignment: Alignment.center,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        boolBox.putAt(7, tempUnit == 0 ? true : false);
+                        lbKg = tempUnit == 0 ? "lb" : "kg";
+                      });
+                      _progressCounter.value++;
+                      _counter.value++;
+                      Navigator.of(context).pop();
+                    }),
+              ]),
+            ]),
+          ));
     });
   }
 }
@@ -4060,11 +4055,11 @@ class _ListState extends State<ListPage> {
             ? output += indivWorkoutsBox.getAt(i)!.weights[j].toInt().toString()
             : output += indivWorkoutsBox.getAt(i)!.weights[j].toString();
         output += lbKg;
-      }
 
-      if (allSkipped) {
-        output = "";
-        output += "Skipped";
+        if (allSkipped) {
+          output = "";
+          output += "Skipped";
+        }
       }
     }
     return output;
