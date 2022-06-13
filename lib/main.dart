@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -65,15 +64,15 @@ void main() async {
   AwesomeNotifications().initialize(
     // set the icon to null if you want to use the default app icon
     // android->app->src->main->res->drawable
-    'resource://drawable/notification_icon',
+    'resource://drawable/transparent_icon',
     [
       NotificationChannel(
         channelGroupKey: 'workout_channel_group',
         channelKey: 'workout_channel',
         channelName: 'Workout notifications',
         channelDescription: 'Notifications during workout',
-        defaultColor: const Color(0xFF9D50DD),
-        ledColor: Colors.white,
+        defaultColor: const Color.fromARGB(255, 210, 45, 45),
+        ledColor: Colors.red,
         enableVibration: false,
         playSound: false,
         importance: NotificationImportance.Default,
@@ -83,8 +82,8 @@ void main() async {
         channelKey: 'timer_channel',
         channelName: 'Timer notifications',
         channelDescription: 'Timer notifications',
-        defaultColor: const Color(0xFF9D50DD),
-        ledColor: Colors.white,
+        defaultColor: const Color.fromARGB(255, 210, 45, 45),
+        ledColor: Colors.red,
         enableVibration: true,
         vibrationPattern: highVibrationPatterns,
         playSound: false,
@@ -363,6 +362,7 @@ void defaultState() async {
   prefs.setBool('resetToDefault', false);
 
   showTimer = false;
+  workoutTimerInProgress = false;
   _counter.value++;
   _progressCounter.value++;
   _calendarCounter.value++;
@@ -378,7 +378,7 @@ Future<void> initializeService() async {
 
       // auto start service
       autoStart: true,
-      isForegroundMode: true,
+      isForegroundMode: false,
     ),
     iosConfiguration: IosConfiguration(
       // auto start service
@@ -417,37 +417,6 @@ void onStart(ServiceInstance service) async {
 
   service.on('stopService').listen((event) {
     service.stopSelf();
-  });
-
-  // bring to foreground
-  Timer.periodic(const Duration(seconds: 1), (timer) async {
-    if (service is AndroidServiceInstance) {
-      service.setForegroundNotificationInfo(
-        title: "My App Service",
-        content: "Updated at ${DateTime.now()}",
-      );
-    }
-
-    // test using external plugin
-    final deviceInfo = DeviceInfoPlugin();
-    String? device;
-    if (Platform.isAndroid) {
-      final androidInfo = await deviceInfo.androidInfo;
-      device = androidInfo.model;
-    }
-
-    if (Platform.isIOS) {
-      final iosInfo = await deviceInfo.iosInfo;
-      device = iosInfo.model;
-    }
-
-    service.invoke(
-      'update',
-      {
-        "current_date": DateTime.now().toIso8601String(),
-        "device": device,
-      },
-    );
   });
 }
 
@@ -623,8 +592,8 @@ void createNotification(int exIdx, int setIdx) {
         payload: {"name": "BlockLifts"},
         autoDismissible: false,
         locked: true,
-        largeIcon: 'resource://drawable/notification_icon',
-        roundedLargeIcon: true,
+        largeIcon: 'resource://drawable/icon',
+        roundedLargeIcon: false,
         notificationLayout: NotificationLayout.Default,
       ),
       actionButtons: [
@@ -652,7 +621,7 @@ void vibrateNotification() {
     payload: {"name": "BlockLifts"},
     autoDismissible: true,
     locked: false,
-    largeIcon: 'resource://drawable/notification_icon',
+    largeIcon: 'resource://drawable/icon',
     roundedLargeIcon: false,
     notificationLayout: NotificationLayout.Default,
   ));
@@ -1451,13 +1420,13 @@ class _HistoryState extends State<History> {
                     indicatorSize: TabBarIndicatorSize.tab,
                     tabs: const [
                       Tab(
-                        child: Text('List', style: TextStyle(fontSize: 16)),
+                        text: 'List'
                       ),
                       Tab(
-                        child: Text('Calendar', style: TextStyle(fontSize: 16)),
+                       text: 'Calendar'
                       ),
                       Tab(
-                        child: Text('Notes', style: TextStyle(fontSize: 16)),
+                        text: 'Notes'
                       ),
                     ],
                   ),
@@ -2305,12 +2274,11 @@ class _SettingsState extends State<Settings> {
       return Dialog(
         backgroundColor: tileColor,
         insetPadding: const EdgeInsets.fromLTRB(50, 0, 50, 0),
-        child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-          Container(
-            padding: const EdgeInsets.all(20),
-            child: const Align(
+        child: Container(padding: const EdgeInsets.all(20),
+          child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+          const Align(
                 alignment: Alignment.centerLeft,
-                child: Text("Weight Unit", style: TextStyle(fontSize: 18))),
+                child: Text("Weight Unit", style: TextStyle(fontSize: 18)),
           ),
           RadioListTile<int>(
               title: const Text("lb", style: TextStyle(fontSize: 15)),
@@ -2353,7 +2321,7 @@ class _SettingsState extends State<Settings> {
                   primary: redColor,
                   textStyle: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.bold),
-                  alignment: Alignment.centerLeft,
+                  alignment: Alignment.center,
                 ),
                 onPressed: () {
                   setState(() {
@@ -2365,9 +2333,8 @@ class _SettingsState extends State<Settings> {
                   Navigator.of(context).pop();
                 }),
           ]),
-          const SizedBox(height: 10),
         ]),
-      );
+      ));
     });
   }
 }
