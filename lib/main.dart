@@ -105,6 +105,8 @@ String postWorkoutTempNote = "";
 
 Timer? timer;
 Duration duration = const Duration();
+Timer? workoutTimer;
+Duration workoutDuration = const Duration();
 bool showTimer = false;
 bool lastSet = false;
 int workoutIndex = 0;
@@ -113,6 +115,7 @@ int setIndex = 0;
 late bool failed;
 bool changesMade = false;
 late String lbKg;
+bool workoutTimerInProgress = false;
 
 List<int> successTimes = [];
 List<int> failureTimes = [];
@@ -136,6 +139,8 @@ ValueNotifier<int> _counter = ValueNotifier<int>(0); // to update list page
 ValueNotifier<int> _circleCounter = ValueNotifier<int>(0); // to update circles
 ValueNotifier<int> _timerCounter =
     ValueNotifier<int>(0); // for timer on workout page
+ValueNotifier<int> _workoutTimerCounter =
+    ValueNotifier<int>(0); // for timer on home page
 ValueNotifier<int> _plateCounter =
     ValueNotifier<int>(0); // refrehes plates list
 ValueNotifier<int> _incrementsCounter = ValueNotifier<int>(0); // for increments
@@ -471,7 +476,11 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
   if (setIdx == tempWorkout!.exercises[exIdx].sets - 1) {
     lastSet = true;
   }
-
+  if (!workoutTimerInProgress) {
+    workoutDuration = const Duration(seconds: 0);
+    startTimer(workoutTimer);
+    workoutTimerInProgress = true;
+  }
   // failed button clicked from notification
   if (fail) {
     if (exIdx == tempWorkout.exercises.length - 1 &&
@@ -588,13 +597,19 @@ void createNotification(int exIdx, int setIdx) {
         // workout status, no timer
         id: 123,
         channelKey: 'workout_channel',
-        title: lastSet ? "$minutes:$seconds - Set equipment, then lift"
-          : failed ? failureTimes.isEmpty ? "$minutes:$seconds - Rest"
-            : failureTimes.last % 60 == 0 ? "$minutes:$seconds - Rest ${(failureTimes.last ~/ 60).toString()}min"
-              : "$minutes:$seconds - Rest ${(failureTimes.last ~/ 60).toString()}min ${(failureTimes.last % 60).toString()}s"
-          : successTimes.isEmpty ? "$minutes:$seconds - Rest"
-            : successTimes.last % 60 == 0 ? "$minutes:$seconds - Rest ${(successTimes.last ~/ 60).toString()}min"
-              : "$minutes:$seconds - Rest ${(successTimes.last ~/ 60).toString()}min ${(successTimes.last % 60).toString()}s",
+        title: lastSet
+            ? "$minutes:$seconds - Set equipment, then lift"
+            : failed
+                ? failureTimes.isEmpty
+                    ? "$minutes:$seconds - Rest"
+                    : failureTimes.last % 60 == 0
+                        ? "$minutes:$seconds - Rest ${(failureTimes.last ~/ 60).toString()}min"
+                        : "$minutes:$seconds - Rest ${(failureTimes.last ~/ 60).toString()}min ${(failureTimes.last % 60).toString()}s"
+                : successTimes.isEmpty
+                    ? "$minutes:$seconds - Rest"
+                    : successTimes.last % 60 == 0
+                        ? "$minutes:$seconds - Rest ${(successTimes.last ~/ 60).toString()}min"
+                        : "$minutes:$seconds - Rest ${(successTimes.last ~/ 60).toString()}min ${(successTimes.last % 60).toString()}s",
         body: setIdx ==
                 workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets - 1
             ? workoutsBox.getAt(workoutIndex)!.exercises[exIdx + 1].weight %
@@ -1061,6 +1076,8 @@ class _HomeState extends State<Home> {
     boolBox = Hive.box<bool>('boolBox');
     tempNoteBox = Hive.box<String>('tempNoteBox');
     timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
+    workoutTimer = Timer.periodic(
+        const Duration(seconds: 1), (_) => {addWorkoutTime(workoutTimer)});
   }
 
   void addTime(Timer? timer) {
@@ -1079,6 +1096,17 @@ class _HomeState extends State<Home> {
       if (showTimer) {
         checkTime(duration.inSeconds);
       }
+    }
+  }
+
+  void addWorkoutTime(Timer? workoutTimer) {
+    _workoutTimerCounter.value++;
+    const addSeconds = 1;
+    final seconds = workoutDuration.inSeconds + addSeconds;
+    if (seconds < 0) {
+      workoutTimer?.cancel();
+    } else {
+      workoutDuration = Duration(seconds: seconds);
     }
   }
 
@@ -1102,6 +1130,15 @@ class _HomeState extends State<Home> {
         .then((value) {
       setState(() {});
     });
+  }
+
+  Widget buildWorkoutTime() {
+    String twoDigits(int n) => n.toString();
+    final minutes = twoDigits(workoutDuration.inMinutes.remainder(60));
+    return Text(
+        "${minutes}min",
+        style: TextStyle(color: textColor, fontSize: 12),
+    );
   }
 
   @override
@@ -1153,49 +1190,52 @@ class _HomeState extends State<Home> {
                         ]),
                   );
                 }),
-            floatingActionButton: Align(
-                alignment: Alignment.bottomRight,
-                child: Container(
-                  padding: boolBox.getAt(5)!
-                      ? const EdgeInsets.only(right: 10)
-                      : const EdgeInsets.only(right: 10, bottom: 10),
-                  child: OutlinedButton(
-                    child: boolBox.getAt(5)!
-                        ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                                const Text("Workout In Progress",
-                                    style: TextStyle(fontSize: 16)),
-                                const Text("x min",
-                                    style: TextStyle(fontSize: 14))
-                              ])
-                        : const Text("Start Workout",
-                            style: TextStyle(fontSize: 16)),
-                    style: OutlinedButton.styleFrom(
-                      fixedSize: boolBox.getAt(5)!
-                          ? const Size.fromHeight(75)
-                          : const Size.fromHeight(50),
-                      primary: Colors.white,
-                      backgroundColor: redColor,
-                      shape: boolBox.getAt(5)!
-                          ? RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10))
-                          : const RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(50))),
-                    ),
-                    onPressed: () {
-                      if (boolBox.getAt(5)!) {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) =>
-                                WorkoutPage(counterBox.getAt(0)!)));
-                      } else {
-                        pushWorkout(counterBox.getAt(0)!);
-                      }
-                    },
-                  ),
-                )),
+            floatingActionButton: ValueListenableBuilder(
+                valueListenable: _workoutTimerCounter,
+                builder: (context, value, child) {
+                  return Align(
+                      alignment: Alignment.bottomRight,
+                      child: Container(
+                        padding: boolBox.getAt(5)!
+                            ? const EdgeInsets.only(right: 10)
+                            : const EdgeInsets.only(right: 10, bottom: 10),
+                        child: OutlinedButton(
+                          child: boolBox.getAt(5)!
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                      const Text("Workout In Progress",
+                                          style: TextStyle(fontSize: 16)),
+                                      buildWorkoutTime(),
+                                    ])
+                              : const Text("Start Workout",
+                                  style: TextStyle(fontSize: 16)),
+                          style: OutlinedButton.styleFrom(
+                            fixedSize: boolBox.getAt(5)!
+                                ? const Size.fromHeight(75)
+                                : const Size.fromHeight(50),
+                            primary: Colors.white,
+                            backgroundColor: redColor,
+                            shape: boolBox.getAt(5)!
+                                ? RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10))
+                                : const RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(50))),
+                          ),
+                          onPressed: () {
+                            if (boolBox.getAt(5)!) {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) =>
+                                      WorkoutPage(counterBox.getAt(0)!)));
+                            } else {
+                              pushWorkout(counterBox.getAt(0)!);
+                            }
+                          },
+                        ),
+                      ));
+                }),
             floatingActionButtonLocation: boolBox.getAt(5)!
                 ? FloatingActionButtonLocation.centerDocked
                 : FloatingActionButtonLocation.centerDocked,
@@ -4870,6 +4910,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
     tempBodyWeightBox = Hive.box<double>('tempBodyWeightBox');
     getTimes();
     timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
+    workoutTimer = Timer.periodic(
+        const Duration(seconds: 1), (_) => {addWorkoutTime(workoutTimer)});
   }
 
   void getTimes() {
@@ -4952,6 +4994,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
       counterBox.putAt(0, idx);
     } else if (!boolBox.getAt(5)!) {
       counterBox.putAt(0, counterBox.getAt(1)!);
+      workoutTimerInProgress = false;
+      workoutDuration = const Duration(seconds: 0);
     }
   }
 
@@ -5816,7 +5860,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
           };
 
     showTimer = false;
+    workoutTimerInProgress = false;
     timer?.cancel();
+    workoutTimer?.cancel();
     boolBox.putAt(5, false);
 
     String name = workoutsBox.getAt(widget.index)!.name;
@@ -6000,6 +6046,13 @@ class _WorkoutPageState extends State<WorkoutPage> {
     timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
   }
 
+  void startWorkoutTimer(Timer? workoutTimer) {
+    workoutTimer?.cancel();
+    workoutDuration = const Duration(seconds: 0);
+    workoutTimer = Timer.periodic(
+        const Duration(seconds: 1), (_) => {addWorkoutTime(workoutTimer)});
+  }
+
   // the time is incremented in _homeState
   // however, this is used for setState, so the time actually updates and shows
   void addTime(Timer? timer) {
@@ -6011,6 +6064,19 @@ class _WorkoutPageState extends State<WorkoutPage> {
         timer?.cancel();
       } else {
         duration = Duration(seconds: seconds);
+      }
+    });
+  }
+
+  void addWorkoutTime(Timer? workoutTimer) {
+    const addSeconds = 0;
+    if (!mounted) return;
+    setState(() {
+      final seconds = workoutDuration.inSeconds + addSeconds;
+      if (seconds < 0) {
+        workoutTimer?.cancel();
+      } else {
+        workoutDuration = Duration(seconds: seconds);
       }
     });
   }
