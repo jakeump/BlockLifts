@@ -15,5 +15,6 @@ void main() async {
   await initializeHive();
   await checkFirstOpen();
   initializeNotifications();
+  
   runApp(MyApp(androidSdkVersion: androidSdkVersion));
 }

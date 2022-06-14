@@ -17,8 +17,8 @@ class _GraphPageState extends State<GraphPage> {
 
   @override
   void initState() {
-    exercisesBox = Hive.box<Exercise>('exercisesBox');
     super.initState();
+    exercisesBox = Hive.box<Exercise>('exercisesBox');
   }
 
   @override

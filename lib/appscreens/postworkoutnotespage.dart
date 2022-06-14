@@ -13,8 +13,8 @@ class _PostWorkoutNotesState extends State<PostWorkoutNotesPage> {
 
   @override
   void initState() {
-    _myController.text = globals.postWorkoutTempNote; //default text
     super.initState();
+    _myController.text = globals.postWorkoutTempNote; //default text
   }
 
   @override

@@ -89,65 +89,64 @@ class _NotesState extends State<NotesPage> {
                                         setState(() {});
                                       });
                                     },
-                                    child: Flexible(
-                                        child: Container(
-                                            padding: const EdgeInsets.all(20),
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                  color: globals.borderColor),
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                              color: globals.tileColor,
-                                            ),
-                                            alignment: Alignment.topLeft,
-                                            child: Column(
-                                              children: [
-                                                Row(children: <Widget>[
-                                                  Expanded(
-                                                    child: Align(
-                                                      alignment:
-                                                          Alignment.centerLeft,
-                                                      child: Text(
-                                                          indivWorkoutsBox
-                                                              .getAt(i)!
-                                                              .name,
-                                                          style: TextStyle(
-                                                            fontSize: 16,
-                                                            color: globals.greyColor,
-                                                          )),
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: Align(
-                                                      alignment:
-                                                          Alignment.centerRight,
-                                                      child: Text(
-                                                          indivWorkoutsBox
-                                                              .getAt(i)!
-                                                              .date,
-                                                          style: TextStyle(
-                                                            fontSize: 16,
-                                                            color: globals.greyColor,
-                                                          )),
-                                                    ),
-                                                  ),
-                                                ]),
-                                                const Divider(
-                                                    height: 15,
-                                                    color: Colors.transparent),
-                                                Align(
-                                                    alignment:
-                                                        Alignment.centerLeft,
-                                                    child: Text(
-                                                        indivWorkoutsBox
-                                                            .getAt(i)!
-                                                            .note,
-                                                        style: TextStyle(
-                                                          fontSize: 16,
-                                                          color: globals.textColor,
-                                                        ))),
-                                              ],
-                                            )))),
+                                    child: Container(
+                                        padding: const EdgeInsets.all(20),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: globals.borderColor),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                          color: globals.tileColor,
+                                        ),
+                                        alignment: Alignment.topLeft,
+                                        child: Column(
+                                          children: [
+                                            Row(children: <Widget>[
+                                              Expanded(
+                                                child: Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: Text(
+                                                      indivWorkoutsBox
+                                                          .getAt(i)!
+                                                          .name,
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        color: globals.greyColor,
+                                                      )),
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Align(
+                                                  alignment:
+                                                      Alignment.centerRight,
+                                                  child: Text(
+                                                      indivWorkoutsBox
+                                                          .getAt(i)!
+                                                          .date,
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        color: globals.greyColor,
+                                                      )),
+                                                ),
+                                              ),
+                                            ]),
+                                            const Divider(
+                                                height: 15,
+                                                color: Colors.transparent),
+                                            Align(
+                                                alignment:
+                                                    Alignment.centerLeft,
+                                                child: Text(
+                                                    indivWorkoutsBox
+                                                        .getAt(i)!
+                                                        .note,
+                                                    style: TextStyle(
+                                                      fontSize: 16,
+                                                      color: globals.textColor,
+                                                    ))),
+                                            ],
+                                          ))),
                                 const Divider(
                                     height: 5, color: Colors.transparent),
                               ])

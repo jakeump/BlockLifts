@@ -56,4 +56,3 @@ ValueNotifier<int> progressCounter =
 ValueNotifier<int> calendarCounter =
     ValueNotifier<int>(0); // for calendar page
 ValueNotifier<int> themeCounter = ValueNotifier<int>(0); // for dark/light mode
-

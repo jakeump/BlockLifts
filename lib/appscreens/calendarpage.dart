@@ -22,8 +22,8 @@ class _CalendarState extends State<CalendarPage> {
 
   @override
   void initState() {
-    indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
     super.initState();
+    indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
   }
 
   void getMinMaxDate() {

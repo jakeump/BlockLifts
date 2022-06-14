@@ -17,9 +17,9 @@ class _ProgressState extends State<Progress> {
 
   @override
   void initState() {
+    super.initState();
     exercisesBox = Hive.box<Exercise>('exercisesBox');
     indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
-    super.initState();
   }
 
   @override

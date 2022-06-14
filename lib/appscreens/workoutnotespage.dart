@@ -15,9 +15,9 @@ class _WorkoutNotesState extends State<WorkoutNotesPage> {
 
   @override
   void initState() {
+    super.initState();
     tempNoteBox = Hive.box<String>('tempNoteBox');
     _myController.text = tempNoteBox.getAt(0)!; //default text
-    super.initState();
   }
 
   @override

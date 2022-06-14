@@ -115,10 +115,10 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
 
   @override
   void initState() {
+    super.initState();
     exercisesBox = Hive.box<Exercise>('exercisesBox');
     indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
     _data = _generateData();
-    super.initState();
   }
 
   @override

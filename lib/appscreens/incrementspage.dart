@@ -21,9 +21,9 @@ class _IncrementsPageState extends State<IncrementsPage> {
 
   @override
   void initState() {
+    super.initState();
     exercisesBox = Hive.box<Exercise>('exercisesBox');
     boolBox = Hive.box<bool>('boolBox');
-    super.initState();
   }
 
   void toggleSwitch(bool value) {

@@ -18,9 +18,9 @@ class _PlatesState extends State<PlatesPage> {
 
   @override
   void initState() {
+    super.initState();
     platesBox = Hive.box<Plate>('platesBox');
     boolBox = Hive.box<bool>('boolBox');
-    super.initState();
   }
 
   @override

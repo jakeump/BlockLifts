@@ -20,6 +20,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+    super.initState();
     boolBox = Hive.box<bool>('boolBox');
     AwesomeNotifications().isNotificationAllowed().then(
       (isAllowed) {
@@ -65,7 +66,6 @@ class _HomePageState extends State<HomePage> {
         }
       },
     );
-    super.initState();
   }
 
   @override
