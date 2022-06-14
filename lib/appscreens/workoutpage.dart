@@ -1152,7 +1152,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
     tempNoteBox.putAt(0, ""); // clears note for next workout
 
-    globals.counter.value++;
+    globals.listCounter.value++;
     globals.progressCounter.value++;
     globals.calendarCounter.value++;
 

@@ -27,7 +27,7 @@ class _ListState extends State<ListPage> {
           return Scaffold(
               backgroundColor: globals.backColor,
               body: ValueListenableBuilder(
-                  valueListenable: globals.counter,
+                  valueListenable: globals.listCounter,
                   builder: (context, value, child) {
                     return indivWorkoutsBox.length == 0
                         ? Align(

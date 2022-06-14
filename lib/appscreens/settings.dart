@@ -47,8 +47,6 @@ class _SettingsState extends State<Settings> {
       setState(() {
         boolBox.putAt(6, true);
       });
-      globals.themeCounter.value++;
-      globals.calendarCounter.value++;
     } else {
       setState(() {
         boolBox.putAt(6, false);
@@ -689,7 +687,7 @@ class _SettingsState extends State<Settings> {
                                 globals.lbKg = tempUnit == 0 ? "lb" : "kg";
                               });
                               globals.progressCounter.value++;
-                              globals.counter.value++;
+                              globals.listCounter.value++;
                               Navigator.of(context).pop();
                             }),
                       ]),
