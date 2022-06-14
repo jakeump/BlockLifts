@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:blocklifts/appscreens/home.dart';
 import 'package:blocklifts/appscreens/history.dart';
+import 'package:blocklifts/appscreens/home.dart';
 import 'package:blocklifts/appscreens/progress.dart';
 import 'package:blocklifts/appscreens/settings.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:blocklifts/classes/mybottomnavigationbar.dart';
+import 'package:blocklifts/classes/bottomnavigationbarprovider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class HomePage extends StatefulWidget {
@@ -14,8 +17,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // home page
-  int _selectedIndex = 0;
   late final Box<bool> boolBox;
 
   @override
@@ -68,14 +69,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  var currentTab = const [
+    Home(),
+    History(),
+    Progress(),
+    Settings(),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    List<Widget> _pages = const <Widget>[
-      Home(),
-      History(),
-      Progress(),
-      Settings(),
-    ];
+    var provider = Provider.of<BottomNavigationBarProvider>(context);
     return ValueListenableBuilder<int>(
         valueListenable: globals.themeCounter,
         builder: (context, index, child) {
@@ -86,47 +89,14 @@ class _HomePageState extends State<HomePage> {
               brightness: Brightness.dark,
             ),
             child: Scaffold(
-              body: IndexedStack(
-                index: _selectedIndex,
-                children: _pages,
-              ),
-              bottomNavigationBar: BottomNavigationBar(
-                type: BottomNavigationBarType.fixed,
-                currentIndex: _selectedIndex,
-                onTap: _onItemTapped,
-                backgroundColor: globals.tileColor,
-                selectedFontSize: 15,
-                selectedItemColor: globals.redColor,
-                unselectedItemColor: globals.navIconColor,
-                showSelectedLabels: true,
-                showUnselectedLabels: false,
-                items: const [
-                  BottomNavigationBarItem(
-                    label: "Home",
-                    icon: Icon(Icons.home),
-                  ),
-                  BottomNavigationBarItem(
-                    label: "History",
-                    icon: Icon(Icons.date_range),
-                  ),
-                  BottomNavigationBarItem(
-                    label: "Progress",
-                    icon: Icon(Icons.line_axis),
-                  ),
-                  BottomNavigationBarItem(
-                    label: "Settings",
-                    icon: Icon(Icons.settings),
-                  ),
-                ],
-              ),
+              body: currentTab[provider.currentIndex],
+              bottomNavigationBar: MyBottomNavigationBar(onTapped: _onTappedBar),
             ),
           );
         });
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  void _onTappedBar(int value) {
+    Provider.of<BottomNavigationBarProvider>(context, listen: false).currentIndex = value;
   }
 }

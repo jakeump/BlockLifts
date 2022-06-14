@@ -5,6 +5,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/functions/increment_circles.dart';
 import 'package:blocklifts/classes/customscrollbehavior.dart';
 import 'package:blocklifts/appscreens/homepage.dart';
+import 'package:blocklifts/classes/bottomnavigationbarprovider.dart';
+import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class MyApp extends StatelessWidget {
@@ -110,7 +112,10 @@ class MyApp extends StatelessWidget {
               behavior: CustomScrollBehavior(
                 androidSdkVersion: androidSdkVersion,
               ),
-              child: const HomePage(),
+              child: ChangeNotifierProvider<BottomNavigationBarProvider>(
+                child: const HomePage(),
+                create: (BuildContext context) => BottomNavigationBarProvider(),
+              ),
             ),
           );
         });
