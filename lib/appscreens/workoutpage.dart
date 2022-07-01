@@ -14,6 +14,8 @@ import 'package:blocklifts/classes/indivworkout.dart';
 import 'package:blocklifts/appscreens/editexercisepage.dart';
 import 'package:blocklifts/appscreens/workoutnotespage.dart';
 import 'package:blocklifts/appscreens/editworkoutpage.dart';
+import 'package:blocklifts/classes/listprovider.dart';
+import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class WorkoutPage extends StatefulWidget {
@@ -1137,8 +1139,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
         }
       }
     }
-
-    indivWorkoutsBox.add(IndivWorkout(
+    var listProvider = Provider.of<ListProvider>(context, listen: false);
+    
+    listProvider.addIndivWorkout(IndivWorkout(
         name,
         date,
         sortableDate,
@@ -1152,7 +1155,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
     tempNoteBox.putAt(0, ""); // clears note for next workout
 
-    globals.listCounter.value++;
     globals.progressCounter.value++;
     globals.calendarCounter.value++;
 

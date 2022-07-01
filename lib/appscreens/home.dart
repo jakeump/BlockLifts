@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/workout.dart';
-import 'package:blocklifts/functions/check_time.dart';
-import 'package:blocklifts/functions/create_notification.dart';
 import 'package:blocklifts/appscreens/workoutpage.dart';
 import 'package:blocklifts/appscreens/edit.dart';
 import 'package:blocklifts/globals.dart' as globals;
@@ -29,41 +26,6 @@ class _HomeState extends State<Home> {
     counterBox = Hive.box<int>('counterBox');
     boolBox = Hive.box<bool>('boolBox');
     tempNoteBox = Hive.box<String>('tempNoteBox');
-    globals.timer = Timer.periodic(
-        const Duration(seconds: 1), (_) => {addTime(globals.timer)});
-    globals.workoutTimer = Timer.periodic(const Duration(seconds: 1),
-        (_) => {addWorkoutTime(globals.workoutTimer)});
-  }
-
-  void addTime(Timer? timer) {
-    globals.themeCounter.value++;
-    globals.timerCounter.value++;
-    const addSeconds = 1;
-    final seconds = globals.duration.inSeconds + addSeconds;
-    if (seconds < 0) {
-      timer?.cancel();
-    } else {
-      globals.duration = Duration(seconds: seconds);
-      // create notif every second, display time
-      if (globals.showTimer) {
-        createNotification(globals.exerciseIndex, globals.setIndex);
-      }
-      // checks every second if sound should be played
-      if (globals.showTimer) {
-        checkTime(globals.duration.inSeconds);
-      }
-    }
-  }
-
-  void addWorkoutTime(Timer? workoutTimer) {
-    globals.workoutTimerCounter;
-    const addSeconds = 1;
-    final seconds = globals.workoutDuration.inSeconds + addSeconds;
-    if (seconds < 0) {
-      workoutTimer?.cancel();
-    } else {
-      globals.workoutDuration = Duration(seconds: seconds);
-    }
   }
 
   void pushWorkout(int idx) {

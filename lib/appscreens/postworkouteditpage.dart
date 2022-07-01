@@ -113,8 +113,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                 .red, // header background color
                                             onPrimary: Colors
                                                 .white, // header text color
-                                            onSurface:
-                                                globals.textColor, // body text color
+                                            onSurface: globals
+                                                .textColor, // body text color
                                           ),
                                           textButtonTheme: TextButtonThemeData(
                                             style: TextButton.styleFrom(
@@ -176,6 +176,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                     indivWorkoutsBox.add(copyIndivs[i]);
                   }
                 }
+                globals.changesMade = false;
                 tempIndiv.save();
                 globals.calendarCounter.value++;
                 Navigator.of(context).pop();
@@ -536,7 +537,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                           Alignment
                                                                               .topCenter,
                                                                       child: Text(
-                                                                          globals.lbKg,
+                                                                          globals
+                                                                              .lbKg,
                                                                           style:
                                                                               const TextStyle(
                                                                             fontSize:
@@ -557,7 +559,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                     style: TextButton
                                                                         .styleFrom(
                                                                       primary:
-                                                                          globals.redColor,
+                                                                          globals
+                                                                              .redColor,
                                                                       textStyle: const TextStyle(
                                                                           fontSize:
                                                                               16,
@@ -583,7 +586,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                     style: TextButton
                                                                         .styleFrom(
                                                                       primary:
-                                                                          globals.redColor,
+                                                                          globals
+                                                                              .redColor,
                                                                       textStyle: const TextStyle(
                                                                           fontSize:
                                                                               16,
@@ -670,11 +674,13 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                     builder: (context) => AlertDialog(
                                       title: Text('Delete Workout',
                                           style: TextStyle(
-                                              fontSize: 20, color: globals.textColor)),
+                                              fontSize: 20,
+                                              color: globals.textColor)),
                                       content: Text(
                                           'Are you sure you want to delete this workout?',
                                           style: TextStyle(
-                                              fontSize: 15, color: globals.textColor)),
+                                              fontSize: 15,
+                                              color: globals.textColor)),
                                       actions: [
                                         TextButton(
                                           onPressed: () {
@@ -683,7 +689,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                           child: const Text(
                                             'Cancel',
                                             style: TextStyle(
-                                                fontSize: 16, color: globals.redColor),
+                                                fontSize: 16,
+                                                color: globals.redColor),
                                           ),
                                         ),
                                         TextButton(
@@ -815,7 +822,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   textAlignVertical: TextAlignVertical.bottom,
                   decoration: InputDecoration(
                     labelText: "Weight",
-                    labelStyle: TextStyle(fontSize: 20, color: globals.textColor),
+                    labelStyle:
+                        TextStyle(fontSize: 20, color: globals.textColor),
                     contentPadding: const EdgeInsets.only(bottom: 0),
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
@@ -837,7 +845,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   textAlignVertical: TextAlignVertical.bottom,
                   decoration: InputDecoration(
                     labelText: "Sets",
-                    labelStyle: TextStyle(fontSize: 20, color: globals.textColor),
+                    labelStyle:
+                        TextStyle(fontSize: 20, color: globals.textColor),
                     contentPadding: const EdgeInsets.only(bottom: 0),
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
@@ -859,7 +868,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   textAlignVertical: TextAlignVertical.bottom,
                   decoration: InputDecoration(
                     labelText: "Reps",
-                    labelStyle: TextStyle(fontSize: 20, color: globals.textColor),
+                    labelStyle:
+                        TextStyle(fontSize: 20, color: globals.textColor),
                     contentPadding: const EdgeInsets.only(bottom: 0),
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,

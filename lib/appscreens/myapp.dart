@@ -6,6 +6,7 @@ import 'package:blocklifts/functions/increment_circles.dart';
 import 'package:blocklifts/classes/customscrollbehavior.dart';
 import 'package:blocklifts/appscreens/homepage.dart';
 import 'package:blocklifts/classes/bottomnavigationbarprovider.dart';
+import 'package:blocklifts/classes/listprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
@@ -63,7 +64,16 @@ class MyApp extends StatelessWidget {
             globals.navIconColor = const Color.fromARGB(255, 87, 87, 87);
             globals.activeSwitchColor = const Color.fromARGB(255, 49, 48, 48);
           }
-          return MaterialApp(
+          return MultiProvider(
+            providers: [
+              ChangeNotifierProvider<BottomNavigationBarProvider>(
+                create: (_) => BottomNavigationBarProvider(),
+              ),
+              ChangeNotifierProvider<ListProvider>(
+                create: (_) => ListProvider(),
+              ),
+            ],
+            child: MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'BlockLifts',
             theme: ThemeData(
@@ -112,10 +122,8 @@ class MyApp extends StatelessWidget {
               behavior: CustomScrollBehavior(
                 androidSdkVersion: androidSdkVersion,
               ),
-              child: ChangeNotifierProvider<BottomNavigationBarProvider>(
-                child: const HomePage(),
-                create: (BuildContext context) => BottomNavigationBarProvider(),
-              ),
+              child: const HomePage(),
+              )
             ),
           );
         });

@@ -109,7 +109,6 @@ void defaultState() async {
   globals.showTimer = false;
   globals.workoutTimerInProgress = false;
   globals.counter.value++;
-  globals.listCounter.value++;
   globals.progressCounter.value++;
   globals.calendarCounter.value++;
   globals.themeCounter.value++;

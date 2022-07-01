@@ -49,8 +49,6 @@ ValueNotifier<int> plateCounter =
 ValueNotifier<int> incrementsCounter = ValueNotifier<int>(0); // for increments
 ValueNotifier<int> graphCounter =
     ValueNotifier<int>(0); // to update graph text
-ValueNotifier<int> listCounter =
-    ValueNotifier<int>(0); // for list
 ValueNotifier<int> progressCounter =
     ValueNotifier<int>(0); // for progress page
 ValueNotifier<int> calendarCounter =

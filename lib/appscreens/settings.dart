@@ -687,7 +687,6 @@ class _SettingsState extends State<Settings> {
                                 globals.lbKg = tempUnit == 0 ? "lb" : "kg";
                               });
                               globals.progressCounter.value++;
-                              globals.listCounter.value++;
                               Navigator.of(context).pop();
                             }),
                       ]),
