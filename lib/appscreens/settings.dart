@@ -307,8 +307,9 @@ class _SettingsState extends State<Settings> {
                                           setState(() {
                                             defaultsBox.putAt(
                                                 0,
-                                                double.parse(
-                                                    _myController.text));
+                                              double.parse(_myController.text.isEmpty
+                                                ? "0"
+                                                : _myController.text));
                                           });
                                           Navigator.of(context).pop();
                                         },
@@ -418,8 +419,9 @@ class _SettingsState extends State<Settings> {
                                           setState(() {
                                             defaultsBox.putAt(
                                                 1,
-                                                double.parse(
-                                                    _myController.text));
+                                              double.parse(_myController.text.isEmpty
+                                                ? "0"
+                                                : _myController.text));
                                           });
                                           Navigator.of(context).pop();
                                         },
@@ -527,7 +529,9 @@ class _SettingsState extends State<Settings> {
                                     onPressed: () {
                                       setState(() {
                                         defaultsBox.putAt(2,
-                                            double.parse(_myController.text));
+                                              double.parse(_myController.text.isEmpty
+                                                ? "0"
+                                                : _myController.text));
                                       });
                                       Navigator.of(context).pop();
                                     },

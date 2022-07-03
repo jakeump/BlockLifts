@@ -101,50 +101,48 @@ class _HomeState extends State<Home> {
           ]),
         );
       }),
-      floatingActionButton: Consumer<WorkoutTimerProvider>(
-          builder: (context, workoutTimerProvider, child) {
-        return Align(
-            alignment: Alignment.bottomRight,
-            child: Container(
-              padding: boolBox.getAt(5)!
-                  ? const EdgeInsets.only(right: 10)
-                  : const EdgeInsets.only(right: 10, bottom: 10),
-              child: OutlinedButton(
-                child: boolBox.getAt(5)!
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                            const Text("Workout In Progress",
-                                style: TextStyle(fontSize: 16)),
-                            buildWorkoutTime(),
-                          ])
-                    : const Text("Start Workout",
-                        style: TextStyle(fontSize: 16)),
-                style: OutlinedButton.styleFrom(
-                  fixedSize: boolBox.getAt(5)!
-                      ? const Size.fromHeight(75)
-                      : const Size.fromHeight(50),
-                  primary: Colors.white,
-                  backgroundColor: globals.redColor,
-                  shape: boolBox.getAt(5)!
-                      ? RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10))
-                      : const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(50))),
-                ),
-                onPressed: () {
-                  if (boolBox.getAt(5)!) {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) =>
-                            WorkoutPage(counterBox.getAt(0)!)));
-                  } else {
-                    pushWorkout(counterBox.getAt(0)!);
-                  }
-                },
+      floatingActionButton: Align(
+          alignment: Alignment.bottomRight,
+          child: Container(
+            padding: boolBox.getAt(5)!
+                ? const EdgeInsets.only(right: 10)
+                : const EdgeInsets.only(right: 10, bottom: 10),
+            child: OutlinedButton(
+              child: boolBox.getAt(5)!
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                          const Text("Workout In Progress",
+                              style: TextStyle(fontSize: 16)),
+                          Consumer<WorkoutTimerProvider>(
+                              builder: (context, workoutTimerProvider, child) {
+                            return buildWorkoutTime();
+                          }),
+                        ])
+                  : const Text("Start Workout", style: TextStyle(fontSize: 16)),
+              style: OutlinedButton.styleFrom(
+                fixedSize: boolBox.getAt(5)!
+                    ? const Size.fromHeight(75)
+                    : const Size.fromHeight(50),
+                primary: Colors.white,
+                backgroundColor: globals.redColor,
+                shape: boolBox.getAt(5)!
+                    ? RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10))
+                    : const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(50))),
               ),
-            ));
-      }),
+              onPressed: () {
+                if (boolBox.getAt(5)!) {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => WorkoutPage(counterBox.getAt(0)!)));
+                } else {
+                  pushWorkout(counterBox.getAt(0)!);
+                }
+              },
+            ),
+          )),
       floatingActionButtonLocation: boolBox.getAt(5)!
           ? FloatingActionButtonLocation.centerDocked
           : FloatingActionButtonLocation.centerDocked,

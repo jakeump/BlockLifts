@@ -543,7 +543,8 @@ class _IncrementsPageState extends State<IncrementsPage> {
                   onPressed: () {
                     final tempExercise =
                         Hive.box<Exercise>('exercisesBox').getAt(widget.index);
-                    tempExercise!.increment = double.parse(_myController.text);
+                    tempExercise!.increment = double.parse(
+                        _myController.text.isEmpty ? "0" : _myController.text);
                     tempExercise.save();
 
                     globals.incrementsCounter.value++;

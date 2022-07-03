@@ -307,6 +307,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                   child: const Text("OK"),
                                   onPressed: () {
                                     setState(() {
+                                      if (_myController.text.isEmpty) {
+                                        _myController.text = "0";
+                                      }
                                       final tempEx =
                                           Hive.box<Exercise>('exercisesBox')
                                               .getAt(widget.index);
@@ -333,7 +336,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                         }
                                       }
                                     });
-                                    var progressProvider = Provider.of<ProgressProvider>(context, listen: false);
+                                    var progressProvider =
+                                        Provider.of<ProgressProvider>(context,
+                                            listen: false);
                                     progressProvider.updateProgress();
                                     Navigator.of(context).pop();
                                   },
@@ -556,6 +561,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                   child: const Text("OK"),
                                   onPressed: () {
                                     setState(() {
+                                      if (_myController.text.isEmpty) {
+                                        _myController.text = "0";
+                                      }
                                       final tempEx =
                                           Hive.box<Exercise>('exercisesBox')
                                               .getAt(widget.index);
@@ -783,6 +791,12 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                           .getAt(widget.index)!
                                           .sets;
                                       setState(() {
+                                        if (_myController.text.isEmpty) {
+                                          _myController.text = "0";
+                                        }
+                                        if (_myController2.text.isEmpty) {
+                                          _myController2.text = "0";
+                                        }
                                         final tempExercise =
                                             Hive.box<Exercise>('exercisesBox')
                                                 .getAt(widget.index);
@@ -1052,7 +1066,10 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                             }
                                           }
                                         });
-                                        var progressProvider = Provider.of<ProgressProvider>(context, listen: false);
+                                        var progressProvider =
+                                            Provider.of<ProgressProvider>(
+                                                context,
+                                                listen: false);
                                         progressProvider.updateProgress();
                                         Navigator.of(context).pop();
                                       },

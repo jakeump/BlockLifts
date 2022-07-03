@@ -180,7 +180,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                 }
                 globals.changesMade = false;
                 tempIndiv.save();
-                var calendarProvider = Provider.of<CalendarProvider>(context, listen: false);
+                var calendarProvider =
+                    Provider.of<CalendarProvider>(context, listen: false);
                 calendarProvider.updateCalendar();
                 Navigator.of(context).pop();
               },
@@ -700,7 +701,10 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                           onPressed: () {
                                             indivWorkoutsBox
                                                 .deleteAt(widget.index);
-                                            var calendarProvider = Provider.of<CalendarProvider>(context, listen: false);
+                                            var calendarProvider =
+                                                Provider.of<CalendarProvider>(
+                                                    context,
+                                                    listen: false);
                                             calendarProvider.updateCalendar();
                                             Navigator.of(context).pop();
                                             Navigator.of(context).pop();
@@ -885,103 +889,104 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   thickness: 2,
                 ),
                 const SizedBox(height: 20),
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          primary: globals.redColor,
-                          textStyle: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                          alignment: Alignment.center,
-                        ),
-                        child: const Text("Cancel"),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
+                Row(mainAxisAlignment: MainAxisAlignment.end, children: <
+                    Widget>[
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      primary: globals.redColor,
+                      textStyle: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                      alignment: Alignment.center,
+                    ),
+                    child: const Text("Cancel"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  const SizedBox(width: 20),
+                  TextButton(
+                      style: TextButton.styleFrom(
+                        primary: globals.redColor,
+                        textStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        alignment: Alignment.center,
                       ),
-                      const SizedBox(width: 20),
-                      TextButton(
-                          style: TextButton.styleFrom(
-                            primary: globals.redColor,
-                            textStyle: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                            alignment: Alignment.center,
-                          ),
-                          child: const Text("OK"),
-                          onPressed: () {
-                            int oldReps =
-                                indivWorkoutsBox.getAt(idx)!.repsPlanned[exIdx];
-                            int oldSets =
-                                indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx];
-                            if (indivWorkoutsBox.getAt(idx)!.weights[exIdx] !=
-                                double.parse(_weightsController.text)) {
-                              globals.changesMade = true;
-                            }
-                            setState(() => {
-                                  indivWorkoutsBox.getAt(idx)!.weights[exIdx] =
-                                      double.parse(_weightsController.text),
+                      child: const Text("OK"),
+                      onPressed: () {
+                        int oldReps =
+                            indivWorkoutsBox.getAt(idx)!.repsPlanned[exIdx];
+                        int oldSets =
+                            indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx];
+                        if (indivWorkoutsBox.getAt(idx)!.weights[exIdx] !=
+                            double.parse(_weightsController.text.isEmpty ? "0" : _weightsController.text)) {
+                          globals.changesMade = true;
+                        }
+                        setState(() => {
+                              indivWorkoutsBox.getAt(idx)!.weights[exIdx] =
+                                  double.parse(_weightsController.text.isEmpty
+                                      ? "0"
+                                      : _weightsController.text),
+                              indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx] =
+                                  int.parse(_myController.text.isEmpty
+                                      ? "0"
+                                      : _myController.text),
+                              indivWorkoutsBox.getAt(idx)!.repsPlanned[exIdx] =
+                                  int.parse(_myController2.text.isEmpty
+                                      ? "0"
+                                      : _myController2.text),
+                              if (oldSets !=
                                   indivWorkoutsBox
-                                          .getAt(idx)!
-                                          .setsPlanned[exIdx] =
-                                      int.parse(_myController.text),
-                                  indivWorkoutsBox
-                                          .getAt(idx)!
-                                          .repsPlanned[exIdx] =
-                                      int.parse(_myController2.text),
-                                  if (oldSets !=
-                                      indivWorkoutsBox
-                                          .getAt(idx)!
-                                          .setsPlanned[exIdx])
-                                    {
-                                      globals.changesMade = true,
-                                      for (int i = 0;
-                                          i <
-                                              indivWorkoutsBox
-                                                      .getAt(idx)!
-                                                      .setsPlanned[exIdx] -
-                                                  oldSets;
-                                          i++)
-                                        {
+                                      .getAt(idx)!
+                                      .setsPlanned[exIdx])
+                                {
+                                  globals.changesMade = true,
+                                  for (int i = 0;
+                                      i <
                                           indivWorkoutsBox
-                                              .getAt(idx)!
-                                              .repsCompleted[exIdx]
-                                              .add(indivWorkoutsBox
-                                                      .getAt(idx)!
-                                                      .repsPlanned[exIdx] +
-                                                  1),
-                                        },
-                                    },
-                                  if (oldReps !=
-                                      indivWorkoutsBox
-                                          .getAt(idx)!
-                                          .repsPlanned[exIdx])
+                                                  .getAt(idx)!
+                                                  .setsPlanned[exIdx] -
+                                              oldSets;
+                                      i++)
                                     {
-                                      globals.changesMade = true,
                                       indivWorkoutsBox
                                           .getAt(idx)!
                                           .repsCompleted[exIdx]
-                                          .clear(),
-                                      for (int j = 0;
-                                          j <
-                                              indivWorkoutsBox
+                                          .add(indivWorkoutsBox
                                                   .getAt(idx)!
-                                                  .setsPlanned[exIdx];
-                                          ++j)
-                                        {
+                                                  .repsPlanned[exIdx] +
+                                              1),
+                                    },
+                                },
+                              if (oldReps !=
+                                  indivWorkoutsBox
+                                      .getAt(idx)!
+                                      .repsPlanned[exIdx])
+                                {
+                                  globals.changesMade = true,
+                                  indivWorkoutsBox
+                                      .getAt(idx)!
+                                      .repsCompleted[exIdx]
+                                      .clear(),
+                                  for (int j = 0;
+                                      j <
                                           indivWorkoutsBox
                                               .getAt(idx)!
-                                              .repsCompleted[exIdx]
-                                              .add(indivWorkoutsBox
-                                                      .getAt(idx)!
-                                                      .repsPlanned[exIdx] +
-                                                  1),
-                                        },
-                                    }
-                                });
-                            Navigator.of(context).pop();
-                          }),
-                    ]),
+                                              .setsPlanned[exIdx];
+                                      ++j)
+                                    {
+                                      indivWorkoutsBox
+                                          .getAt(idx)!
+                                          .repsCompleted[exIdx]
+                                          .add(indivWorkoutsBox
+                                                  .getAt(idx)!
+                                                  .repsPlanned[exIdx] +
+                                              1),
+                                    },
+                                }
+                            });
+                        Navigator.of(context).pop();
+                      }),
+                ]),
               ]),
         ),
       ),
