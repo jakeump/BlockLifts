@@ -11,6 +11,6 @@ I have not programmed this app to collect any personally identifiable informatio
 
 If you find any security vulnerability that has been inadvertently caused by me, or have any question regarding how the app protects your privacy, please send me an email, and I will try to fix it/help you.
 
-Thank you for downloading,
-Jake Block
+Thank you for downloading,\
+Jake Block\
 blockjb@umich.edu
