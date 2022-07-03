@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/exercise.dart';
 import 'package:blocklifts/appscreens/graphbuilderpage.dart';
+import 'package:blocklifts/classes/providers/progressprovider.dart';
+import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class GraphPage extends StatefulWidget {
@@ -56,7 +58,8 @@ class _GraphPageState extends State<GraphPage> {
                   exercisesBox.getAt(widget.index)!.bookmarked =
                       !exercisesBox.getAt(widget.index)!.bookmarked;
                   exercisesBox.getAt(widget.index)!.save();
-                  globals.progressCounter.value++;
+                  var progressProvider = Provider.of<ProgressProvider>(context, listen: false);
+                  progressProvider.updateProgress();
                   setState(() {});
                 },
               ),

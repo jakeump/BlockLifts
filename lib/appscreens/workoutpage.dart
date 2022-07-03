@@ -1,3 +1,4 @@
+import 'package:blocklifts/classes/providers/progressprovider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
@@ -14,7 +15,9 @@ import 'package:blocklifts/classes/indivworkout.dart';
 import 'package:blocklifts/appscreens/editexercisepage.dart';
 import 'package:blocklifts/appscreens/workoutnotespage.dart';
 import 'package:blocklifts/appscreens/editworkoutpage.dart';
-import 'package:blocklifts/classes/listprovider.dart';
+import 'package:blocklifts/classes/providers/listprovider.dart';
+import 'package:blocklifts/classes/providers/homeprovider.dart';
+import 'package:blocklifts/classes/providers/calendarprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
@@ -145,10 +148,13 @@ class _WorkoutPageState extends State<WorkoutPage> {
     if (boolBox.getAt(5)!) {
       counterBox.putAt(0, idx);
     } else if (!boolBox.getAt(5)!) {
+      Wakelock.disable();
       counterBox.putAt(0, counterBox.getAt(1)!);
       globals.workoutTimerInProgress = false;
       globals.workoutDuration = const Duration(seconds: 0);
     }
+    var homeProvider = Provider.of<HomeProvider>(context, listen: false);
+    homeProvider.updateHome();
   }
 
   void switchWorkout(int idx) {
@@ -187,7 +193,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
                 iconSize: 18,
                 onPressed: () {
                   checkWorkoutInProgress(widget.index);
-                  globals.counter.value++;
                   Navigator.of(context).pop();
                 },
               ),
@@ -1018,6 +1023,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
     globals.timer?.cancel();
     globals.workoutTimer?.cancel();
     boolBox.putAt(5, false);
+    Wakelock.disable();
 
     String name = workoutsBox.getAt(widget.index)!.name;
     DateTime now = DateTime.now();
@@ -1140,7 +1146,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
       }
     }
     var listProvider = Provider.of<ListProvider>(context, listen: false);
-    
+
     listProvider.addIndivWorkout(IndivWorkout(
         name,
         date,
@@ -1155,8 +1161,11 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
     tempNoteBox.putAt(0, ""); // clears note for next workout
 
-    globals.progressCounter.value++;
-    globals.calendarCounter.value++;
+    var progressProvider = Provider.of<ProgressProvider>(context, listen: false);
+    progressProvider.updateProgress();
+
+    var calendarProvider = Provider.of<CalendarProvider>(context, listen: false);
+    calendarProvider.updateCalendar();
 
     for (int i = 0; i < workoutsBox.length; i++) {
       final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(i);
@@ -1173,7 +1182,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
   Future<bool> _onBackPressed() async {
     checkWorkoutInProgress(widget.index);
-    globals.calendarCounter.value++;
+    var calendarProvider = Provider.of<CalendarProvider>(context, listen: false);
+    calendarProvider.updateCalendar();
     return true;
   }
 

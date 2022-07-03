@@ -13,9 +13,6 @@ class History extends StatefulWidget {
 class _HistoryState extends State<History> {
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-        valueListenable: globals.themeCounter,
-        builder: (context, index, child) {
           return Theme(
             data: ThemeData(
               splashColor: Colors.transparent,
@@ -56,6 +53,5 @@ class _HistoryState extends State<History> {
               ),
             ),
           );
-        });
   }
 }

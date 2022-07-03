@@ -1,8 +1,10 @@
+import 'package:blocklifts/classes/providers/progressprovider.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/exercise.dart';
 import 'package:blocklifts/classes/indivworkout.dart';
 import 'package:blocklifts/appscreens/graphpage.dart';
+import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class Progress extends StatefulWidget {
@@ -24,9 +26,6 @@ class _ProgressState extends State<Progress> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-        valueListenable: globals.themeCounter,
-        builder: (context, index, child) {
           return Scaffold(
               backgroundColor: globals.backColor,
               appBar: AppBar(
@@ -36,9 +35,8 @@ class _ProgressState extends State<Progress> {
                 title: const Text("Progress"),
                 titleTextStyle: TextStyle(fontSize: 22, color: globals.textColor),
               ),
-              body: ValueListenableBuilder(
-                  valueListenable: globals.progressCounter,
-                  builder: (context, value, child) {
+              body: Consumer<ProgressProvider>(
+                builder: (context, progressProvider, child) {
                     int bookmarkCounter = 0;
                     for (int i = 1; i < exercisesBox.length; i++) {
                       if (exercisesBox.getAt(i)!.bookmarked) {
@@ -235,6 +233,5 @@ class _ProgressState extends State<Progress> {
                       ],
                     );
                   }));
-        });
   }
 }

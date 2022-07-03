@@ -1,9 +1,11 @@
+import 'package:blocklifts/classes/providers/calendarprovider.dart';
 import 'package:flutter/material.dart';
 import 'package:paged_vertical_calendar/paged_vertical_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/indivworkout.dart';
 import 'package:blocklifts/appscreens/postworkouteditpage.dart';
+import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class CalendarPage extends StatefulWidget {
@@ -52,9 +54,8 @@ class _CalendarState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-        valueListenable: globals.calendarCounter,
-        builder: (context, value, child) {
+    return Consumer<CalendarProvider>(
+        builder: (context, calendarProvider, child) {
           getMinMaxDate();
           datesList.clear();
           for (int i = 0; i < indivWorkoutsBox.length; i++) {

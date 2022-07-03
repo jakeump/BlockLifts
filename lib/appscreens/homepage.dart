@@ -4,10 +4,11 @@ import 'package:blocklifts/appscreens/progress.dart';
 import 'package:blocklifts/appscreens/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:blocklifts/classes/providers/workouttimerprovider.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/mybottomnavigationbar.dart';
-import 'package:blocklifts/classes/bottomnavigationbarprovider.dart';
+import 'package:blocklifts/classes/providers/bottomnavigationbarprovider.dart';
 import 'package:blocklifts/functions/check_time.dart';
 import 'package:blocklifts/functions/create_notification.dart';
 import 'dart:async';
@@ -77,7 +78,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void addTime(Timer? timer) {
-    globals.themeCounter.value++;
     globals.timerCounter.value++;
     const addSeconds = 1;
     final seconds = globals.duration.inSeconds + addSeconds;
@@ -97,13 +97,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   void addWorkoutTime(Timer? workoutTimer) {
-    globals.workoutTimerCounter;
     const addSeconds = 1;
     final seconds = globals.workoutDuration.inSeconds + addSeconds;
     if (seconds < 0) {
       workoutTimer?.cancel();
     } else {
       globals.workoutDuration = Duration(seconds: seconds);
+    }
+    if (globals.workoutDuration.inSeconds % 60 == 0) {
+      // updates homepage every minute
+      var workoutTimerProvider =
+          Provider.of<WorkoutTimerProvider>(context, listen: false);
+      workoutTimerProvider.updateWorkoutTimer();
     }
   }
 
@@ -116,25 +121,24 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var provider = Provider.of<BottomNavigationBarProvider>(context);
-    return ValueListenableBuilder<int>(
-        valueListenable: globals.themeCounter,
-        builder: (context, index, child) {
-          return Theme(
-            data: ThemeData(
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              brightness: Brightness.dark,
-            ),
-            child: Scaffold(
-              body: currentTab[provider.currentIndex],
-              bottomNavigationBar: MyBottomNavigationBar(onTapped: _onTappedBar),
-            ),
-          );
-        });
+    return Consumer<BottomNavigationBarProvider>(
+        builder: (context, provider, child) {
+      return Theme(
+        data: ThemeData(
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          brightness: Brightness.dark,
+        ),
+        child: Scaffold(
+          body: currentTab[provider.currentIndex],
+          bottomNavigationBar: MyBottomNavigationBar(onTapped: _onTappedBar),
+        ),
+      );
+    });
   }
 
   void _onTappedBar(int value) {
-    Provider.of<BottomNavigationBarProvider>(context, listen: false).currentIndex = value;
+    Provider.of<BottomNavigationBarProvider>(context, listen: false)
+        .currentIndex = value;
   }
 }

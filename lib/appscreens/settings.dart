@@ -5,6 +5,10 @@ import 'package:blocklifts/classes/plate.dart';
 import 'package:blocklifts/functions/default_state.dart';
 import 'package:blocklifts/appscreens/timerpage.dart';
 import 'package:blocklifts/appscreens/platespage.dart';
+import 'package:blocklifts/classes/providers/settingsprovider.dart';
+import 'package:blocklifts/classes/providers/themeprovider.dart';
+import 'package:blocklifts/classes/providers/progressprovider.dart';
+import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class Settings extends StatefulWidget {
@@ -19,40 +23,6 @@ class _SettingsState extends State<Settings> {
   late final Box<double> defaultsBox;
   String platesString = "";
   final _myController = TextEditingController();
-
-  void toggleSwitch(bool value) {
-    if (boolBox.getAt(0) == false) {
-      setState(() {
-        boolBox.putAt(0, true);
-      });
-      globals.themeCounter.value++;
-      globals.calendarCounter.value++;
-      globals.counter.value++;
-      globals.progressCounter.value++;
-      globals.calendarCounter.value++;
-    } else {
-      setState(() {
-        boolBox.putAt(0, false);
-      });
-      globals.themeCounter.value++;
-      globals.calendarCounter.value++;
-      globals.counter.value++;
-      globals.progressCounter.value++;
-      globals.calendarCounter.value++;
-    }
-  }
-
-  void toggleSwitch2(bool value) {
-    if (boolBox.getAt(6) == false) {
-      setState(() {
-        boolBox.putAt(6, true);
-      });
-    } else {
-      setState(() {
-        boolBox.putAt(6, false);
-      });
-    }
-  }
 
   String platesToString() {
     String output = '';
@@ -78,548 +48,589 @@ class _SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
     platesString = platesToString();
-    return Scaffold(
-      backgroundColor: globals.backColor,
-      appBar: AppBar(
-        elevation: 0,
-        centerTitle: true,
-        backgroundColor: globals.headerColor,
-        title: const Text("Settings"),
-        titleTextStyle: TextStyle(fontSize: 22, color: globals.textColor),
-      ),
-      body: ListView(children: <Widget>[
-        TextButton(
-          style: TextButton.styleFrom(
-              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Row(children: <Widget>[
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text("Dark Mode",
-                      style: TextStyle(color: globals.textColor)),
-                ),
-              ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Switch(
-                    inactiveThumbColor: globals.greyColor,
-                    inactiveTrackColor:
-                        const Color.fromARGB(255, 207, 207, 207),
-                    activeColor: globals.activeSwitchColor,
-                    activeTrackColor: globals.greyColor,
-                    value: boolBox.getAt(0)!,
-                    onChanged: toggleSwitch,
-                  ),
-                ),
-              ),
-            ]),
-          ),
-          onPressed: (() => toggleSwitch(false)),
+    return Consumer<SettingsProvider>(
+        builder: (context, settingsProvider, child) {
+      return Scaffold(
+        backgroundColor: globals.backColor,
+        appBar: AppBar(
+          elevation: 0,
+          centerTitle: true,
+          backgroundColor: globals.headerColor,
+          title: const Text("Settings"),
+          titleTextStyle: TextStyle(fontSize: 22, color: globals.textColor),
         ),
-        TextButton(
-          style: TextButton.styleFrom(
-              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Row(children: <Widget>[
-              Expanded(
-                child: Column(children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text("Timer",
-                        style: TextStyle(color: globals.textColor)),
+        body: ListView(children: <Widget>[
+          TextButton(
+              style: TextButton.styleFrom(
+                  primary: Colors.white,
+                  textStyle: const TextStyle(fontSize: 16)),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                child: Row(children: <Widget>[
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Dark Mode",
+                          style: TextStyle(color: globals.textColor)),
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: boolBox.getAt(1)! == true
-                        ? Text("On", style: TextStyle(color: globals.greyColor))
-                        : Text("Off",
-                            style: TextStyle(color: globals.greyColor)),
-                  ),
-                ]),
-              ),
-            ]),
-          ),
-          onPressed: () {
-            Navigator.of(context)
-                .push(
-                    MaterialPageRoute(builder: (context) => const TimerPage()))
-                .then((value) {
-              setState(() {});
-            });
-          },
-        ),
-        TextButton(
-          style: TextButton.styleFrom(
-              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Row(children: <Widget>[
-              Expanded(
-                child: Column(children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text("Weight Unit",
-                        style: TextStyle(color: globals.textColor)),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: boolBox.getAt(7)! == true
-                        ? Text("lb", style: TextStyle(color: globals.greyColor))
-                        : Text("kg",
-                            style: TextStyle(color: globals.greyColor)),
-                  ),
-                ]),
-              ),
-            ]),
-          ),
-          onPressed: () {
-            showDialog(context: context, builder: (context) => unitSelector());
-          },
-        ),
-        TextButton(
-          style: TextButton.styleFrom(
-              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Row(children: <Widget>[
-              Expanded(
-                child: Column(children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text("Plates",
-                        style: TextStyle(color: globals.textColor)),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(platesString,
-                        style: TextStyle(color: globals.greyColor)),
-                  ),
-                ]),
-              ),
-            ]),
-          ),
-          onPressed: () {
-            Navigator.of(context)
-                .push(
-                    MaterialPageRoute(builder: (context) => const PlatesPage()))
-                .then((value) {
-              setState(() {});
-            });
-          },
-        ),
-        TextButton(
-          style: TextButton.styleFrom(
-              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Column(children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text("Default Bar Weight",
-                    style: TextStyle(color: globals.textColor)),
-              ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: defaultsBox.getAt(0)! % 1 == 0
-                    ? Text(
-                        defaultsBox.getAt(0)!.toInt().toString() + globals.lbKg,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: globals.greyColor))
-                    : Text(defaultsBox.getAt(0)!.toString() + globals.lbKg,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: globals.greyColor)),
-              ),
-            ]),
-          ),
-          onPressed: () {
-            defaultsBox.getAt(0)! % 1 == 0
-                ? _myController.text = defaultsBox.getAt(0)!.toInt().toString()
-                : _myController.text = defaultsBox.getAt(0)!.toString();
-            showDialog(
-                context: context,
-                builder: (context) => Dialog(
-                      insetPadding: const EdgeInsets.all(10),
-                      child: Container(
-                        color: globals.tileColor,
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text("Default Bar Weight",
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          color: globals.textColor))),
-                              const SizedBox(height: 20),
-                              TextField(
-                                inputFormatters: <TextInputFormatter>[
-                                  FilteringTextInputFormatter(RegExp(r'[0-9.]'),
-                                      allow: true)
-                                ],
-                                style: TextStyle(color: globals.textColor),
-                                controller: _myController,
-                                autofocus: true,
-                                keyboardType: TextInputType.number,
-                                textAlignVertical: TextAlignVertical.bottom,
-                                decoration: const InputDecoration(
-                                  contentPadding: EdgeInsets.only(bottom: 10),
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                ),
-                              ),
-                              Divider(
-                                color: globals.underlineColor,
-                                height: 2,
-                                thickness: 2,
-                              ),
-                              const SizedBox(height: 20),
-                              Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: <Widget>[
-                                    TextButton(
-                                      style: TextButton.styleFrom(
-                                        primary: globals.redColor,
-                                        textStyle: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                        alignment: Alignment.center,
-                                      ),
-                                      child: const Text("Cancel"),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                    const SizedBox(width: 20),
-                                    TextButton(
-                                      style: TextButton.styleFrom(
-                                        primary: globals.redColor,
-                                        textStyle: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                        alignment: Alignment.center,
-                                      ),
-                                      child: const Text("OK"),
-                                      onPressed: () {
-                                        setState(() {
-                                          defaultsBox.putAt(0,
-                                              double.parse(_myController.text));
-                                        });
-                                        Navigator.of(context).pop();
-                                      },
-                                    )
-                                  ]),
-                            ]),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Switch(
+                        inactiveThumbColor: globals.greyColor,
+                        inactiveTrackColor:
+                            const Color.fromARGB(255, 207, 207, 207),
+                        activeColor: globals.activeSwitchColor,
+                        activeTrackColor: globals.greyColor,
+                        value: boolBox.getAt(0)!,
+                        onChanged: ((bool value) {
+                          settingsProvider.toggleThemeSwitch();
+                          var themeProvider = Provider.of<ThemeProvider>(
+                              context,
+                              listen: false);
+                          themeProvider.updateTheme();
+                        }),
                       ),
-                    ));
-          },
-        ),
-        TextButton(
-          style: TextButton.styleFrom(
-              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Row(children: <Widget>[
-              Expanded(
-                child: Column(children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text("Default Sets",
-                        style: TextStyle(color: globals.textColor)),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                        defaultsBox.getAt(1)!.toInt().toString() + " sets",
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: globals.greyColor)),
+                    ),
                   ),
                 ]),
               ),
-            ]),
-          ),
-          onPressed: () {
-            _myController.text = defaultsBox.getAt(1)!.toInt().toString();
-            showDialog(
-                context: context,
-                builder: (context) => Dialog(
-                      insetPadding: const EdgeInsets.all(10),
-                      child: Container(
-                        color: globals.tileColor,
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text("Default Sets",
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          color: globals.textColor))),
-                              const SizedBox(height: 20),
-                              TextField(
-                                inputFormatters: <TextInputFormatter>[
-                                  FilteringTextInputFormatter(RegExp(r'[0-99]'),
-                                      allow: true)
-                                ],
-                                style: TextStyle(color: globals.textColor),
-                                controller: _myController,
-                                autofocus: true,
-                                keyboardType: TextInputType.number,
-                                textAlignVertical: TextAlignVertical.bottom,
-                                decoration: const InputDecoration(
-                                  contentPadding: EdgeInsets.only(bottom: 10),
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                ),
-                              ),
-                              Divider(
-                                color: globals.underlineColor,
-                                height: 2,
-                                thickness: 2,
-                              ),
-                              const SizedBox(height: 20),
-                              Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: <Widget>[
-                                    TextButton(
-                                      style: TextButton.styleFrom(
-                                        primary: globals.redColor,
-                                        textStyle: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                        alignment: Alignment.center,
-                                      ),
-                                      child: const Text("Cancel"),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                    const SizedBox(width: 20),
-                                    TextButton(
-                                      style: TextButton.styleFrom(
-                                        primary: globals.redColor,
-                                        textStyle: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                        alignment: Alignment.center,
-                                      ),
-                                      child: const Text("OK"),
-                                      onPressed: () {
-                                        setState(() {
-                                          defaultsBox.putAt(1,
-                                              double.parse(_myController.text));
-                                        });
-                                        Navigator.of(context).pop();
-                                      },
-                                    )
-                                  ]),
-                            ]),
-                      ),
-                    ));
-          },
-        ),
-        TextButton(
-          style: TextButton.styleFrom(
-              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Row(children: <Widget>[
-              Expanded(
-                child: Column(children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text("Default Reps",
-                        style: TextStyle(color: globals.textColor)),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                        defaultsBox.getAt(2)!.toInt().toString() + " reps",
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: globals.greyColor)),
-                  ),
-                ]),
-              ),
-            ]),
-          ),
-          onPressed: () {
-            _myController.text = defaultsBox.getAt(2)!.toInt().toString();
-            showDialog(
-              context: context,
-              builder: (context) => Dialog(
-                  insetPadding: const EdgeInsets.all(10),
-                  child: Container(
-                    color: globals.tileColor,
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text("Default Reps",
-                                  style: TextStyle(
-                                      fontSize: 20, color: globals.textColor))),
-                          const SizedBox(height: 20),
-                          TextField(
-                            inputFormatters: <TextInputFormatter>[
-                              FilteringTextInputFormatter(RegExp(r'[0-99]'),
-                                  allow: true)
-                            ],
-                            style: TextStyle(color: globals.textColor),
-                            controller: _myController,
-                            autofocus: true,
-                            keyboardType: TextInputType.number,
-                            textAlignVertical: TextAlignVertical.bottom,
-                            decoration: const InputDecoration(
-                              contentPadding: EdgeInsets.only(bottom: 10),
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                            ),
-                          ),
-                          Divider(
-                            color: globals.underlineColor,
-                            height: 2,
-                            thickness: 2,
-                          ),
-                          const SizedBox(height: 20),
-                          Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: <Widget>[
-                                TextButton(
-                                  style: TextButton.styleFrom(
-                                    primary: globals.redColor,
-                                    textStyle: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
-                                    alignment: Alignment.center,
-                                  ),
-                                  child: const Text("Cancel"),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                                const SizedBox(width: 20),
-                                TextButton(
-                                  style: TextButton.styleFrom(
-                                    primary: globals.redColor,
-                                    textStyle: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
-                                    alignment: Alignment.center,
-                                  ),
-                                  child: const Text("OK"),
-                                  onPressed: () {
-                                    setState(() {
-                                      defaultsBox.putAt(
-                                          2, double.parse(_myController.text));
-                                    });
-                                    Navigator.of(context).pop();
-                                  },
-                                )
-                              ]),
-                        ]),
-                  )),
-            );
-          },
-        ),
-        TextButton(
-          style: TextButton.styleFrom(
-              primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Row(children: <Widget>[
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text("Keep Screen Awake",
-                      style: TextStyle(color: globals.textColor)),
-                ),
-              ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Switch(
-                    inactiveThumbColor: globals.greyColor,
-                    inactiveTrackColor:
-                        const Color.fromARGB(255, 207, 207, 207),
-                    activeColor: globals.activeSwitchColor,
-                    activeTrackColor: globals.greyColor,
-                    value: boolBox.getAt(6)!,
-                    onChanged: toggleSwitch2,
-                  ),
-                ),
-              ),
-            ]),
-          ),
-          onPressed: (() => toggleSwitch2(false)),
-        ),
-        TextButton(
+              onPressed: (() {
+                settingsProvider.toggleThemeSwitch();
+                var themeProvider =
+                    Provider.of<ThemeProvider>(context, listen: false);
+                themeProvider.updateTheme();
+              })),
+          TextButton(
             style: TextButton.styleFrom(
-                primary: globals.redColor,
+                primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
             child: Container(
               padding: const EdgeInsets.all(10),
-              child: const Align(
-                  alignment: Alignment.centerLeft,
-                  child:
-                      Text("Reset", style: TextStyle(color: globals.redColor))),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Column(children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Timer",
+                          style: TextStyle(color: globals.textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: boolBox.getAt(1)! == true
+                          ? Text("On",
+                              style: TextStyle(color: globals.greyColor))
+                          : Text("Off",
+                              style: TextStyle(color: globals.greyColor)),
+                    ),
+                  ]),
+                ),
+              ]),
+            ),
+            onPressed: () {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(
+                      builder: (context) => const TimerPage()))
+                  .then((value) {
+                setState(() {});
+              });
+            },
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Column(children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Weight Unit",
+                          style: TextStyle(color: globals.textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: boolBox.getAt(7)! == true
+                          ? Text("lb",
+                              style: TextStyle(color: globals.greyColor))
+                          : Text("kg",
+                              style: TextStyle(color: globals.greyColor)),
+                    ),
+                  ]),
+                ),
+              ]),
             ),
             onPressed: () {
               showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  backgroundColor: globals.tileColor,
-                  title: Text('Reset All Data',
-                      style: TextStyle(fontSize: 20, color: globals.textColor)),
-                  content: Text(
-                      'This will permanently erase all data from this device, including your workouts and settings. The app will return to defaults.',
-                      style: TextStyle(fontSize: 15, color: globals.textColor)),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(fontSize: 16, color: globals.redColor),
-                      ),
+                  context: context, builder: (context) => unitSelector());
+            },
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Column(children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Plates",
+                          style: TextStyle(color: globals.textColor)),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          defaultState();
-                        });
-                        Navigator.pop(context);
-                      },
-                      child: const Text(
-                        'Reset',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: globals.redColor,
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(platesString,
+                          style: TextStyle(color: globals.greyColor)),
+                    ),
+                  ]),
+                ),
+              ]),
+            ),
+            onPressed: () {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(
+                      builder: (context) => const PlatesPage()))
+                  .then((value) {
+                setState(() {});
+              });
+            },
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Column(children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text("Default Bar Weight",
+                      style: TextStyle(color: globals.textColor)),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: defaultsBox.getAt(0)! % 1 == 0
+                      ? Text(
+                          defaultsBox.getAt(0)!.toInt().toString() +
+                              globals.lbKg,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: globals.greyColor))
+                      : Text(defaultsBox.getAt(0)!.toString() + globals.lbKg,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: globals.greyColor)),
+                ),
+              ]),
+            ),
+            onPressed: () {
+              defaultsBox.getAt(0)! % 1 == 0
+                  ? _myController.text =
+                      defaultsBox.getAt(0)!.toInt().toString()
+                  : _myController.text = defaultsBox.getAt(0)!.toString();
+              showDialog(
+                  context: context,
+                  builder: (context) => Dialog(
+                        insetPadding: const EdgeInsets.all(10),
+                        child: Container(
+                          color: globals.tileColor,
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("Default Bar Weight",
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            color: globals.textColor))),
+                                const SizedBox(height: 20),
+                                TextField(
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter(
+                                        RegExp(r'[0-9.]'),
+                                        allow: true)
+                                  ],
+                                  style: TextStyle(color: globals.textColor),
+                                  controller: _myController,
+                                  autofocus: true,
+                                  keyboardType: TextInputType.number,
+                                  textAlignVertical: TextAlignVertical.bottom,
+                                  decoration: const InputDecoration(
+                                    contentPadding: EdgeInsets.only(bottom: 10),
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                  ),
+                                ),
+                                Divider(
+                                  color: globals.underlineColor,
+                                  height: 2,
+                                  thickness: 2,
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: <Widget>[
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: globals.redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text("Cancel"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      const SizedBox(width: 20),
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: globals.redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text("OK"),
+                                        onPressed: () {
+                                          setState(() {
+                                            defaultsBox.putAt(
+                                                0,
+                                                double.parse(
+                                                    _myController.text));
+                                          });
+                                          Navigator.of(context).pop();
+                                        },
+                                      )
+                                    ]),
+                              ]),
+                        ),
+                      ));
+            },
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Column(children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Default Sets",
+                          style: TextStyle(color: globals.textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                          defaultsBox.getAt(1)!.toInt().toString() + " sets",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: globals.greyColor)),
+                    ),
+                  ]),
+                ),
+              ]),
+            ),
+            onPressed: () {
+              _myController.text = defaultsBox.getAt(1)!.toInt().toString();
+              showDialog(
+                  context: context,
+                  builder: (context) => Dialog(
+                        insetPadding: const EdgeInsets.all(10),
+                        child: Container(
+                          color: globals.tileColor,
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("Default Sets",
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            color: globals.textColor))),
+                                const SizedBox(height: 20),
+                                TextField(
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter(
+                                        RegExp(r'[0-99]'),
+                                        allow: true)
+                                  ],
+                                  style: TextStyle(color: globals.textColor),
+                                  controller: _myController,
+                                  autofocus: true,
+                                  keyboardType: TextInputType.number,
+                                  textAlignVertical: TextAlignVertical.bottom,
+                                  decoration: const InputDecoration(
+                                    contentPadding: EdgeInsets.only(bottom: 10),
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                  ),
+                                ),
+                                Divider(
+                                  color: globals.underlineColor,
+                                  height: 2,
+                                  thickness: 2,
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: <Widget>[
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: globals.redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text("Cancel"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      const SizedBox(width: 20),
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          primary: globals.redColor,
+                                          textStyle: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                          alignment: Alignment.center,
+                                        ),
+                                        child: const Text("OK"),
+                                        onPressed: () {
+                                          setState(() {
+                                            defaultsBox.putAt(
+                                                1,
+                                                double.parse(
+                                                    _myController.text));
+                                          });
+                                          Navigator.of(context).pop();
+                                        },
+                                      )
+                                    ]),
+                              ]),
+                        ),
+                      ));
+            },
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Column(children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Default Reps",
+                          style: TextStyle(color: globals.textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                          defaultsBox.getAt(2)!.toInt().toString() + " reps",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: globals.greyColor)),
+                    ),
+                  ]),
+                ),
+              ]),
+            ),
+            onPressed: () {
+              _myController.text = defaultsBox.getAt(2)!.toInt().toString();
+              showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                    insetPadding: const EdgeInsets.all(10),
+                    child: Container(
+                      color: globals.tileColor,
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text("Default Reps",
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        color: globals.textColor))),
+                            const SizedBox(height: 20),
+                            TextField(
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter(RegExp(r'[0-99]'),
+                                    allow: true)
+                              ],
+                              style: TextStyle(color: globals.textColor),
+                              controller: _myController,
+                              autofocus: true,
+                              keyboardType: TextInputType.number,
+                              textAlignVertical: TextAlignVertical.bottom,
+                              decoration: const InputDecoration(
+                                contentPadding: EdgeInsets.only(bottom: 10),
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                              ),
+                            ),
+                            Divider(
+                              color: globals.underlineColor,
+                              height: 2,
+                              thickness: 2,
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: <Widget>[
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      primary: globals.redColor,
+                                      textStyle: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                      alignment: Alignment.center,
+                                    ),
+                                    child: const Text("Cancel"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  const SizedBox(width: 20),
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      primary: globals.redColor,
+                                      textStyle: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                      alignment: Alignment.center,
+                                    ),
+                                    child: const Text("OK"),
+                                    onPressed: () {
+                                      setState(() {
+                                        defaultsBox.putAt(2,
+                                            double.parse(_myController.text));
+                                      });
+                                      Navigator.of(context).pop();
+                                    },
+                                  )
+                                ]),
+                          ]),
+                    )),
+              );
+            },
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Keep Screen Awake",
+                        style: TextStyle(color: globals.textColor)),
+                  ),
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Switch(
+                      inactiveThumbColor: globals.greyColor,
+                      inactiveTrackColor:
+                          const Color.fromARGB(255, 207, 207, 207),
+                      activeColor: globals.activeSwitchColor,
+                      activeTrackColor: globals.greyColor,
+                      value: boolBox.getAt(6)!,
+                      onChanged: ((bool value) {
+                        settingsProvider.toggleAwakeSwitch();
+                      }),
+                    ),
+                  ),
+                ),
+              ]),
+            ),
+            onPressed: (() => settingsProvider.toggleAwakeSwitch()),
+          ),
+          TextButton(
+              style: TextButton.styleFrom(
+                  primary: globals.redColor,
+                  textStyle: const TextStyle(fontSize: 16)),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                child: const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Reset",
+                        style: TextStyle(color: globals.redColor))),
+              ),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    backgroundColor: globals.tileColor,
+                    title: Text('Reset All Data',
+                        style:
+                            TextStyle(fontSize: 20, color: globals.textColor)),
+                    content: Text(
+                        'This will permanently erase all data from this device, including your workouts and settings. The app will return to defaults.',
+                        style:
+                            TextStyle(fontSize: 15, color: globals.textColor)),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          'Cancel',
+                          style:
+                              TextStyle(fontSize: 16, color: globals.redColor),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-      ]),
-    );
+                      TextButton(
+                        onPressed: () {
+                          defaultState();
+                          settingsProvider.updatePage();
+                          var themeProvider = Provider.of<ThemeProvider>(
+                              context,
+                              listen: false);
+                          themeProvider.updateTheme();
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          'Reset',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: globals.redColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+        ]),
+      );
+    });
   }
 
   Widget unitSelector() {
@@ -686,8 +697,9 @@ class _SettingsState extends State<Settings> {
                                 boolBox.putAt(7, tempUnit == 0 ? true : false);
                                 globals.lbKg = tempUnit == 0 ? "lb" : "kg";
                               });
-                              globals.progressCounter.value++;
-                              Navigator.of(context).pop();
+                            var progressProvider = Provider.of<ProgressProvider>(context, listen: false);
+                            progressProvider.updateProgress();
+                            Navigator.of(context).pop();
                             }),
                       ]),
                 ]),

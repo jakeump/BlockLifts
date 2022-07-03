@@ -3,6 +3,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/workout.dart';
 import 'package:blocklifts/classes/exercise.dart';
 import 'package:blocklifts/appscreens/editexercisepage.dart';
+import 'package:blocklifts/classes/providers/progressprovider.dart';
+import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class EditWorkoutPage extends StatefulWidget {
@@ -245,7 +247,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                   .removeAt(i);
                                               tempWorkout?.save();
                                             });
-                                            globals.progressCounter;
+                                            var progressProvider = Provider.of<ProgressProvider>(context, listen: false);
+                                            progressProvider.updateProgress();
                                             Navigator.of(context).pop();
                                           },
                                           child: const Text(
@@ -742,8 +745,8 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                               newEx);
                                                                       tempWorkout
                                                                           ?.save();
-                                                                      globals
-                                                                          .progressCounter.value++;
+                                                                      var progressProvider = Provider.of<ProgressProvider>(context, listen: false);
+                                                                      progressProvider.updateProgress();
 
                                                                       if (workoutsBox
                                                                               .getAt(widget.index)!

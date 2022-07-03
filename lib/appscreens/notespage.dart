@@ -21,9 +21,6 @@ class _NotesState extends State<NotesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-        valueListenable: globals.themeCounter,
-        builder: (context, index, child) {
           int noteCounter = 0;
           for (int i = indivWorkoutsBox.length - 1; i >= 0; i--) {
             if (indivWorkoutsBox.getAt(i)!.note != "") {
@@ -151,6 +148,5 @@ class _NotesState extends State<NotesPage> {
                                     height: 5, color: Colors.transparent),
                               ])
                         ]));
-        });
   }
 }

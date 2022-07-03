@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/indivworkout.dart';
 import 'package:blocklifts/appscreens/postworkoutnotespage.dart';
+import 'package:blocklifts/classes/providers/calendarprovider.dart';
+import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class PostWorkoutEditPage extends StatefulWidget {
@@ -178,7 +180,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                 }
                 globals.changesMade = false;
                 tempIndiv.save();
-                globals.calendarCounter.value++;
+                var calendarProvider = Provider.of<CalendarProvider>(context, listen: false);
+                calendarProvider.updateCalendar();
                 Navigator.of(context).pop();
               },
             ),
@@ -697,7 +700,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                           onPressed: () {
                                             indivWorkoutsBox
                                                 .deleteAt(widget.index);
-                                            globals.calendarCounter.value++;
+                                            var calendarProvider = Provider.of<CalendarProvider>(context, listen: false);
+                                            calendarProvider.updateCalendar();
                                             Navigator.of(context).pop();
                                             Navigator.of(context).pop();
                                           },

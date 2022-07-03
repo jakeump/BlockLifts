@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:blocklifts/appscreens/postworkouteditpage.dart';
-import 'package:blocklifts/classes/listprovider.dart';
+import 'package:blocklifts/classes/providers/listprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
