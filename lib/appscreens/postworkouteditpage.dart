@@ -180,6 +180,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                 }
                 globals.changesMade = false;
                 tempIndiv.save();
+                
                 var calendarProvider =
                     Provider.of<CalendarProvider>(context, listen: false);
                 calendarProvider.updateCalendar();

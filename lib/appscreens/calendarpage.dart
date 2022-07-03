@@ -14,7 +14,7 @@ class CalendarPage extends StatefulWidget {
   _CalendarState createState() => _CalendarState();
 }
 
-class _CalendarState extends State<CalendarPage> {
+class _CalendarState extends State<CalendarPage> with AutomaticKeepAliveClientMixin {
   late final Box<IndivWorkout> indivWorkoutsBox;
   List<DateTime> datesList = [];
   late DateTime minDate;
@@ -54,6 +54,7 @@ class _CalendarState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Consumer<CalendarProvider>(
         builder: (context, calendarProvider, child) {
           getMinMaxDate();
@@ -193,4 +194,7 @@ class _CalendarState extends State<CalendarPage> {
               ]));
         });
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

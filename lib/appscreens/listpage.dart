@@ -10,7 +10,7 @@ class ListPage extends StatefulWidget {
   _ListState createState() => _ListState();
 }
 
-class _ListState extends State<ListPage> {
+class _ListState extends State<ListPage> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
@@ -18,6 +18,7 @@ class _ListState extends State<ListPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
         backgroundColor: globals.backColor,
         body: Consumer<ListProvider>(
@@ -200,4 +201,7 @@ class _ListState extends State<ListPage> {
     }
     return output;
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }
