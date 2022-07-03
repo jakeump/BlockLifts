@@ -42,7 +42,7 @@ ValueNotifier<int> circleCounter = ValueNotifier<int>(0); // to update circles
 ValueNotifier<int> timerCounter =
     ValueNotifier<int>(0); // for timer on workout page
 ValueNotifier<int> plateCounter =
-    ValueNotifier<int>(0); // refrehes plates list
+    ValueNotifier<int>(0); // refreshes plates list
 ValueNotifier<int> incrementsCounter = ValueNotifier<int>(0); // for increments
 ValueNotifier<int> graphCounter =
     ValueNotifier<int>(0); // to update graph text
