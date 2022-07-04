@@ -7,10 +7,10 @@ import 'package:blocklifts/globals.dart' as globals;
 class PlatesPage extends StatefulWidget {
   const PlatesPage({Key? key}) : super(key: key);
   @override
-  _PlatesState createState() => _PlatesState();
+  PlatesState createState() => PlatesState();
 }
 
-class _PlatesState extends State<PlatesPage> {
+class PlatesState extends State<PlatesPage> {
   late final Box<Plate> platesBox;
   late final Box<bool> boolBox;
 
@@ -85,7 +85,6 @@ class _PlatesState extends State<PlatesPage> {
         floatingActionButton: SizedBox(
             width: 100,
             child: OutlinedButton(
-              child: const Text("Add"),
               style: OutlinedButton.styleFrom(
                 fixedSize: const Size.fromHeight(50),
                 primary: Colors.white,
@@ -96,12 +95,13 @@ class _PlatesState extends State<PlatesPage> {
               onPressed: () {
                 showDialog(context: context, builder: (context) => addPlate());
               },
+              child: const Text("Add"),
             )));
   }
 
   Widget plateSelector(int i) {
     int tempNumber = platesBox.getAt(i)!.number;
-    return StatefulBuilder(builder: (context, _setState) {
+    return StatefulBuilder(builder: (context, setState) {
       return Dialog(
           insetPadding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
           child: Container(
@@ -132,7 +132,7 @@ class _PlatesState extends State<PlatesPage> {
                       value: j,
                       groupValue: tempNumber,
                       onChanged: (value) {
-                        _setState(() {
+                        setState(() {
                           tempNumber = value!;
                         });
                       }),
@@ -146,7 +146,6 @@ class _PlatesState extends State<PlatesPage> {
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: TextButton(
-                              child: const Text("Delete"),
                               style: TextButton.styleFrom(
                                 primary: globals.redColor,
                                 textStyle: const TextStyle(
@@ -157,7 +156,8 @@ class _PlatesState extends State<PlatesPage> {
                                 platesBox.deleteAt(i);
                                 globals.plateCounter.value++;
                                 Navigator.of(context).pop();
-                              }),
+                              },
+                              child: const Text("Delete")),
                         )),
                     const Expanded(child: Text("")),
                     Expanded(
@@ -165,7 +165,6 @@ class _PlatesState extends State<PlatesPage> {
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                              child: const Text("Cancel"),
                               style: TextButton.styleFrom(
                                 primary: globals.redColor,
                                 textStyle: const TextStyle(
@@ -174,14 +173,14 @@ class _PlatesState extends State<PlatesPage> {
                               ),
                               onPressed: () {
                                 Navigator.of(context).pop();
-                              }),
+                              },
+                              child: const Text("Cancel")),
                         )),
                     Expanded(
                         flex: 2,
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                              child: const Text("OK"),
                               style: TextButton.styleFrom(
                                 primary: globals.redColor,
                                 textStyle: const TextStyle(
@@ -195,7 +194,8 @@ class _PlatesState extends State<PlatesPage> {
                                 tempPlate.save();
                                 globals.plateCounter.value++;
                                 Navigator.of(context).pop();
-                              }),
+                              },
+                              child: const Text("OK")),
                         )),
                   ]),
             ]),
@@ -204,8 +204,8 @@ class _PlatesState extends State<PlatesPage> {
   }
 
   Widget addPlate() {
-    final _myController = TextEditingController();
-    _myController.text = "10";
+    final myController = TextEditingController();
+    myController.text = "10";
     Box<Plate> platesBox = Hive.box<Plate>('platesBox');
 
     return Dialog(
@@ -229,7 +229,7 @@ class _PlatesState extends State<PlatesPage> {
                 inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter(RegExp(r'[0-9.]'), allow: true)
                 ],
-                controller: _myController,
+                controller: myController,
                 autofocus: true,
                 keyboardType: TextInputType.number,
                 textAlignVertical: TextAlignVertical.bottom,
@@ -251,9 +251,6 @@ class _PlatesState extends State<PlatesPage> {
                       child: SizedBox(
                     height: 50,
                     child: OutlinedButton(
-                      child: boolBox.getAt(7)!
-                          ? const Text("-5lb")
-                          : const Text("-2.5kg"),
                       style: OutlinedButton.styleFrom(
                         primary: Colors.white,
                         backgroundColor: Colors.black,
@@ -263,7 +260,7 @@ class _PlatesState extends State<PlatesPage> {
                       onPressed: () {
                         // subtracts 5lb/2.5kg from text box
                         setState(() {
-                          double tempText = double.parse(_myController.text);
+                          double tempText = double.parse(myController.text);
                           if (boolBox.getAt(7)!) {
                             if (tempText <= 5) {
                               tempText = 0;
@@ -278,12 +275,15 @@ class _PlatesState extends State<PlatesPage> {
                             }
                           }
                           tempText % 1 == 0
-                              ? _myController.text = tempText.toInt().toString()
-                              : _myController.text = tempText.toString();
-                          _myController.selection = TextSelection.collapsed(
-                              offset: _myController.text.length);
+                              ? myController.text = tempText.toInt().toString()
+                              : myController.text = tempText.toString();
+                          myController.selection = TextSelection.collapsed(
+                              offset: myController.text.length);
                         });
                       },
+                      child: boolBox.getAt(7)!
+                          ? const Text("-5lb")
+                          : const Text("-2.5kg"),
                     ),
                   )),
                   const SizedBox(width: 10),
@@ -291,9 +291,6 @@ class _PlatesState extends State<PlatesPage> {
                       child: SizedBox(
                     height: 50,
                     child: OutlinedButton(
-                      child: boolBox.getAt(7)!
-                          ? const Text("+5lb")
-                          : const Text("+2.5kg"),
                       style: OutlinedButton.styleFrom(
                         primary: Colors.white,
                         backgroundColor: Colors.black,
@@ -303,19 +300,22 @@ class _PlatesState extends State<PlatesPage> {
                       onPressed: () {
                         // adds 5lb/2.5kg to text box
                         setState(() {
-                          double tempText = double.parse(_myController.text);
+                          double tempText = double.parse(myController.text);
                           if (boolBox.getAt(7)!) {
                             tempText += 5;
                           } else {
                             tempText += 2.5;
                           }
                           tempText % 1 == 0
-                              ? _myController.text = tempText.toInt().toString()
-                              : _myController.text = tempText.toString();
-                          _myController.selection = TextSelection.collapsed(
-                              offset: _myController.text.length);
+                              ? myController.text = tempText.toInt().toString()
+                              : myController.text = tempText.toString();
+                          myController.selection = TextSelection.collapsed(
+                              offset: myController.text.length);
                         });
                       },
+                      child: boolBox.getAt(7)!
+                          ? const Text("+5lb")
+                          : const Text("+2.5kg"),
                     ),
                   )),
                 ],
@@ -347,7 +347,7 @@ class _PlatesState extends State<PlatesPage> {
                     // can't add to middle of hive box, so copy box, insert,
                     // clear box, and fill box
                     final List<Plate> platesList = platesBox.values.toList();
-                    double weight = double.parse(_myController.text);
+                    double weight = double.parse(myController.text);
                     int i = 0;
                     while (i < platesBox.length &&
                         weight < platesBox.getAt(i)!.weight) {

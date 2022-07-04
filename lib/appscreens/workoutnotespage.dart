@@ -6,10 +6,10 @@ import 'package:blocklifts/globals.dart' as globals;
 class WorkoutNotesPage extends StatefulWidget {
   const WorkoutNotesPage({Key? key}) : super(key: key);
   @override
-  _WorkoutNotesState createState() => _WorkoutNotesState();
+  WorkoutNotesState createState() => WorkoutNotesState();
 }
 
-class _WorkoutNotesState extends State<WorkoutNotesPage> {
+class WorkoutNotesState extends State<WorkoutNotesPage> {
   late final Box<String> tempNoteBox;
   final _myController = TextEditingController();
 

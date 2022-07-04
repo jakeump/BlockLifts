@@ -11,4 +11,8 @@ class TimerProvider with ChangeNotifier {
     }
     notifyListeners();
   }
+
+  updateTimer() {
+    notifyListeners();
+  }
 }

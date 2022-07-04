@@ -1,6 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
 
 void playRemoteFile() {
-  AudioCache player = AudioCache();
-  player.play("workout_alarm.mp3");
+  AudioPlayer player = AudioPlayer();
+  player.play(AssetSource("workout_alarm.mp3"));
 }

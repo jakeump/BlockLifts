@@ -9,10 +9,10 @@ import 'package:blocklifts/globals.dart' as globals;
 class History extends StatefulWidget {
   const History({Key? key}) : super(key: key);
   @override
-  _HistoryState createState() => _HistoryState();
+  HistoryState createState() => HistoryState();
 }
 
-class _HistoryState extends State<History> {
+class HistoryState extends State<History> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(builder: (context, themeProvider, child) {

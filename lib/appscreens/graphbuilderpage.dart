@@ -13,10 +13,10 @@ class GraphBuilderPage extends StatefulWidget {
   const GraphBuilderPage(this.exIndex, this.duration, {Key? key})
       : super(key: key);
   @override
-  _GraphBuilderState createState() => _GraphBuilderState();
+  GraphBuilderState createState() => GraphBuilderState();
 }
 
-class _GraphBuilderState extends State<GraphBuilderPage> with AutomaticKeepAliveClientMixin {
+class GraphBuilderState extends State<GraphBuilderPage> with AutomaticKeepAliveClientMixin {
   // widget.exIndex of -1 means body weight
   late final Box<Exercise> exercisesBox;
   late final Box<IndivWorkout> indivWorkoutsBox;
@@ -165,9 +165,9 @@ class _GraphBuilderState extends State<GraphBuilderPage> with AutomaticKeepAlive
                 Align(
                     alignment: Alignment.center,
                     child: Container(
-                      child: _graph(),
                       padding: const EdgeInsets.all(25),
                       height: MediaQuery.of(context).size.height * 0.3,
+                      child: _graph(),
                     ))
               ],
             )

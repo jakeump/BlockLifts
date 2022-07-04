@@ -16,10 +16,10 @@ import 'package:blocklifts/globals.dart' as globals;
 class Settings extends StatefulWidget {
   const Settings({Key? key}) : super(key: key);
   @override
-  _SettingsState createState() => _SettingsState();
+  SettingsState createState() => SettingsState();
 }
 
-class _SettingsState extends State<Settings> {
+class SettingsState extends State<Settings> {
   late final Box<bool> boolBox;
   late final Box<Plate> platesBox;
   late final Box<double> defaultsBox;
@@ -66,6 +66,12 @@ class _SettingsState extends State<Settings> {
               style: TextButton.styleFrom(
                   primary: Colors.white,
                   textStyle: const TextStyle(fontSize: 16)),
+              onPressed: (() {
+                settingsProvider.toggleThemeSwitch();
+                var themeProvider =
+                    Provider.of<ThemeProvider>(context, listen: false);
+                themeProvider.updateTheme();
+              }),
               child: Container(
                 padding: const EdgeInsets.all(10),
                 child: Row(children: <Widget>[
@@ -97,13 +103,7 @@ class _SettingsState extends State<Settings> {
                     ),
                   ),
                 ]),
-              ),
-              onPressed: (() {
-                settingsProvider.toggleThemeSwitch();
-                var themeProvider =
-                    Provider.of<ThemeProvider>(context, listen: false);
-                themeProvider.updateTheme();
-              })),
+              )),
           TextButton(
             style: TextButton.styleFrom(
                 primary: Colors.white,
@@ -340,7 +340,7 @@ class _SettingsState extends State<Settings> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                          defaultsBox.getAt(1)!.toInt().toString() + " sets",
+                          "${defaultsBox.getAt(1)!.toInt()} sets",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(color: globals.greyColor)),
@@ -452,7 +452,7 @@ class _SettingsState extends State<Settings> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                          defaultsBox.getAt(2)!.toInt().toString() + " reps",
+                          "${defaultsBox.getAt(2)!.toInt()} reps",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(color: globals.greyColor)),
@@ -548,6 +548,7 @@ class _SettingsState extends State<Settings> {
             style: TextButton.styleFrom(
                 primary: Colors.white,
                 textStyle: const TextStyle(fontSize: 16)),
+            onPressed: (() => settingsProvider.toggleAwakeSwitch()),
             child: Container(
               padding: const EdgeInsets.all(10),
               child: Row(children: <Widget>[
@@ -576,7 +577,6 @@ class _SettingsState extends State<Settings> {
                 ),
               ]),
             ),
-            onPressed: (() => settingsProvider.toggleAwakeSwitch()),
           ),
           TextButton(
               style: TextButton.styleFrom(
@@ -641,7 +641,7 @@ class _SettingsState extends State<Settings> {
 
   Widget unitSelector() {
     int tempUnit = boolBox.getAt(7)! ? 0 : 1;
-    return StatefulBuilder(builder: (context, _setState) {
+    return StatefulBuilder(builder: (context, setState) {
       return Dialog(
           backgroundColor: globals.tileColor,
           insetPadding: const EdgeInsets.fromLTRB(50, 0, 50, 0),
@@ -660,7 +660,7 @@ class _SettingsState extends State<Settings> {
                       value: 0,
                       groupValue: tempUnit,
                       onChanged: (value) {
-                        _setState(() {
+                        setState(() {
                           tempUnit = value!;
                         });
                       }),
@@ -671,7 +671,7 @@ class _SettingsState extends State<Settings> {
                       value: 1,
                       groupValue: tempUnit,
                       onChanged: (value) {
-                        _setState(() {
+                        setState(() {
                           tempUnit = value!;
                         });
                       }),
@@ -679,7 +679,6 @@ class _SettingsState extends State<Settings> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
                         TextButton(
-                            child: const Text("Cancel"),
                             style: TextButton.styleFrom(
                               primary: globals.redColor,
                               textStyle: const TextStyle(
@@ -688,10 +687,10 @@ class _SettingsState extends State<Settings> {
                             ),
                             onPressed: () {
                               Navigator.of(context).pop();
-                            }),
+                            },
+                            child: const Text("Cancel")),
                         const SizedBox(width: 20),
                         TextButton(
-                            child: const Text("OK"),
                             style: TextButton.styleFrom(
                               primary: globals.redColor,
                               textStyle: const TextStyle(
@@ -710,7 +709,8 @@ class _SettingsState extends State<Settings> {
                             var listProvider = Provider.of<ListProvider>(context, listen: false);
                             listProvider.updateList();
                             Navigator.of(context).pop();
-                            }),
+                            },
+                            child: const Text("OK")),
                       ]),
                 ]),
           ));

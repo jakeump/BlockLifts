@@ -12,10 +12,10 @@ class IncrementsPage extends StatefulWidget {
 
   const IncrementsPage(this.index, {Key? key}) : super(key: key);
   @override
-  _IncrementsPageState createState() => _IncrementsPageState();
+  IncrementsPageState createState() => IncrementsPageState();
 }
 
-class _IncrementsPageState extends State<IncrementsPage> {
+class IncrementsPageState extends State<IncrementsPage> {
   late final Box<Exercise> exercisesBox;
   late final Box<bool> boolBox;
 
@@ -75,6 +75,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
         TextButton(
           style: TextButton.styleFrom(
               primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          onPressed: (() => toggleSwitch(false)),
           child: Container(
             padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
             child: Row(children: <Widget>[
@@ -111,7 +112,6 @@ class _IncrementsPageState extends State<IncrementsPage> {
               ),
             ]),
           ),
-          onPressed: (() => toggleSwitch(false)),
         ),
         exercisesBox.getAt(widget.index)!.overload
             ? ValueListenableBuilder(
@@ -247,6 +247,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
         TextButton(
           style: TextButton.styleFrom(
               primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
+          onPressed: (() => toggleSwitch2(false)),
           child: Container(
             padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
             child: Row(children: <Widget>[
@@ -284,7 +285,6 @@ class _IncrementsPageState extends State<IncrementsPage> {
               ),
             ]),
           ),
-          onPressed: (() => toggleSwitch2(false)),
         ),
         exercisesBox.getAt(widget.index)!.deload
             ? ValueListenableBuilder(
@@ -398,12 +398,12 @@ class _IncrementsPageState extends State<IncrementsPage> {
   }
 
   Widget incrementSelector() {
-    final _myController = TextEditingController();
+    final myController = TextEditingController();
 
     exercisesBox.getAt(widget.index)!.increment % 1 == 0
-        ? _myController.text =
+        ? myController.text =
             exercisesBox.getAt(widget.index)!.increment.toInt().toString()
-        : _myController.text =
+        : myController.text =
             exercisesBox.getAt(widget.index)!.increment.toString();
     return Dialog(
       insetPadding: const EdgeInsets.all(10),
@@ -426,7 +426,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                 inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter(RegExp(r'[0-9.]'), allow: true)
                 ],
-                controller: _myController,
+                controller: myController,
                 autofocus: true,
                 keyboardType: TextInputType.number,
                 textAlignVertical: TextAlignVertical.bottom,
@@ -448,9 +448,6 @@ class _IncrementsPageState extends State<IncrementsPage> {
                       child: SizedBox(
                     height: 50,
                     child: OutlinedButton(
-                      child: boolBox.getAt(7)!
-                          ? const Text("-5lb")
-                          : const Text("-2.5kg"),
                       style: OutlinedButton.styleFrom(
                         primary: Colors.white,
                         backgroundColor: Colors.black,
@@ -460,7 +457,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                       onPressed: () {
                         // subtracts 5lb/2.5kg from text box
                         setState(() {
-                          double tempText = double.parse(_myController.text);
+                          double tempText = double.parse(myController.text);
                           if (boolBox.getAt(7)!) {
                             if (tempText <= 5) {
                               tempText = 0;
@@ -475,12 +472,15 @@ class _IncrementsPageState extends State<IncrementsPage> {
                             }
                           }
                           tempText % 1 == 0
-                              ? _myController.text = tempText.toInt().toString()
-                              : _myController.text = tempText.toString();
-                          _myController.selection = TextSelection.collapsed(
-                              offset: _myController.text.length);
+                              ? myController.text = tempText.toInt().toString()
+                              : myController.text = tempText.toString();
+                          myController.selection = TextSelection.collapsed(
+                              offset: myController.text.length);
                         });
                       },
+                      child: boolBox.getAt(7)!
+                          ? const Text("-5lb")
+                          : const Text("-2.5kg"),
                     ),
                   )),
                   const SizedBox(width: 10),
@@ -488,9 +488,6 @@ class _IncrementsPageState extends State<IncrementsPage> {
                       child: SizedBox(
                     height: 50,
                     child: OutlinedButton(
-                      child: boolBox.getAt(7)!
-                          ? const Text("+5lb")
-                          : const Text("+2.5kg"),
                       style: OutlinedButton.styleFrom(
                         primary: Colors.white,
                         backgroundColor: Colors.black,
@@ -500,19 +497,22 @@ class _IncrementsPageState extends State<IncrementsPage> {
                       onPressed: () {
                         // adds 5lb/2.5kg to text box
                         setState(() {
-                          double tempText = double.parse(_myController.text);
+                          double tempText = double.parse(myController.text);
                           if (boolBox.getAt(7)!) {
                             tempText += 5;
                           } else {
                             tempText += 2.5;
                           }
                           tempText % 1 == 0
-                              ? _myController.text = tempText.toInt().toString()
-                              : _myController.text = tempText.toString();
-                          _myController.selection = TextSelection.collapsed(
-                              offset: _myController.text.length);
+                              ? myController.text = tempText.toInt().toString()
+                              : myController.text = tempText.toString();
+                          myController.selection = TextSelection.collapsed(
+                              offset: myController.text.length);
                         });
                       },
+                      child: boolBox.getAt(7)!
+                          ? const Text("+5lb")
+                          : const Text("+2.5kg"),
                     ),
                   )),
                 ],
@@ -544,7 +544,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                     final tempExercise =
                         Hive.box<Exercise>('exercisesBox').getAt(widget.index);
                     tempExercise!.increment = double.parse(
-                        _myController.text.isEmpty ? "0" : _myController.text);
+                        myController.text.isEmpty ? "0" : myController.text);
                     tempExercise.save();
 
                     globals.incrementsCounter.value++;
@@ -558,7 +558,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
   }
 
   Widget frequencySelector() {
-    final _controller = FixedExtentScrollController(
+    final controller = FixedExtentScrollController(
         initialItem: exercisesBox.getAt(widget.index)!.incrementFrequency - 1);
     int freq = exercisesBox.getAt(widget.index)!.incrementFrequency;
 
@@ -598,8 +598,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                             height: 120,
                             width: 80,
                             child: CupertinoPicker(
-                              scrollController: _controller,
-                              children: freqs,
+                              scrollController: controller,
                               looping: true,
                               diameterRatio: 1.25,
                               selectionOverlay: Column(children: <Widget>[
@@ -623,6 +622,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                               onSelectedItemChanged: (index) => {
                                 freq = index + 1,
                               },
+                              children: freqs,
                             )),
                         const SizedBox(width: 5),
                         const SizedBox(
@@ -679,7 +679,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
   }
 
   Widget percentageSelector() {
-    final _controller = FixedExtentScrollController(
+    final controller = FixedExtentScrollController(
         initialItem: exercisesBox.getAt(widget.index)!.deloadPercent - 1);
     int percent = exercisesBox.getAt(widget.index)!.deloadPercent;
 
@@ -708,8 +708,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                             height: 120,
                             width: 60,
                             child: CupertinoPicker(
-                              scrollController: _controller,
-                              children: percentages,
+                              scrollController: controller,
                               looping: true,
                               diameterRatio: 1.25,
                               selectionOverlay: Column(children: <Widget>[
@@ -733,6 +732,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                               onSelectedItemChanged: (index) => {
                                 percent = index + 1,
                               },
+                              children: percentages,
                             )),
                         const SizedBox(width: 5),
                         const SizedBox(
@@ -789,7 +789,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
   }
 
   Widget deloadFrequencySelector() {
-    final _controller = FixedExtentScrollController(
+    final controller = FixedExtentScrollController(
         initialItem: exercisesBox.getAt(widget.index)!.deloadFrequency - 1);
     int freq = exercisesBox.getAt(widget.index)!.deloadFrequency;
 
@@ -829,8 +829,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                             height: 120,
                             width: 60,
                             child: CupertinoPicker(
-                              scrollController: _controller,
-                              children: freqs,
+                              scrollController: controller,
                               looping: true,
                               diameterRatio: 1.25,
                               selectionOverlay: Column(children: <Widget>[
@@ -854,6 +853,7 @@ class _IncrementsPageState extends State<IncrementsPage> {
                               onSelectedItemChanged: (index) => {
                                 freq = index + 1,
                               },
+                              children: freqs,
                             )),
                         const SizedBox(width: 5),
                         const SizedBox(

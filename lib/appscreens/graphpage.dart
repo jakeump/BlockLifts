@@ -10,10 +10,10 @@ class GraphPage extends StatefulWidget {
   final int index;
   const GraphPage(this.index, {Key? key}) : super(key: key);
   @override
-  _GraphPageState createState() => _GraphPageState();
+  GraphPageState createState() => GraphPageState();
 }
 
-class _GraphPageState extends State<GraphPage> {
+class GraphPageState extends State<GraphPage> {
   // widget.index of -1 means body weight
   late final Box<Exercise> exercisesBox;
 

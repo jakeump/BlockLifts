@@ -11,10 +11,10 @@ import 'package:blocklifts/globals.dart' as globals;
 class Progress extends StatefulWidget {
   const Progress({Key? key}) : super(key: key);
   @override
-  _ProgressState createState() => _ProgressState();
+  ProgressState createState() => ProgressState();
 }
 
-class _ProgressState extends State<Progress> {
+class ProgressState extends State<Progress> {
   late final Box<Exercise> exercisesBox;
   late final Box<IndivWorkout> indivWorkoutsBox;
 

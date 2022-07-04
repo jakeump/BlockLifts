@@ -11,10 +11,10 @@ class EditWorkoutPage extends StatefulWidget {
   final int index;
   const EditWorkoutPage(this.index, {Key? key}) : super(key: key);
   @override
-  _EditWorkoutPageState createState() => _EditWorkoutPageState();
+  EditWorkoutPageState createState() => EditWorkoutPageState();
 }
 
-class _EditWorkoutPageState extends State<EditWorkoutPage> {
+class EditWorkoutPageState extends State<EditWorkoutPage> {
   final _myController = TextEditingController();
   late final Box<Exercise> exercisesBox;
   late List<Exercise> exercisesList;
@@ -267,16 +267,16 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
                               itemBuilder: (BuildContext bc) {
                                 return const [
                                   PopupMenuItem(
-                                    child: Text("Edit"),
                                     value: 'edit',
+                                    child: Text("Edit"),
                                   ),
                                   PopupMenuItem(
-                                    child: Text("Delete"),
                                     value: 'delete',
+                                    child: Text("Delete"),
                                   ),
                                   PopupMenuItem(
-                                    child: Text("Delete From All Workouts"),
                                     value: 'deleteAll',
+                                    child: Text("Delete From All Workouts"),
                                   ),
                                 ];
                               },
@@ -482,7 +482,6 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: SizedBox(
         child: OutlinedButton(
-          child: const Text("Add Exercise", style: TextStyle(fontSize: 16)),
           style: OutlinedButton.styleFrom(
             fixedSize: const Size.fromHeight(50),
             primary: Colors.white,
@@ -901,6 +900,7 @@ class _EditWorkoutPageState extends State<EditWorkoutPage> {
               ),
             );
           },
+          child: const Text("Add Exercise", style: TextStyle(fontSize: 16)),
         ),
       ),
     );

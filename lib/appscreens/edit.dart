@@ -7,10 +7,10 @@ import 'package:blocklifts/globals.dart' as globals;
 class Edit extends StatefulWidget {
   const Edit({Key? key}) : super(key: key);
   @override
-  _EditState createState() => _EditState();
+  EditState createState() => EditState();
 }
 
-class _EditState extends State<Edit> {
+class EditState extends State<Edit> {
   final _myController = TextEditingController();
   late final Box<Workout> workoutsBox;
   late final Box<int> counterBox;
@@ -141,12 +141,12 @@ class _EditState extends State<Edit> {
                             itemBuilder: (BuildContext bc) {
                               return const [
                                 PopupMenuItem(
-                                  child: Text("Edit"),
                                   value: 'edit',
+                                  child: Text("Edit"),
                                 ),
                                 PopupMenuItem(
-                                  child: Text("Delete"),
                                   value: 'delete',
+                                  child: Text("Delete"),
                                 ),
                               ];
                             },
@@ -248,7 +248,6 @@ class _EditState extends State<Edit> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: SizedBox(
         child: OutlinedButton(
-          child: const Text("Add Workout", style: TextStyle(fontSize: 16)),
           style: OutlinedButton.styleFrom(
             fixedSize: const Size.fromHeight(50),
             primary: Colors.white,
@@ -351,6 +350,7 @@ class _EditState extends State<Edit> {
                                   ]),
                             ]))));
           },
+          child: const Text("Add Workout", style: TextStyle(fontSize: 16)),
         ),
       ),
     );

@@ -16,10 +16,10 @@ class PostWorkoutEditPage extends StatefulWidget {
   const PostWorkoutEditPage(this.index, this.copyRepsCompleted, {Key? key})
       : super(key: key);
   @override
-  _PostWorkoutEditState createState() => _PostWorkoutEditState();
+  PostWorkoutEditState createState() => PostWorkoutEditState();
 }
 
-class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
+class PostWorkoutEditState extends State<PostWorkoutEditPage> {
   List<Widget> nums = [
     for (int i = 50; i < 700; i++) ListTile(title: Text(i.toString())),
   ];
@@ -297,31 +297,6 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                     shape: const CircleBorder(
                                         side: BorderSide(
                                             width: 1, style: BorderStyle.none)),
-                                    child: indivWorkoutsBox
-                                                .getAt(widget.index)!
-                                                .repsCompleted[i][j] >
-                                            indivWorkoutsBox
-                                                .getAt(widget.index)!
-                                                .repsPlanned[i]
-                                        ? indivWorkoutsBox
-                                                    .getAt(widget.index)!
-                                                    .repsCompleted[i][j] <
-                                                10
-                                            ? FittedBox(
-                                                child: Text(
-                                                    indivWorkoutsBox
-                                                        .getAt(widget.index)!
-                                                        .repsPlanned[i]
-                                                        .toString(),
-                                                    style: const TextStyle(
-                                                        fontSize: 18)))
-                                            : FittedBox(
-                                                child: Text(
-                                                    indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i].toString(),
-                                                    style: const TextStyle(fontSize: 12)))
-                                        : indivWorkoutsBox.getAt(widget.index)!.repsCompleted[i][j] < 10
-                                            ? FittedBox(child: Text(indivWorkoutsBox.getAt(widget.index)!.repsCompleted[i][j].toString(), style: const TextStyle(fontSize: 18)))
-                                            : FittedBox(child: Text(indivWorkoutsBox.getAt(widget.index)!.repsCompleted[i][j].toString(), style: const TextStyle(fontSize: 12))),
                                     color: indivWorkoutsBox
                                                 .getAt(widget.index)!
                                                 .repsCompleted[i][j] >
@@ -353,6 +328,31 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                             tempIndiv.repsCompleted[i][j] -= 1);
                                       }
                                     },
+                                    child: indivWorkoutsBox
+                                                .getAt(widget.index)!
+                                                .repsCompleted[i][j] >
+                                            indivWorkoutsBox
+                                                .getAt(widget.index)!
+                                                .repsPlanned[i]
+                                        ? indivWorkoutsBox
+                                                    .getAt(widget.index)!
+                                                    .repsCompleted[i][j] <
+                                                10
+                                            ? FittedBox(
+                                                child: Text(
+                                                    indivWorkoutsBox
+                                                        .getAt(widget.index)!
+                                                        .repsPlanned[i]
+                                                        .toString(),
+                                                    style: const TextStyle(
+                                                        fontSize: 18)))
+                                            : FittedBox(
+                                                child: Text(
+                                                    indivWorkoutsBox.getAt(widget.index)!.repsPlanned[i].toString(),
+                                                    style: const TextStyle(fontSize: 12)))
+                                        : indivWorkoutsBox.getAt(widget.index)!.repsCompleted[i][j] < 10
+                                            ? FittedBox(child: Text(indivWorkoutsBox.getAt(widget.index)!.repsCompleted[i][j].toString(), style: const TextStyle(fontSize: 18)))
+                                            : FittedBox(child: Text(indivWorkoutsBox.getAt(widget.index)!.repsCompleted[i][j].toString(), style: const TextStyle(fontSize: 12))),
                                   ),
                                 ),
                             ]),
@@ -377,14 +377,14 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                     child: GestureDetector(
                                         onTap: () {
                                           // sets initial scroll to weight
-                                          final _intController =
+                                          final intController =
                                               FixedExtentScrollController(
                                                   initialItem:
                                                       postTempBodyWeight ~/ 1 -
                                                           50);
                                           // annoying floating point precision: 100.6 - 100 = 0.599
                                           // the +0.05 is a way around it
-                                          final _decController =
+                                          final decController =
                                               FixedExtentScrollController(
                                                   initialItem: (postTempBodyWeight -
                                                           (postTempBodyWeight ~/
@@ -437,9 +437,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                       child:
                                                                           CupertinoPicker(
                                                                         scrollController:
-                                                                            _intController,
-                                                                        children:
-                                                                            nums,
+                                                                            intController,
                                                                         looping:
                                                                             true,
                                                                         diameterRatio:
@@ -471,6 +469,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                           scrollBodyWeightInt =
                                                                               index + 50,
                                                                         },
+                                                                        children:
+                                                                            nums,
                                                                       )),
                                                                   const SizedBox(
                                                                       width: 5),
@@ -497,9 +497,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                       child:
                                                                           CupertinoPicker(
                                                                         scrollController:
-                                                                            _decController,
-                                                                        children:
-                                                                            decs,
+                                                                            decController,
                                                                         looping:
                                                                             true,
                                                                         diameterRatio:
@@ -531,6 +529,8 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                                           scrollBodyWeightDec =
                                                                               index,
                                                                         },
+                                                                        children:
+                                                                            decs,
                                                                       )),
                                                                   const SizedBox(
                                                                       width: 5),
@@ -660,13 +660,13 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                       builder: (context) =>
                                           PostWorkoutNotesPage(widget.index)));
                                 },
-                                child: const Text("Note"),
                                 style: TextButton.styleFrom(
                                   primary: globals.redColor,
                                   textStyle: const TextStyle(
                                       fontWeight: FontWeight.bold),
                                   alignment: Alignment.center,
-                                )),
+                                ),
+                                child: const Text("Note")),
                           ),
                         ),
                         Expanded(
@@ -722,13 +722,13 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                     ),
                                   );
                                 },
-                                child: const Text("Delete"),
                                 style: TextButton.styleFrom(
                                   primary: globals.redColor,
                                   textStyle: const TextStyle(
                                       fontWeight: FontWeight.bold),
                                   alignment: Alignment.center,
-                                )),
+                                ),
+                                child: const Text("Delete")),
                           ),
                         ),
                       ]))
@@ -788,18 +788,18 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
   }
 
   void _weightsSetsReps(int idx, int exIdx) {
-    final _myController = TextEditingController();
-    final _myController2 = TextEditingController();
-    final _weightsController = TextEditingController();
-    _myController.text =
+    final myController = TextEditingController();
+    final myController2 = TextEditingController();
+    final weightsController = TextEditingController();
+    myController.text =
         indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx].toString();
-    _myController2.text =
+    myController2.text =
         indivWorkoutsBox.getAt(idx)!.repsPlanned[exIdx].toString();
 
     indivWorkoutsBox.getAt(idx)!.weights[exIdx] % 1 == 0
-        ? _weightsController.text =
+        ? weightsController.text =
             indivWorkoutsBox.getAt(idx)!.weights[exIdx].toInt().toString()
-        : _weightsController.text =
+        : weightsController.text =
             indivWorkoutsBox.getAt(idx)!.weights[exIdx].toString();
 
     showDialog(
@@ -825,7 +825,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter(RegExp(r'[0-9.]'), allow: true)
                   ],
-                  controller: _weightsController,
+                  controller: weightsController,
                   autofocus: true,
                   keyboardType: TextInputType.number,
                   textAlignVertical: TextAlignVertical.bottom,
@@ -848,7 +848,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter(RegExp(r'[0-99]'), allow: true)
                   ],
-                  controller: _myController,
+                  controller: myController,
                   autofocus: true,
                   keyboardType: TextInputType.number,
                   textAlignVertical: TextAlignVertical.bottom,
@@ -871,7 +871,7 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter(RegExp(r'[0-9]'), allow: true)
                   ],
-                  controller: _myController2,
+                  controller: myController2,
                   autofocus: true,
                   keyboardType: TextInputType.number,
                   textAlignVertical: TextAlignVertical.bottom,
@@ -919,22 +919,22 @@ class _PostWorkoutEditState extends State<PostWorkoutEditPage> {
                         int oldSets =
                             indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx];
                         if (indivWorkoutsBox.getAt(idx)!.weights[exIdx] !=
-                            double.parse(_weightsController.text.isEmpty ? "0" : _weightsController.text)) {
+                            double.parse(weightsController.text.isEmpty ? "0" : weightsController.text)) {
                           globals.changesMade = true;
                         }
                         setState(() => {
                               indivWorkoutsBox.getAt(idx)!.weights[exIdx] =
-                                  double.parse(_weightsController.text.isEmpty
+                                  double.parse(weightsController.text.isEmpty
                                       ? "0"
-                                      : _weightsController.text),
+                                      : weightsController.text),
                               indivWorkoutsBox.getAt(idx)!.setsPlanned[exIdx] =
-                                  int.parse(_myController.text.isEmpty
+                                  int.parse(myController.text.isEmpty
                                       ? "0"
-                                      : _myController.text),
+                                      : myController.text),
                               indivWorkoutsBox.getAt(idx)!.repsPlanned[exIdx] =
-                                  int.parse(_myController2.text.isEmpty
+                                  int.parse(myController2.text.isEmpty
                                       ? "0"
-                                      : _myController2.text),
+                                      : myController2.text),
                               if (oldSets !=
                                   indivWorkoutsBox
                                       .getAt(idx)!

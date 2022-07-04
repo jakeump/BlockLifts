@@ -10,10 +10,10 @@ import 'package:blocklifts/globals.dart' as globals;
 class NotesPage extends StatefulWidget {
   const NotesPage({Key? key}) : super(key: key);
   @override
-  _NotesState createState() => _NotesState();
+  NotesState createState() => NotesState();
 }
 
-class _NotesState extends State<NotesPage> with AutomaticKeepAliveClientMixin {
+class NotesState extends State<NotesPage> with AutomaticKeepAliveClientMixin {
   late final Box<IndivWorkout> indivWorkoutsBox;
 
   @override

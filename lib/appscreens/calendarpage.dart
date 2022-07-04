@@ -12,10 +12,10 @@ import 'package:blocklifts/globals.dart' as globals;
 class CalendarPage extends StatefulWidget {
   const CalendarPage({Key? key}) : super(key: key);
   @override
-  _CalendarState createState() => _CalendarState();
+  CalendarState createState() => CalendarState();
 }
 
-class _CalendarState extends State<CalendarPage>
+class CalendarState extends State<CalendarPage>
     with AutomaticKeepAliveClientMixin {
   late final Box<IndivWorkout> indivWorkoutsBox;
   List<DateTime> datesList = [];

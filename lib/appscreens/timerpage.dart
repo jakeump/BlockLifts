@@ -9,10 +9,10 @@ import 'package:blocklifts/globals.dart' as globals;
 class TimerPage extends StatefulWidget {
   const TimerPage({Key? key}) : super(key: key);
   @override
-  _TimerState createState() => _TimerState();
+  TimerState createState() => TimerState();
 }
 
-class _TimerState extends State<TimerPage> {
+class TimerState extends State<TimerPage> {
   late final Box<bool> boolBox;
   late final Box<TimerMap> successTimerBox;
   late final Box<TimerMap> failTimerBox;
@@ -65,22 +65,16 @@ class _TimerState extends State<TimerPage> {
     times.sort();
     for (int i = 0; i < times.length - 1; i++) {
       if (times[i] % 60 == 0) {
-        output += (times[i] ~/ 60).toString() + 'min, ';
+        output += '${times[i] ~/ 60}min, ';
       } else {
-        output += (times[i] ~/ 60).toString() +
-            'min ' +
-            (times[i] % 60).toString() +
-            's, ';
+        output += '${times[i] ~/ 60}min ${times[i] % 60}s, ';
       }
     }
     if (times.isNotEmpty) {
       if (times[times.length - 1] % 60 == 0) {
-        output += (times[times.length - 1] ~/ 60).toString() + 'min';
+        output += '${times[times.length - 1] ~/ 60}min';
       } else {
-        output += (times[times.length - 1] ~/ 60).toString() +
-            'min ' +
-            (times[times.length - 1] % 60).toString() +
-            's';
+        output += '${times[times.length - 1] ~/ 60}min ${times[times.length - 1] % 60}s';
       }
     }
     return output;
@@ -110,6 +104,7 @@ class _TimerState extends State<TimerPage> {
               style: TextButton.styleFrom(
                   primary: Colors.white,
                   textStyle: const TextStyle(fontSize: 16)),
+              onPressed: (() => timerProvider.toggleTimerSwitch(false)),
               child: Container(
                 padding: const EdgeInsets.all(10),
                 child: Column(children: <Widget>[
@@ -149,13 +144,13 @@ class _TimerState extends State<TimerPage> {
                   ]),
                 ]),
               ),
-              onPressed: (() => timerProvider.toggleTimerSwitch(false)),
             ),
             boolBox.getAt(1)!
                 ? TextButton(
                     style: TextButton.styleFrom(
                         primary: Colors.white,
                         textStyle: const TextStyle(fontSize: 16)),
+                    onPressed: (() => toggleSwitch2(false)),
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       child: Column(children: <Widget>[
@@ -197,7 +192,6 @@ class _TimerState extends State<TimerPage> {
                         ]),
                       ]),
                     ),
-                    onPressed: (() => toggleSwitch2(false)),
                   )
                 : const SizedBox(),
             boolBox.getAt(1)!
@@ -205,6 +199,7 @@ class _TimerState extends State<TimerPage> {
                     style: TextButton.styleFrom(
                         primary: Colors.white,
                         textStyle: const TextStyle(fontSize: 16)),
+                    onPressed: (() => toggleSwitch3(false)),
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       child: Column(children: <Widget>[
@@ -260,7 +255,6 @@ class _TimerState extends State<TimerPage> {
                         ]),
                       ]),
                     ),
-                    onPressed: (() => toggleSwitch3(false)),
                   )
                 : const SizedBox(),
             boolBox.getAt(1)!

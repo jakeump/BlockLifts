@@ -16,6 +16,7 @@ import 'package:blocklifts/appscreens/editexercisepage.dart';
 import 'package:blocklifts/appscreens/workoutnotespage.dart';
 import 'package:blocklifts/appscreens/editworkoutpage.dart';
 import 'package:blocklifts/providers/listprovider.dart';
+import 'package:blocklifts/providers/timerprovider.dart';
 import 'package:blocklifts/providers/homeprovider.dart';
 import 'package:blocklifts/providers/calendarprovider.dart';
 import 'package:blocklifts/providers/notesprovider.dart';
@@ -26,10 +27,10 @@ class WorkoutPage extends StatefulWidget {
   final int index;
   const WorkoutPage(this.index, {Key? key}) : super(key: key);
   @override
-  _WorkoutPageState createState() => _WorkoutPageState();
+  WorkoutPageState createState() => WorkoutPageState();
 }
 
-class _WorkoutPageState extends State<WorkoutPage> {
+class WorkoutPageState extends State<WorkoutPage> {
   List<Widget> nums = [
     for (int i = 50; i < 700; i++) ListTile(title: Text(i.toString())),
   ];
@@ -544,37 +545,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                         width: 1,
                                                         style:
                                                             BorderStyle.none)),
-                                                child: workoutsBox
-                                                            .getAt(
-                                                                widget.index)!
-                                                            .exercises[i]
-                                                            .repsCompleted[j] >
-                                                        workoutsBox
-                                                            .getAt(
-                                                                widget.index)!
-                                                            .exercises[i]
-                                                            .reps
-                                                    ? workoutsBox.getAt(widget.index)!.exercises[i].repsCompleted[j] <
-                                                            10
-                                                        ? FittedBox(
-                                                            child: Text(
-                                                                workoutsBox
-                                                                    .getAt(widget
-                                                                        .index)!
-                                                                    .exercises[
-                                                                        i]
-                                                                    .reps
-                                                                    .toString(),
-                                                                style: const TextStyle(
-                                                                    fontSize:
-                                                                        18)))
-                                                        : FittedBox(
-                                                            child: Text(
-                                                                workoutsBox.getAt(widget.index)!.exercises[i].reps.toString(),
-                                                                style: const TextStyle(fontSize: 18)))
-                                                    : workoutsBox.getAt(widget.index)!.exercises[i].repsCompleted[j] < 10
-                                                        ? FittedBox(child: Text(workoutsBox.getAt(widget.index)!.exercises[i].repsCompleted[j].toString(), style: const TextStyle(fontSize: 18)))
-                                                        : FittedBox(child: Text(workoutsBox.getAt(widget.index)!.exercises[i].repsCompleted[j].toString(), style: const TextStyle(fontSize: 12))),
                                                 color: workoutsBox
                                                             .getAt(
                                                                 widget.index)!
@@ -607,9 +577,45 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                   globals.setIndex = j - 1;
                                                   incrementCircles(widget.index,
                                                       i, j, false);
+                                                  var timerProvider = Provider
+                                                      .of<TimerProvider>(
+                                                          context,
+                                                          listen: false);
+                                                  timerProvider.updateTimer();
                                                   checkWorkoutInProgress(
                                                       widget.index);
                                                 },
+                                                child: workoutsBox
+                                                            .getAt(
+                                                                widget.index)!
+                                                            .exercises[i]
+                                                            .repsCompleted[j] >
+                                                        workoutsBox
+                                                            .getAt(
+                                                                widget.index)!
+                                                            .exercises[i]
+                                                            .reps
+                                                    ? workoutsBox.getAt(widget.index)!.exercises[i].repsCompleted[j] <
+                                                            10
+                                                        ? FittedBox(
+                                                            child: Text(
+                                                                workoutsBox
+                                                                    .getAt(widget
+                                                                        .index)!
+                                                                    .exercises[
+                                                                        i]
+                                                                    .reps
+                                                                    .toString(),
+                                                                style: const TextStyle(
+                                                                    fontSize:
+                                                                        18)))
+                                                        : FittedBox(
+                                                            child: Text(
+                                                                workoutsBox.getAt(widget.index)!.exercises[i].reps.toString(),
+                                                                style: const TextStyle(fontSize: 18)))
+                                                    : workoutsBox.getAt(widget.index)!.exercises[i].repsCompleted[j] < 10
+                                                        ? FittedBox(child: Text(workoutsBox.getAt(widget.index)!.exercises[i].repsCompleted[j].toString(), style: const TextStyle(fontSize: 18)))
+                                                        : FittedBox(child: Text(workoutsBox.getAt(widget.index)!.exercises[i].repsCompleted[j].toString(), style: const TextStyle(fontSize: 12))),
                                               ),
                                             );
                                           }),
@@ -634,7 +640,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                         child: GestureDetector(
                                             onTap: () {
                                               // sets initial scroll to weight
-                                              final _intController =
+                                              final intController =
                                                   FixedExtentScrollController(
                                                       initialItem:
                                                           tempBodyWeightBox
@@ -644,7 +650,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                               50);
                                               // annoying floating point precision: 100.6 - 100 = 0.599
                                               // the +0.05 is a way around it
-                                              final _decController =
+                                              final decController =
                                                   FixedExtentScrollController(
                                                       initialItem: (tempBodyWeightBox
                                                                   .getAt(0)! -
@@ -708,9 +714,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                           child:
                                                                               CupertinoPicker(
                                                                             scrollController:
-                                                                                _intController,
-                                                                            children:
-                                                                                nums,
+                                                                                intController,
                                                                             looping:
                                                                                 true,
                                                                             diameterRatio:
@@ -739,6 +743,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                                 {
                                                                               scrollBodyWeightInt = index + 50,
                                                                             },
+                                                                            children:
+                                                                                nums,
                                                                           )),
                                                                       const SizedBox(
                                                                           width:
@@ -765,9 +771,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                           child:
                                                                               CupertinoPicker(
                                                                             scrollController:
-                                                                                _decController,
-                                                                            children:
-                                                                                decs,
+                                                                                decController,
                                                                             looping:
                                                                                 true,
                                                                             diameterRatio:
@@ -796,6 +800,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                                                                 {
                                                                               scrollBodyWeightDec = index,
                                                                             },
+                                                                            children:
+                                                                                decs,
                                                                           )),
                                                                       const SizedBox(
                                                                           width:
@@ -888,125 +894,123 @@ class _WorkoutPageState extends State<WorkoutPage> {
                     ])),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
-            floatingActionButton: ValueListenableBuilder(
-                valueListenable: globals.timerCounter,
-                builder: (context, value, child) {
-                  return Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                        globals.showTimer
-                            ? Container(
-                                padding:
-                                    const EdgeInsets.only(left: 15, right: 15),
-                                child: Align(
-                                    alignment: Alignment.center,
-                                    child: Container(
-                                        padding: const EdgeInsets.only(
-                                            top: 15, bottom: 15),
-                                        child: Row(children: <Widget>[
-                                          buildTime(),
-                                          Flexible(
-                                              child: Align(
-                                            alignment: Alignment.centerRight,
-                                            child: globals.lastSet
-                                                ? const Text(
-                                                    "Set equipment, then lift",
-                                                    overflow: TextOverflow.fade)
-                                                : globals.failed
-                                                    ? globals.failureTimes
-                                                            .isEmpty
-                                                        ? const Text(
-                                                            "No failure timer")
-                                                        : globals.failureTimes.last %
-                                                                    60 ==
-                                                                0
-                                                            ? Text("Rest ${(globals.failureTimes.last ~/ 60).toString()}min",
-                                                                style: TextStyle(
-                                                                    color: globals
-                                                                        .textColor))
-                                                            : Text(
-                                                                "Rest ${(globals.failureTimes.last ~/ 60).toString()}min ${(globals.failureTimes.last % 60).toString()}s",
-                                                                style: TextStyle(
-                                                                    color: globals
-                                                                        .textColor))
-                                                    : globals.successTimes
-                                                            .isEmpty
-                                                        ? const Text(
-                                                            "No success timer")
-                                                        : globals.successTimes.last % 60 ==
-                                                                0
-                                                            ? Text("Rest ${(globals.successTimes.last ~/ 60).toString()}min",
-                                                                style: TextStyle(
-                                                                    color: globals
-                                                                        .textColor))
-                                                            : Text("Rest ${(globals.successTimes.last ~/ 60).toString()}min ${(globals.successTimes.last % 60).toString()}s",
-                                                                style: TextStyle(color: globals.textColor)),
-                                          )),
-                                          IconButton(
-                                              icon: const Icon(Icons.close),
-                                              onPressed: () => setState(() {
-                                                    globals.showTimer = false;
-                                                    AwesomeNotifications()
-                                                        .cancelAll();
-                                                  })),
-                                        ]),
-                                        decoration: BoxDecoration(
-                                          color: globals.circleColor,
-                                        ))))
-                            : Container(),
-                        Container(
-                            width: double.infinity,
-                            color: globals.backColor,
+            floatingActionButton: Consumer<TimerProvider>(
+                builder: (context, timerProvider, child) {
+              return Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    globals.showTimer
+                        ? Container(
                             padding: const EdgeInsets.only(left: 15, right: 15),
-                            child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Align(
-                                      alignment: Alignment.bottomLeft,
-                                      child: TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).push(
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const WorkoutNotesPage()));
-                                          },
-                                          child: const Text("Note"),
-                                          style: TextButton.styleFrom(
-                                            primary: globals.redColor,
-                                            textStyle: const TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                            alignment: Alignment.center,
-                                          )),
+                            child: Align(
+                                alignment: Alignment.center,
+                                child: Container(
+                                    padding: const EdgeInsets.only(
+                                        top: 15, bottom: 15),
+                                    decoration: BoxDecoration(
+                                      color: globals.circleColor,
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: Align(
-                                      alignment: Alignment.bottomRight,
-                                      child: TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context)
-                                                .push(MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        EditWorkoutPage(
-                                                            widget.index)))
-                                                .then((value) {
-                                              setState(() {});
-                                            });
-                                          },
-                                          child: const Text("Edit"),
-                                          style: TextButton.styleFrom(
-                                            primary: globals.redColor,
-                                            textStyle: const TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                            alignment: Alignment.center,
-                                          )),
-                                    ),
-                                  ),
-                                ])),
-                      ]);
-                })));
+                                    child: Row(children: <Widget>[
+                                      buildTime(),
+                                      Flexible(
+                                          child: Align(
+                                        alignment: Alignment.centerRight,
+                                        child: globals.lastSet
+                                            ? const Text(
+                                                "Set equipment, then lift",
+                                                overflow: TextOverflow.fade)
+                                            : globals.failed
+                                                ? globals.failureTimes.isEmpty
+                                                    ? const Text(
+                                                        "No failure timer")
+                                                    : globals.failureTimes.last % 60 ==
+                                                            0
+                                                        ? Text("Rest ${(globals.failureTimes.last ~/ 60).toString()}min",
+                                                            style: TextStyle(
+                                                                color: globals
+                                                                    .textColor))
+                                                        : Text("Rest ${(globals.failureTimes.last ~/ 60).toString()}min ${(globals.failureTimes.last % 60).toString()}s",
+                                                            style: TextStyle(
+                                                                color: globals
+                                                                    .textColor))
+                                                : globals.successTimes.isEmpty
+                                                    ? const Text(
+                                                        "No success timer")
+                                                    : globals.successTimes.last % 60 ==
+                                                            0
+                                                        ? Text(
+                                                            "Rest ${(globals.successTimes.last ~/ 60).toString()}min",
+                                                            style: TextStyle(
+                                                                color: globals
+                                                                    .textColor))
+                                                        : Text(
+                                                            "Rest ${(globals.successTimes.last ~/ 60).toString()}min ${(globals.successTimes.last % 60).toString()}s",
+                                                            style: TextStyle(
+                                                                color: globals
+                                                                    .textColor)),
+                                      )),
+                                      IconButton(
+                                          icon: const Icon(Icons.close),
+                                          onPressed: () => setState(() {
+                                                globals.showTimer = false;
+                                                AwesomeNotifications()
+                                                    .cancelAll();
+                                              })),
+                                    ]))))
+                        : Container(),
+                    Container(
+                        width: double.infinity,
+                        color: globals.backColor,
+                        padding: const EdgeInsets.only(left: 15, right: 15),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.bottomLeft,
+                                  child: TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    const WorkoutNotesPage()));
+                                      },
+                                      style: TextButton.styleFrom(
+                                        primary: globals.redColor,
+                                        textStyle: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                        alignment: Alignment.center,
+                                      ),
+                                      child: const Text("Note")),
+                                ),
+                              ),
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context)
+                                            .push(MaterialPageRoute(
+                                                builder: (context) =>
+                                                    EditWorkoutPage(
+                                                        widget.index)))
+                                            .then((value) {
+                                          setState(() {});
+                                        });
+                                      },
+                                      style: TextButton.styleFrom(
+                                        primary: globals.redColor,
+                                        textStyle: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                        alignment: Alignment.center,
+                                      ),
+                                      child: const Text("Edit")),
+                                ),
+                              ),
+                            ])),
+                  ]);
+            })));
   }
 
   void workoutFinish() {
@@ -1162,10 +1166,12 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
     tempNoteBox.putAt(0, ""); // clears note for next workout
 
-    var progressProvider = Provider.of<ProgressProvider>(context, listen: false);
+    var progressProvider =
+        Provider.of<ProgressProvider>(context, listen: false);
     progressProvider.updateProgress();
 
-    var calendarProvider = Provider.of<CalendarProvider>(context, listen: false);
+    var calendarProvider =
+        Provider.of<CalendarProvider>(context, listen: false);
     calendarProvider.updateCalendar();
 
     var notesProvider = Provider.of<NotesProvider>(context, listen: false);
@@ -1186,7 +1192,8 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
   Future<bool> _onBackPressed() async {
     checkWorkoutInProgress(widget.index);
-    var calendarProvider = Provider.of<CalendarProvider>(context, listen: false);
+    var calendarProvider =
+        Provider.of<CalendarProvider>(context, listen: false);
     calendarProvider.updateCalendar();
     return true;
   }

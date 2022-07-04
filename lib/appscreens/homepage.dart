@@ -5,6 +5,7 @@ import 'package:blocklifts/appscreens/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/providers/themeprovider.dart';
+import 'package:blocklifts/providers/timerprovider.dart';
 import 'package:blocklifts/providers/workouttimerprovider.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -17,10 +18,10 @@ import 'package:blocklifts/globals.dart' as globals;
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
   @override
-  _HomePageState createState() => _HomePageState();
+  HomePageState createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> {
   late final Box<bool> boolBox;
 
   @override
@@ -78,7 +79,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void addTime(Timer? timer) {
-    globals.timerCounter.value++;
+    var timerProvider = Provider.of<TimerProvider>(context, listen: false);
+    timerProvider.updateTimer();
     const addSeconds = 1;
     final seconds = globals.duration.inSeconds + addSeconds;
     if (seconds < 0) {
@@ -115,42 +117,42 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(builder: (context, themeProvider, child) {
-    return Theme(
-        data: ThemeData(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          brightness: Brightness.dark,
-        ),
-        child: Scaffold(
-            body: BottomNavLayout(
-          savePageState: true,
-          pages: [
-            (_) => const Home(),
-            (_) => const History(),
-            (_) => const Progress(),
-            (_) => const Settings(),
-          ],
-          pageTransitionData: _pageTransition(),
-          bottomNavigationBar: (currentIndex, onTap) => BottomNavigationBar(
-            currentIndex: currentIndex,
-            onTap: (index) => onTap(index),
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: globals.tileColor,
-            selectedItemColor: globals.redColor,
-            unselectedItemColor: globals.navIconColor,
-            showSelectedLabels: true,
-            showUnselectedLabels: false,
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.date_range), label: 'History'),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.line_axis), label: 'Progress'),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.settings), label: 'Settings'),
-            ],
+      return Theme(
+          data: ThemeData(
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            brightness: Brightness.dark,
           ),
-        )));
+          child: Scaffold(
+              body: BottomNavLayout(
+            savePageState: true,
+            pages: [
+              (_) => const Home(),
+              (_) => const History(),
+              (_) => const Progress(),
+              (_) => const Settings(),
+            ],
+            pageTransitionData: _pageTransition(),
+            bottomNavigationBar: (currentIndex, onTap) => BottomNavigationBar(
+              currentIndex: currentIndex,
+              onTap: (index) => onTap(index),
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: globals.tileColor,
+              selectedItemColor: globals.redColor,
+              unselectedItemColor: globals.navIconColor,
+              showSelectedLabels: true,
+              showUnselectedLabels: false,
+              items: const [
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.date_range), label: 'History'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.line_axis), label: 'Progress'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.settings), label: 'Settings'),
+              ],
+            ),
+          )));
     });
   }
 

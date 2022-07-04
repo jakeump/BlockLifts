@@ -5,10 +5,10 @@ class PostWorkoutNotesPage extends StatefulWidget {
   final int index;
   const PostWorkoutNotesPage(this.index, {Key? key}) : super(key: key);
   @override
-  _PostWorkoutNotesState createState() => _PostWorkoutNotesState();
+  PostWorkoutNotesState createState() => PostWorkoutNotesState();
 }
 
-class _PostWorkoutNotesState extends State<PostWorkoutNotesPage> {
+class PostWorkoutNotesState extends State<PostWorkoutNotesPage> {
   final _myController = TextEditingController();
 
   @override

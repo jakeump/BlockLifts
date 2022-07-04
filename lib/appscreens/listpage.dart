@@ -8,10 +8,10 @@ import 'package:blocklifts/globals.dart' as globals;
 class ListPage extends StatefulWidget {
   const ListPage({Key? key}) : super(key: key);
   @override
-  _ListState createState() => _ListState();
+  ListState createState() => ListState();
 }
 
-class _ListState extends State<ListPage> with AutomaticKeepAliveClientMixin {
+class ListState extends State<ListPage> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();

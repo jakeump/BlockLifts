@@ -10,10 +10,10 @@ class SetTimerPage extends StatefulWidget {
     final int index;
     const SetTimerPage(this.index, {Key? key}) : super(key: key);
     @override
-    _SetTimerState createState() => _SetTimerState();
+    SetTimerState createState() => SetTimerState();
 }
 
-class _SetTimerState extends State<SetTimerPage> {
+class SetTimerState extends State<SetTimerPage> {
   // a widget.index value of 0 corresponds to success timer, 1 to fail timer
   List<Widget> mins = [
     for (int i = 0; i < 11; i++) ListTile(title: Text(i.toString())),
@@ -141,7 +141,6 @@ class _SetTimerState extends State<SetTimerPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: SizedBox(
           child: OutlinedButton(
-        child: const Text("Add Timer", style: TextStyle(fontSize: 16)),
         style: OutlinedButton.styleFrom(
           fixedSize: const Size.fromHeight(50),
           primary: Colors.white,
@@ -150,8 +149,8 @@ class _SetTimerState extends State<SetTimerPage> {
               borderRadius: BorderRadius.all(Radius.circular(50))),
         ),
         onPressed: () {
-          final _minController = FixedExtentScrollController();
-          final _secController = FixedExtentScrollController();
+          final minController = FixedExtentScrollController();
+          final secController = FixedExtentScrollController();
           showDialog(
               context: context,
               builder: (context) => Dialog(
@@ -180,8 +179,7 @@ class _SetTimerState extends State<SetTimerPage> {
                                       height: 120,
                                       width: 70,
                                       child: CupertinoPicker(
-                                        scrollController: _minController,
-                                        children: mins,
+                                        scrollController: minController,
                                         looping: true,
                                         diameterRatio: 1.25,
                                         selectionOverlay:
@@ -206,6 +204,7 @@ class _SetTimerState extends State<SetTimerPage> {
                                         onSelectedItemChanged: (index) => {
                                           minutes = index,
                                         },
+                                        children: mins,
                                       )),
                                   const SizedBox(
                                     width: 40,
@@ -222,8 +221,7 @@ class _SetTimerState extends State<SetTimerPage> {
                                       height: 120,
                                       width: 70,
                                       child: CupertinoPicker(
-                                        scrollController: _secController,
-                                        children: secs,
+                                        scrollController: secController,
                                         looping: true,
                                         diameterRatio: 1.25,
                                         selectionOverlay:
@@ -248,6 +246,7 @@ class _SetTimerState extends State<SetTimerPage> {
                                         onSelectedItemChanged: (index) => {
                                           seconds = index,
                                         },
+                                        children: secs,
                                       )),
                                   const SizedBox(
                                     width: 40,
@@ -350,6 +349,7 @@ class _SetTimerState extends State<SetTimerPage> {
                                 ]),
                           ]))));
         },
+        child: const Text("Add Timer", style: TextStyle(fontSize: 16)),
       )),
     );
   }

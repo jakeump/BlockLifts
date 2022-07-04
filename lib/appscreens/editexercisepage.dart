@@ -14,10 +14,10 @@ class EditExercisePage extends StatefulWidget {
 
   const EditExercisePage(this.index, {Key? key}) : super(key: key);
   @override
-  _EditExercisePageState createState() => _EditExercisePageState();
+  EditExercisePageState createState() => EditExercisePageState();
 }
 
-class _EditExercisePageState extends State<EditExercisePage> {
+class EditExercisePageState extends State<EditExercisePage> {
   final _myController = TextEditingController();
   final _myController2 = TextEditingController();
   late final Box<Exercise> exercisesBox;
@@ -197,9 +197,6 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                   child: SizedBox(
                                 height: 50,
                                 child: OutlinedButton(
-                                  child: boolBox.getAt(7)!
-                                      ? const Text("-5lb")
-                                      : const Text("-2.5kg"),
                                   style: OutlinedButton.styleFrom(
                                     primary: Colors.white,
                                     backgroundColor: Colors.black,
@@ -236,6 +233,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                   _myController.text.length);
                                     });
                                   },
+                                  child: boolBox.getAt(7)!
+                                      ? const Text("-5lb")
+                                      : const Text("-2.5kg"),
                                 ),
                               )),
                               const SizedBox(width: 10),
@@ -243,9 +243,6 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                   child: SizedBox(
                                 height: 50,
                                 child: OutlinedButton(
-                                  child: boolBox.getAt(7)!
-                                      ? const Text("+5lb")
-                                      : const Text("+2.5kg"),
                                   style: OutlinedButton.styleFrom(
                                     primary: Colors.white,
                                     backgroundColor: Colors.black,
@@ -274,6 +271,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                   _myController.text.length);
                                     });
                                   },
+                                  child: boolBox.getAt(7)!
+                                      ? const Text("+5lb")
+                                      : const Text("+2.5kg"),
                                 ),
                               )),
                             ],
@@ -451,9 +451,6 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                   child: SizedBox(
                                 height: 50,
                                 child: OutlinedButton(
-                                  child: boolBox.getAt(7)!
-                                      ? const Text("-5lb")
-                                      : const Text("-2.5kg"),
                                   style: OutlinedButton.styleFrom(
                                     primary: Colors.white,
                                     backgroundColor: Colors.black,
@@ -490,6 +487,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                   _myController.text.length);
                                     });
                                   },
+                                  child: boolBox.getAt(7)!
+                                      ? const Text("-5lb")
+                                      : const Text("-2.5kg"),
                                 ),
                               )),
                               const SizedBox(width: 10),
@@ -497,9 +497,6 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                   child: SizedBox(
                                 height: 50,
                                 child: OutlinedButton(
-                                  child: boolBox.getAt(7)!
-                                      ? const Text("+5lb")
-                                      : const Text("+2.5kg"),
                                   style: OutlinedButton.styleFrom(
                                     primary: Colors.white,
                                     backgroundColor: Colors.black,
@@ -528,6 +525,9 @@ class _EditExercisePageState extends State<EditExercisePage> {
                                                   _myController.text.length);
                                     });
                                   },
+                                  child: boolBox.getAt(7)!
+                                      ? const Text("+5lb")
+                                      : const Text("+2.5kg"),
                                 ),
                               )),
                             ],

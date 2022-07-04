@@ -13,10 +13,10 @@ import 'package:blocklifts/globals.dart' as globals;
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
   @override
-  _HomeState createState() => _HomeState();
+  HomeState createState() => HomeState();
 }
 
-class _HomeState extends State<Home> {
+class HomeState extends State<Home> {
   late final Box<Workout> workoutsBox;
   late final Box<int> counterBox;
   late final Box<bool> boolBox;
@@ -110,20 +110,6 @@ class _HomeState extends State<Home> {
                   ? const EdgeInsets.only(right: 10)
                   : const EdgeInsets.only(right: 10, bottom: 10),
               child: OutlinedButton(
-                child: boolBox.getAt(5)!
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                            const Text("Workout In Progress",
-                                style: TextStyle(fontSize: 16)),
-                            Consumer<WorkoutTimerProvider>(builder:
-                                (context, workoutTimerProvider, child) {
-                              return buildWorkoutTime();
-                            }),
-                          ])
-                    : const Text("Start Workout",
-                        style: TextStyle(fontSize: 16)),
                 style: OutlinedButton.styleFrom(
                   fixedSize: boolBox.getAt(5)!
                       ? const Size.fromHeight(75)
@@ -145,6 +131,20 @@ class _HomeState extends State<Home> {
                     pushWorkout(counterBox.getAt(0)!);
                   }
                 },
+                child: boolBox.getAt(5)!
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                            const Text("Workout In Progress",
+                                style: TextStyle(fontSize: 16)),
+                            Consumer<WorkoutTimerProvider>(builder:
+                                (context, workoutTimerProvider, child) {
+                              return buildWorkoutTime();
+                            }),
+                          ])
+                    : const Text("Start Workout",
+                        style: TextStyle(fontSize: 16)),
               ),
             )),
         floatingActionButtonLocation: boolBox.getAt(5)!

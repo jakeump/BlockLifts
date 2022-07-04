@@ -2,7 +2,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:async';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:blocklifts/classes/workout.dart';
-
 import 'package:blocklifts/globals.dart' as globals;
 
 void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
@@ -97,5 +96,4 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
     ++globals.setIndex;
   }
   globals.circleCounter.value++;
-  globals.timerCounter.value++;
 }
