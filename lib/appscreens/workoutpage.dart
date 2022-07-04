@@ -18,6 +18,7 @@ import 'package:blocklifts/appscreens/editworkoutpage.dart';
 import 'package:blocklifts/providers/listprovider.dart';
 import 'package:blocklifts/providers/homeprovider.dart';
 import 'package:blocklifts/providers/calendarprovider.dart';
+import 'package:blocklifts/providers/notesprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
@@ -1166,6 +1167,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
     var calendarProvider = Provider.of<CalendarProvider>(context, listen: false);
     calendarProvider.updateCalendar();
+
+    var notesProvider = Provider.of<NotesProvider>(context, listen: false);
+    notesProvider.updateNotes();
 
     for (int i = 0; i < workoutsBox.length; i++) {
       final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(i);

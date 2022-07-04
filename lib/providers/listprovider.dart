@@ -19,4 +19,8 @@ class ListProvider with ChangeNotifier {
     indivWorkoutsBox.add(workout);
     notifyListeners();
   }
+
+  updateList() {
+    notifyListeners();
+  }
 }

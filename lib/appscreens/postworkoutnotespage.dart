@@ -48,7 +48,9 @@ class _PostWorkoutNotesState extends State<PostWorkoutNotesPage> {
               focusNode: FocusNode(),
               controller: _myController,
               onChanged: (val) {
-                globals.changesMade = true;
+                if (globals.postWorkoutTempNote != _myController.text) {
+                  globals.changesMade = true;
+                }
                 globals.postWorkoutTempNote = _myController.text;
               },
             )));

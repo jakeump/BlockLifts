@@ -8,6 +8,8 @@ import 'package:blocklifts/appscreens/platespage.dart';
 import 'package:blocklifts/providers/settingsprovider.dart';
 import 'package:blocklifts/providers/themeprovider.dart';
 import 'package:blocklifts/providers/progressprovider.dart';
+import 'package:blocklifts/providers/homeprovider.dart';
+import 'package:blocklifts/providers/listprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
@@ -703,6 +705,10 @@ class _SettingsState extends State<Settings> {
                               });
                             var progressProvider = Provider.of<ProgressProvider>(context, listen: false);
                             progressProvider.updateProgress();
+                            var homeProvider = Provider.of<HomeProvider>(context, listen: false);
+                            homeProvider.updateHome();
+                            var listProvider = Provider.of<ListProvider>(context, listen: false);
+                            listProvider.updateList();
                             Navigator.of(context).pop();
                             }),
                       ]),

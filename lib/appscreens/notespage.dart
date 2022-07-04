@@ -25,17 +25,17 @@ class _NotesState extends State<NotesPage> with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    int noteCounter = 0;
-    for (int i = indivWorkoutsBox.length - 1; i >= 0; i--) {
-      if (indivWorkoutsBox.getAt(i)!.note != "") {
-        noteCounter++;
-      }
-    }
     return Consumer<ThemeProvider>(builder: (context, themeProvider, child) {
       return Scaffold(
           backgroundColor: globals.backColor,
           body: Consumer<CalendarProvider>(
               builder: (context, calendarProvider, child) {
+              int noteCounter = 0;
+              for (int i = indivWorkoutsBox.length - 1; i >= 0; i--) {
+                if (indivWorkoutsBox.getAt(i)!.note != "") {
+                  noteCounter++;
+                }
+              }
             return noteCounter == 0
                 ? Align(
                     alignment: Alignment.topCenter,

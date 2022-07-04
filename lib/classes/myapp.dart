@@ -10,6 +10,7 @@ import 'package:blocklifts/classes/customscrollbehavior.dart';
 import 'package:blocklifts/appscreens/homepage.dart';
 import 'package:blocklifts/providers/themeprovider.dart';
 import 'package:blocklifts/providers/homeprovider.dart';
+import 'package:blocklifts/providers/notesprovider.dart';
 import 'package:blocklifts/providers/listprovider.dart';
 import 'package:blocklifts/providers/timerprovider.dart';
 import 'package:provider/provider.dart';
@@ -46,6 +47,9 @@ class MyApp extends StatelessWidget {
           ),
           ChangeNotifierProvider<CalendarProvider>(
             create: (_) => CalendarProvider(),
+          ),
+          ChangeNotifierProvider<NotesProvider>(
+            create: (_) => NotesProvider(),
           ),
           ChangeNotifierProvider<ProgressProvider>(
             create: (_) => ProgressProvider(),

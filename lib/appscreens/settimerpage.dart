@@ -80,7 +80,7 @@ class _SetTimerState extends State<SetTimerPage> {
                   ? isChecked(successTimerBox, index)
                   : isChecked(failTimerBox, index),
               activeColor: globals.redColor,
-              checkColor: globals.backColor,
+              checkColor: Colors.white,
               onChanged: (value) {
                 setState(() {
                   if (widget.index == 0) {
@@ -301,7 +301,7 @@ class _SetTimerState extends State<SetTimerPage> {
                                             if (successTimerBox
                                                     .getAt(i)!
                                                     .time ==
-                                                times.last) {
+                                                times.last && !duplicate) {
                                               duplicate = true;
                                               times.removeLast();
                                               ScaffoldMessenger.of(context)
@@ -325,7 +325,7 @@ class _SetTimerState extends State<SetTimerPage> {
                                               i < failTimerBox.length;
                                               i++) {
                                             if (failTimerBox.getAt(i)!.time ==
-                                                times.last) {
+                                                times.last && !duplicate) {
                                               duplicate = true;
                                               times.removeLast();
                                               ScaffoldMessenger.of(context)
