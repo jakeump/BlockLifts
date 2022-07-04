@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/timermap.dart';
 import 'package:blocklifts/appscreens/settimerpage.dart';
-import 'package:blocklifts/classes/providers/timerprovider.dart';
+import 'package:blocklifts/providers/timerprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 

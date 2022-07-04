@@ -1,20 +1,19 @@
-import 'package:blocklifts/classes/providers/calendarprovider.dart';
-import 'package:blocklifts/classes/providers/progressprovider.dart';
-import 'package:blocklifts/classes/providers/settingsprovider.dart';
-import 'package:blocklifts/classes/providers/workouttimerprovider.dart';
+import 'package:blocklifts/providers/calendarprovider.dart';
+import 'package:blocklifts/providers/progressprovider.dart';
+import 'package:blocklifts/providers/settingsprovider.dart';
+import 'package:blocklifts/providers/workouttimerprovider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/functions/increment_circles.dart';
 import 'package:blocklifts/classes/customscrollbehavior.dart';
 import 'package:blocklifts/appscreens/homepage.dart';
-import 'package:blocklifts/classes/providers/themeprovider.dart';
-import 'package:blocklifts/classes/providers/bottomnavigationbarprovider.dart';
-import 'package:blocklifts/classes/providers/homeprovider.dart';
-import 'package:blocklifts/classes/providers/listprovider.dart';
-import 'package:blocklifts/classes/providers/timerprovider.dart';
+import 'package:blocklifts/providers/themeprovider.dart';
+import 'package:blocklifts/providers/homeprovider.dart';
+import 'package:blocklifts/providers/listprovider.dart';
+import 'package:blocklifts/providers/timerprovider.dart';
 import 'package:provider/provider.dart';
+import 'package:blocklifts/functions/set_colors.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class MyApp extends StatelessWidget {
@@ -34,47 +33,10 @@ class MyApp extends StatelessWidget {
             globals.setIndex + 1, true);
       }
     });
-    boolBox.getAt(7)! ? globals.lbKg = "lb" : globals.lbKg = "kg";
-    if (boolBox.getAt(0)!) {
-      // dark mode
-      globals.backColor = Colors.black;
-      globals.tileColor = const Color.fromARGB(255, 29, 29, 29);
-      globals.textColor = Colors.white;
-      globals.dividerColor = const Color.fromARGB(133, 65, 64, 64);
-      globals.underlineColor = Colors.white.withOpacity(.7);
-      globals.circleColor = const Color.fromARGB(255, 38, 38, 38);
-      globals.emptyCircleTextColor = const Color.fromARGB(255, 103, 103, 103);
-      globals.greyColor = const Color.fromARGB(255, 165, 165, 165);
-      globals.headerColor = Colors.black;
-      globals.borderColor = const Color.fromARGB(255, 62, 62, 62);
-      globals.navIconColor = const Color.fromARGB(255, 176, 176, 176);
-      globals.activeSwitchColor = Colors.white;
-    } else {
-      // light mode
-      globals.backColor = Colors.white;
-      globals.headerColor = Colors.white;
-      globals.tileColor = Colors.white;
-      globals.textColor = Colors.black;
-      globals.dividerColor = globals.greyColor;
-      globals.underlineColor = const Color.fromARGB(103, 0, 0, 0);
-      globals.circleColor = const Color.fromARGB(255, 238, 238, 238);
-      globals.emptyCircleTextColor = const Color.fromARGB(255, 199, 199, 199);
-      globals.greyColor = const Color.fromARGB(255, 108, 108, 108);
-      globals.borderColor = const Color.fromARGB(255, 224, 224, 224);
-      globals.navIconColor = const Color.fromARGB(255, 87, 87, 87);
-      globals.activeSwitchColor = const Color.fromARGB(255, 49, 48, 48);
-    }
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      systemNavigationBarColor: Colors.transparent,
-    ));
     return MultiProvider(
         providers: [
           ChangeNotifierProvider<ThemeProvider>(
             create: (_) => ThemeProvider(),
-          ),
-          ChangeNotifierProvider<BottomNavigationBarProvider>(
-            create: (_) => BottomNavigationBarProvider(),
           ),
           ChangeNotifierProvider<HomeProvider>(
             create: (_) => HomeProvider(),
@@ -98,8 +60,8 @@ class MyApp extends StatelessWidget {
             create: (_) => WorkoutTimerProvider(),
           ),
         ],
-        child:
-            Consumer<ThemeProvider>(builder: (context, themeProvider, child) {
+        child: Consumer<ThemeProvider>(builder: (context, themeProvider, child) {
+          setColors();
           return MaterialApp(
               debugShowCheckedModeBanner: false,
               title: 'BlockLifts',

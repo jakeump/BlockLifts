@@ -5,9 +5,9 @@ import 'package:blocklifts/classes/plate.dart';
 import 'package:blocklifts/functions/default_state.dart';
 import 'package:blocklifts/appscreens/timerpage.dart';
 import 'package:blocklifts/appscreens/platespage.dart';
-import 'package:blocklifts/classes/providers/settingsprovider.dart';
-import 'package:blocklifts/classes/providers/themeprovider.dart';
-import 'package:blocklifts/classes/providers/progressprovider.dart';
+import 'package:blocklifts/providers/settingsprovider.dart';
+import 'package:blocklifts/providers/themeprovider.dart';
+import 'package:blocklifts/providers/progressprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 

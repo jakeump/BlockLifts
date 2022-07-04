@@ -1,4 +1,4 @@
-import 'package:blocklifts/classes/providers/progressprovider.dart';
+import 'package:blocklifts/providers/progressprovider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
@@ -15,9 +15,9 @@ import 'package:blocklifts/classes/indivworkout.dart';
 import 'package:blocklifts/appscreens/editexercisepage.dart';
 import 'package:blocklifts/appscreens/workoutnotespage.dart';
 import 'package:blocklifts/appscreens/editworkoutpage.dart';
-import 'package:blocklifts/classes/providers/listprovider.dart';
-import 'package:blocklifts/classes/providers/homeprovider.dart';
-import 'package:blocklifts/classes/providers/calendarprovider.dart';
+import 'package:blocklifts/providers/listprovider.dart';
+import 'package:blocklifts/providers/homeprovider.dart';
+import 'package:blocklifts/providers/calendarprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 

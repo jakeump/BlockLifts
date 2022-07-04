@@ -4,8 +4,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/workout.dart';
 import 'package:blocklifts/appscreens/workoutpage.dart';
 import 'package:blocklifts/appscreens/edit.dart';
-import 'package:blocklifts/classes/providers/homeprovider.dart';
-import 'package:blocklifts/classes/providers/workouttimerprovider.dart';
+import 'package:blocklifts/providers/homeprovider.dart';
+import 'package:blocklifts/providers/themeprovider.dart';
+import 'package:blocklifts/providers/workouttimerprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
@@ -64,89 +65,93 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: globals.backColor,
-      appBar: AppBar(
-        elevation: 0,
-        centerTitle: true,
-        backgroundColor: globals.headerColor,
-        title: const Text("BLOCKLIFTS", style: TextStyle(fontFamily: 'Teko')),
-        titleTextStyle: TextStyle(fontSize: 22, color: globals.textColor),
-        actions: <Widget>[
-          TextButton(
-            style: TextButton.styleFrom(
-              primary: globals.redColor,
-              textStyle:
-                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              alignment: Alignment.center,
-            ),
-            child: const Text("Edit"),
-            onPressed: () {
-              Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (context) => const Edit()))
-                  .then((value) {
-                setState(() {});
-              });
-            },
-          ),
-        ],
-      ),
-      body: Consumer<HomeProvider>(builder: (context, homeProvider, child) {
-        counter = counterBox.getAt(0);
-        return Container(
-          padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-          child: ListView(scrollDirection: Axis.vertical, children: <Widget>[
-            for (int i = counter; i < workoutsBox.length; i++) buildTile(i),
-            for (int i = 0; i < counter; i++) buildTile(i),
-          ]),
-        );
-      }),
-      floatingActionButton: Align(
-          alignment: Alignment.bottomRight,
-          child: Container(
-            padding: boolBox.getAt(5)!
-                ? const EdgeInsets.only(right: 10)
-                : const EdgeInsets.only(right: 10, bottom: 10),
-            child: OutlinedButton(
-              child: boolBox.getAt(5)!
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                          const Text("Workout In Progress",
-                              style: TextStyle(fontSize: 16)),
-                          Consumer<WorkoutTimerProvider>(
-                              builder: (context, workoutTimerProvider, child) {
-                            return buildWorkoutTime();
-                          }),
-                        ])
-                  : const Text("Start Workout", style: TextStyle(fontSize: 16)),
-              style: OutlinedButton.styleFrom(
-                fixedSize: boolBox.getAt(5)!
-                    ? const Size.fromHeight(75)
-                    : const Size.fromHeight(50),
-                primary: Colors.white,
-                backgroundColor: globals.redColor,
-                shape: boolBox.getAt(5)!
-                    ? RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10))
-                    : const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(50))),
+    return Consumer<ThemeProvider>(builder: (context, themeProvider, child) {
+      return Scaffold(
+        backgroundColor: globals.backColor,
+        appBar: AppBar(
+          elevation: 0,
+          centerTitle: true,
+          backgroundColor: globals.headerColor,
+          title: const Text("BLOCKLIFTS", style: TextStyle(fontFamily: 'Teko')),
+          titleTextStyle: TextStyle(fontSize: 22, color: globals.textColor),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                primary: globals.redColor,
+                textStyle:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                alignment: Alignment.center,
               ),
+              child: const Text("Edit"),
               onPressed: () {
-                if (boolBox.getAt(5)!) {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => WorkoutPage(counterBox.getAt(0)!)));
-                } else {
-                  pushWorkout(counterBox.getAt(0)!);
-                }
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (context) => const Edit()))
+                    .then((value) {
+                  setState(() {});
+                });
               },
             ),
-          )),
-      floatingActionButtonLocation: boolBox.getAt(5)!
-          ? FloatingActionButtonLocation.centerDocked
-          : FloatingActionButtonLocation.centerDocked,
-    );
+          ],
+        ),
+        body: Consumer<HomeProvider>(builder: (context, homeProvider, child) {
+          counter = counterBox.getAt(0);
+          return Container(
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+            child: ListView(scrollDirection: Axis.vertical, children: <Widget>[
+              for (int i = counter; i < workoutsBox.length; i++) buildTile(i),
+              for (int i = 0; i < counter; i++) buildTile(i),
+            ]),
+          );
+        }),
+        floatingActionButton: Align(
+            alignment: Alignment.bottomRight,
+            child: Container(
+              padding: boolBox.getAt(5)!
+                  ? const EdgeInsets.only(right: 10)
+                  : const EdgeInsets.only(right: 10, bottom: 10),
+              child: OutlinedButton(
+                child: boolBox.getAt(5)!
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                            const Text("Workout In Progress",
+                                style: TextStyle(fontSize: 16)),
+                            Consumer<WorkoutTimerProvider>(builder:
+                                (context, workoutTimerProvider, child) {
+                              return buildWorkoutTime();
+                            }),
+                          ])
+                    : const Text("Start Workout",
+                        style: TextStyle(fontSize: 16)),
+                style: OutlinedButton.styleFrom(
+                  fixedSize: boolBox.getAt(5)!
+                      ? const Size.fromHeight(75)
+                      : const Size.fromHeight(50),
+                  primary: Colors.white,
+                  backgroundColor: globals.redColor,
+                  shape: boolBox.getAt(5)!
+                      ? RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10))
+                      : const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(50))),
+                ),
+                onPressed: () {
+                  if (boolBox.getAt(5)!) {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) =>
+                            WorkoutPage(counterBox.getAt(0)!)));
+                  } else {
+                    pushWorkout(counterBox.getAt(0)!);
+                  }
+                },
+              ),
+            )),
+        floatingActionButtonLocation: boolBox.getAt(5)!
+            ? FloatingActionButtonLocation.centerDocked
+            : FloatingActionButtonLocation.centerDocked,
+      );
+    });
   }
 
   Widget buildTile(int i) {

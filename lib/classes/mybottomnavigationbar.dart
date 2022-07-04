@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:blocklifts/classes/providers/themeprovider.dart';
-import 'package:blocklifts/classes/providers/bottomnavigationbarprovider.dart';
+import 'package:blocklifts/providers/themeprovider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class MyBottomNavigationBar extends StatelessWidget {
@@ -9,8 +8,10 @@ class MyBottomNavigationBar extends StatelessWidget {
   const MyBottomNavigationBar({
     Key? key,
     required this.onTapped,
+    required this.currentIndex,
   }) : super(key: key);
   final Function(int) onTapped;
+  final int currentIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +42,7 @@ class MyBottomNavigationBar extends StatelessWidget {
         showSelectedLabels: true,
         showUnselectedLabels: false,
         onTap: onTapped,
-        currentIndex:
-            Provider.of<BottomNavigationBarProvider>(context).currentIndex,
+        currentIndex: currentIndex,
       );
     });
   }

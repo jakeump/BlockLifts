@@ -4,13 +4,13 @@ import 'package:blocklifts/appscreens/progress.dart';
 import 'package:blocklifts/appscreens/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:blocklifts/classes/providers/workouttimerprovider.dart';
+import 'package:blocklifts/providers/themeprovider.dart';
+import 'package:blocklifts/providers/workouttimerprovider.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:blocklifts/classes/mybottomnavigationbar.dart';
-import 'package:blocklifts/classes/providers/bottomnavigationbarprovider.dart';
 import 'package:blocklifts/functions/check_time.dart';
 import 'package:blocklifts/functions/create_notification.dart';
+import 'package:bottom_nav_layout/bottom_nav_layout.dart';
 import 'dart:async';
 import 'package:blocklifts/globals.dart' as globals;
 
@@ -112,33 +112,63 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  var currentTab = const [
-    Home(),
-    History(),
-    Progress(),
-    Settings(),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return Consumer<BottomNavigationBarProvider>(
-        builder: (context, provider, child) {
-      return Theme(
+    return Consumer<ThemeProvider>(builder: (context, themeProvider, child) {
+    return Theme(
         data: ThemeData(
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
           brightness: Brightness.dark,
         ),
         child: Scaffold(
-          body: currentTab[provider.currentIndex],
-          bottomNavigationBar: MyBottomNavigationBar(onTapped: _onTappedBar),
-        ),
-      );
+            body: BottomNavLayout(
+          savePageState: true,
+          pages: [
+            (_) => const Home(),
+            (_) => const History(),
+            (_) => const Progress(),
+            (_) => const Settings(),
+          ],
+          pageTransitionData: _pageTransition(),
+          bottomNavigationBar: (currentIndex, onTap) => BottomNavigationBar(
+            currentIndex: currentIndex,
+            onTap: (index) => onTap(index),
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: globals.tileColor,
+            selectedItemColor: globals.redColor,
+            unselectedItemColor: globals.navIconColor,
+            showSelectedLabels: true,
+            showUnselectedLabels: false,
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.date_range), label: 'History'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.line_axis), label: 'Progress'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.settings), label: 'Settings'),
+            ],
+          ),
+        )));
     });
   }
 
-  void _onTappedBar(int value) {
-    Provider.of<BottomNavigationBarProvider>(context, listen: false)
-        .currentIndex = value;
+  PageTransitionData _pageTransition() {
+    return PageTransitionData(
+      builder: (controller, child) => AnimatedBuilder(
+        animation: Tween(begin: 0.0, end: 1.0).animate(controller),
+        builder: (context, child) => Opacity(
+          opacity: 1,
+          child: Transform.scale(
+            scale: 1,
+            child: child,
+          ),
+        ),
+        child: child,
+      ),
+      duration: 50,
+      direction: AnimationDirection.out,
+    );
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/exercise.dart';
 import 'package:blocklifts/appscreens/graphbuilderpage.dart';
-import 'package:blocklifts/classes/providers/progressprovider.dart';
+import 'package:blocklifts/providers/progressprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 

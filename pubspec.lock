@@ -57,6 +57,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
+  bottom_nav_layout:
+    dependency: "direct main"
+    description:
+      name: bottom_nav_layout
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.9"
   build:
     dependency: transitive
     description:
@@ -798,6 +805,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.3.1"
+  universal_io:
+    dependency: transitive
+    description:
+      name: universal_io
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.4"
   uuid:
     dependency: transitive
     description:

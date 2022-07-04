@@ -16,7 +16,7 @@ class GraphBuilderPage extends StatefulWidget {
   _GraphBuilderState createState() => _GraphBuilderState();
 }
 
-class _GraphBuilderState extends State<GraphBuilderPage> {
+class _GraphBuilderState extends State<GraphBuilderPage> with AutomaticKeepAliveClientMixin {
   // widget.exIndex of -1 means body weight
   late final Box<Exercise> exercisesBox;
   late final Box<IndivWorkout> indivWorkoutsBox;
@@ -123,6 +123,7 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: globals.backColor,
       body: _data.isNotEmpty
@@ -363,4 +364,7 @@ class _GraphBuilderState extends State<GraphBuilderPage> {
     }
     return output;
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }
