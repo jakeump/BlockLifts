@@ -98,7 +98,8 @@ class WorkoutPageState extends State<WorkoutPage> {
       // subtracts a little weight until weight can be formed
       // the weight subtracted is the difference to the smallest plate
       while (!plateCalculator(exercisesBox.getAt(j))) {
-        if (exercisesBox.getAt(j)!.weight < exercisesBox.getAt(j)!.barWeight) {
+        if (exercisesBox.getAt(j)!.weight < exercisesBox.getAt(j)!.barWeight ||
+            platesBox.isEmpty) {
           exercisesBox.getAt(j)!.weight = tempWeight.floor().toDouble();
           break;
         }

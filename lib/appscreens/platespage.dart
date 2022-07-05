@@ -349,34 +349,38 @@ class PlatesState extends State<PlatesPage> {
                     final List<Plate> platesList = platesBox.values.toList();
                     double weight = double.parse(myController.text);
                     int i = 0;
-                    while (i < platesBox.length &&
-                        weight < platesBox.getAt(i)!.weight) {
-                      i++;
-                    }
-                    if (i == platesBox.length) {
-                      if (platesBox.getAt(i - 1)!.weight == weight) {
-                        final tempPlate =
-                            Hive.box<Plate>('platesBox').getAt(i - 1)!;
-                        tempPlate.number += 2;
-                        tempPlate.save();
-                      } else {
-                        platesList.add(Plate(weight, 2));
-                      }
+                    if (platesBox.isEmpty) {
+                      platesBox.add(Plate(weight, 2));
                     } else {
-                      if (platesBox.getAt(i)!.weight == weight) {
-                        final tempPlate =
-                            Hive.box<Plate>('platesBox').getAt(i)!;
-                        tempPlate.number += 2;
-                        tempPlate.save();
-                      } else {
-                        platesList.insert(i, Plate(weight, 2));
+                      while (i < platesBox.length &&
+                          weight < platesBox.getAt(i)!.weight) {
+                        i++;
                       }
-                    }
+                      if (i == platesBox.length) {
+                        if (platesBox.getAt(i - 1)!.weight == weight) {
+                          final tempPlate =
+                              Hive.box<Plate>('platesBox').getAt(i - 1)!;
+                          tempPlate.number += 2;
+                          tempPlate.save();
+                        } else {
+                          platesList.add(Plate(weight, 2));
+                        }
+                      } else {
+                        if (platesBox.getAt(i)!.weight == weight) {
+                          final tempPlate =
+                              Hive.box<Plate>('platesBox').getAt(i)!;
+                          tempPlate.number += 2;
+                          tempPlate.save();
+                        } else {
+                          platesList.insert(i, Plate(weight, 2));
+                        }
+                      }
 
-                    platesBox.deleteAll(platesBox.keys);
+                      platesBox.deleteAll(platesBox.keys);
 
-                    for (var plate in platesList) {
-                      platesBox.add(plate);
+                      for (var plate in platesList) {
+                        platesBox.add(plate);
+                      }
                     }
                     globals.plateCounter.value++;
                     Navigator.of(context).pop();

@@ -49,9 +49,9 @@ class SettingsState extends State<Settings> {
 
   @override
   Widget build(BuildContext context) {
-    platesString = platesToString();
     return Consumer<SettingsProvider>(
         builder: (context, settingsProvider, child) {
+    platesString = platesToString();
       return Scaffold(
         backgroundColor: globals.backColor,
         appBar: AppBar(
