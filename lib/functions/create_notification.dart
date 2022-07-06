@@ -46,7 +46,7 @@ void createNotification(int exIdx, int setIdx) {
         payload: {"name": "BlockLifts"},
         autoDismissible: false,
         locked: true,
-        largeIcon: 'resource://drawable/icon',
+        largeIcon: 'resource://drawable/res_icon',
         roundedLargeIcon: false,
         notificationLayout: NotificationLayout.Default,
       ),

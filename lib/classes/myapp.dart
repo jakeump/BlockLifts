@@ -3,6 +3,7 @@ import 'package:blocklifts/providers/progressprovider.dart';
 import 'package:blocklifts/providers/settingsprovider.dart';
 import 'package:blocklifts/providers/workouttimerprovider.dart';
 import 'package:flutter/material.dart';
+import 'package:blocklifts/appscreens/workoutpage.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/functions/increment_circles.dart';
@@ -15,6 +16,7 @@ import 'package:blocklifts/providers/listprovider.dart';
 import 'package:blocklifts/providers/timerprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/functions/set_colors.dart';
+import 'package:flutter/services.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class MyApp extends StatelessWidget {
@@ -22,6 +24,7 @@ class MyApp extends StatelessWidget {
 
   final int androidSdkVersion;
   final Box<bool> boolBox = Hive.box<bool>('boolBox');
+  final Box<int> counterBox = Hive.box<int>('counterBox');
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +35,10 @@ class MyApp extends StatelessWidget {
       } else if (action.buttonKeyPressed == "failed") {
         incrementCircles(globals.workoutIndex, globals.exerciseIndex,
             globals.setIndex + 1, true);
+      }
+      else {
+        Navigator.of(context)
+            .pushNamed('/WorkoutPage');
       }
     });
     return MultiProvider(
@@ -64,11 +71,15 @@ class MyApp extends StatelessWidget {
             create: (_) => WorkoutTimerProvider(),
           ),
         ],
-        child: Consumer<ThemeProvider>(builder: (context, themeProvider, child) {
+        child:
+            Consumer<ThemeProvider>(builder: (context, themeProvider, child) {
           setColors();
           return MaterialApp(
               debugShowCheckedModeBanner: false,
               title: 'BlockLifts',
+              routes: {
+                'WorkoutPage': (context) => WorkoutPage(counterBox.getAt(0)!),
+              },
               theme: ThemeData(
                 // light theme
                 useMaterial3: true,
@@ -112,11 +123,16 @@ class MyApp extends StatelessWidget {
               ),
               themeMode: boolBox.getAt(0)! ? ThemeMode.dark : ThemeMode.light,
               home: ScrollConfiguration(
-                behavior: CustomScrollBehavior(
-                  androidSdkVersion: androidSdkVersion,
-                ),
-                child: const HomePage(),
-              ));
+                  behavior: CustomScrollBehavior(
+                    androidSdkVersion: androidSdkVersion,
+                  ),
+                  child: AnnotatedRegion<SystemUiOverlayStyle>(
+                    value: SystemUiOverlayStyle(
+                      systemNavigationBarColor:
+                          boolBox.getAt(0)! ? Colors.black : Colors.white,
+                    ),
+                    child: const HomePage(),
+                  )));
         }));
   }
 }

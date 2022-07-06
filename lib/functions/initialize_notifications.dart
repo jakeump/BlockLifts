@@ -10,14 +10,14 @@ void initializeNotifications() {
   AwesomeNotifications().initialize(
     // set the icon to null if you want to use the default app icon
     // android->app->src->main->res->drawable
-    'resource://drawable/transparent_icon',
+    'resource://drawable/res_small_transparent_icon',
     [
       NotificationChannel(
         channelGroupKey: 'workout_channel_group',
         channelKey: 'workout_channel',
         channelName: 'Workout notifications',
         channelDescription: 'Notifications during workout',
-        defaultColor: const Color.fromARGB(255, 210, 45, 45),
+        defaultColor: Colors.white,
         ledColor: Colors.red,
         enableVibration: false,
         playSound: false,
@@ -28,7 +28,7 @@ void initializeNotifications() {
         channelKey: 'timer_channel',
         channelName: 'Timer notifications',
         channelDescription: 'Timer notifications',
-        defaultColor: const Color.fromARGB(255, 210, 45, 45),
+        defaultColor: Colors.white,
         ledColor: Colors.red,
         enableVibration: true,
         vibrationPattern: highVibrationPatterns,
