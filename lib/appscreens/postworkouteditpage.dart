@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/indivworkout.dart';
 import 'package:blocklifts/appscreens/postworkoutnotespage.dart';
 import 'package:blocklifts/providers/calendarprovider.dart';
+import 'package:blocklifts/providers/progressprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
@@ -184,6 +185,9 @@ class PostWorkoutEditState extends State<PostWorkoutEditPage> {
                 var calendarProvider =
                     Provider.of<CalendarProvider>(context, listen: false);
                 calendarProvider.updateCalendar();
+                var progressProvider =
+                    Provider.of<ProgressProvider>(context, listen: false);
+                progressProvider.updateProgress();
                 Navigator.of(context).pop();
               },
             ),

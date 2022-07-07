@@ -658,9 +658,13 @@ class EditExercisePageState extends State<EditExercisePage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: !exercisesBox.getAt(widget.index)!.overload
-                    ? Text("Disabled",
-                        style:
-                            TextStyle(fontSize: 16, color: globals.greyColor))
+                    ? exercisesBox.getAt(widget.index)!.deload
+                        ? Text("Overload Disabled",
+                            style: TextStyle(
+                                fontSize: 16, color: globals.greyColor))
+                        : Text("Disabled",
+                            style: TextStyle(
+                                fontSize: 16, color: globals.greyColor))
                     : exercisesBox.getAt(widget.index)!.increment % 1 == 0
                         ? Text(
                             "${exercisesBox.getAt(widget.index)!.increment.toInt().toString()}${globals.lbKg}",

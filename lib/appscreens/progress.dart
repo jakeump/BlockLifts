@@ -83,15 +83,7 @@ class ProgressState extends State<Progress> {
                                 const SizedBox(height: 8),
                                 Align(
                                   alignment: Alignment.centerLeft,
-                                  child: exercisesBox.getAt(i)!.weight % 1 == 0
-                                      ? Text(
-                                          "${exercisesBox.getAt(i)!.weight.toInt().toString()}${globals.lbKg}",
-                                          style: TextStyle(
-                                              color: globals.greyColor))
-                                      : Text(
-                                          "${exercisesBox.getAt(i)!.weight.toString()}${globals.lbKg}",
-                                          style: TextStyle(
-                                              color: globals.greyColor)),
+                                  child: _lastCompletedWeight(i),
                                 ),
                               ]),
                         ),
@@ -221,5 +213,44 @@ class ProgressState extends State<Progress> {
             );
           }));
     });
+  }
+
+  Widget _lastCompletedWeight(int exIdx) {
+    for (int i = indivWorkoutsBox.length - 1; i >= 0; i--) {
+      for (int j = 0;
+          j < indivWorkoutsBox.getAt(i)!.exercisesCompleted.length;
+          j++) {
+        if (indivWorkoutsBox.getAt(i)!.exercisesCompleted[j] ==
+            exercisesBox.getAt(exIdx)!.name) {
+          bool skipped = true;
+          // checks to see if exercise was skipped
+          for (int k = 0;
+              k < indivWorkoutsBox.getAt(i)!.repsCompleted[j].length;
+              k++) {
+            if (indivWorkoutsBox.getAt(i)!.repsPlanned[j] + 1 !=
+                indivWorkoutsBox.getAt(i)!.repsCompleted[j][k]) {
+              skipped = false;
+            }
+          }
+          if (skipped) {
+            continue;
+          } else {
+            return indivWorkoutsBox.getAt(i)!.weights[j] % 1 == 0
+                ? Text(
+                    "${indivWorkoutsBox.getAt(i)!.weights[j].toInt().toString()}${globals.lbKg}",
+                    style: TextStyle(color: globals.greyColor))
+                : Text(
+                    "${indivWorkoutsBox.getAt(i)!.weights[j].toString()}${globals.lbKg}",
+                    style: TextStyle(color: globals.greyColor));
+          }
+        }
+      }
+    }
+    return exercisesBox.getAt(exIdx)!.weight % 1 == 0
+        ? Text(
+            "${exercisesBox.getAt(exIdx)!.weight.toInt().toString()}${globals.lbKg}",
+            style: TextStyle(color: globals.greyColor))
+        : Text("${exercisesBox.getAt(exIdx)!.weight.toString()}${globals.lbKg}",
+            style: TextStyle(color: globals.greyColor));
   }
 }

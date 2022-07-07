@@ -30,7 +30,8 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
     exercisesBox = Hive.box<Exercise>('exercisesBox');
     workoutsBox = Hive.box<Workout>('workoutsBox');
     defaultsBox = Hive.box<double>('defaultsBox');
-    incrementsSettingsBox = Hive.box<IncrementsSettings>('incrementsSettingsBox');
+    incrementsSettingsBox =
+        Hive.box<IncrementsSettings>('incrementsSettingsBox');
   }
 
   @override
@@ -103,7 +104,12 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                                       Align(
                                         alignment: Alignment.centerLeft,
                                         child: Text(
-                                          "${workoutsBox.getAt(widget.index)!.exercises[i].sets.toString()} sets of ${workoutsBox.getAt(widget.index)!.exercises[i].reps.toString()} reps",
+                                          "${workoutsBox.getAt(widget.index)!.exercises[i].
+                                            sets.toString()} ${workoutsBox.getAt(widget.index)!.
+                                            exercises[i].sets == 1 ? "set" : "sets"} of ${workoutsBox.
+                                            getAt(widget.index)!.exercises[i].reps.
+                                            toString()} ${workoutsBox.getAt(widget.index)!.
+                                            exercises[i].reps == 1 ? "rep" : "reps"}",
                                           style: TextStyle(
                                               fontSize: 14,
                                               color: globals.greyColor),
@@ -730,14 +736,32 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                                   1)!
                                                                               .toInt(),
                                                                           defaultsBox
-                                                                              .getAt(2)!
+                                                                              .getAt(
+                                                                                  2)!
                                                                               .toInt(),
-                                                                          incrementsSettingsBox.getAt(0)!.overload,
-                                                                          incrementsSettingsBox.getAt(0)!.incrementFrequency,
-                                                                          incrementsSettingsBox.getAt(0)!.increment,
-                                                                          incrementsSettingsBox.getAt(0)!.deload,
-                                                                          incrementsSettingsBox.getAt(0)!.deloadPercent,
-                                                                          incrementsSettingsBox.getAt(0)!.deloadFrequency);
+                                                                          incrementsSettingsBox
+                                                                              .getAt(
+                                                                                  0)!
+                                                                              .overload,
+                                                                          incrementsSettingsBox
+                                                                              .getAt(
+                                                                                  0)!
+                                                                              .incrementFrequency,
+                                                                          incrementsSettingsBox
+                                                                              .getAt(
+                                                                                  0)!
+                                                                              .increment,
+                                                                          incrementsSettingsBox
+                                                                              .getAt(
+                                                                                  0)!
+                                                                              .deload,
+                                                                          incrementsSettingsBox
+                                                                              .getAt(
+                                                                                  0)!
+                                                                              .deloadPercent,
+                                                                          incrementsSettingsBox
+                                                                              .getAt(0)!
+                                                                              .deloadFrequency);
                                                                       newEx.weight =
                                                                           defaultsBox
                                                                               .getAt(0)!;
