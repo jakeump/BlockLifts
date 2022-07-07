@@ -42,7 +42,7 @@ dependencies:
   hive_flutter: any
   hive_generator: any
   shared_preferences: any
-  awesome_notifications: any
+  awesome_notifications: 0.7.0-beta.2
   audioplayers: any
   fl_chart: any
   paged_vertical_calendar: any
@@ -55,7 +55,7 @@ dependencies:
   bottom_nav_layout: ^3.0.9
 
 dev_dependencies:
-  flutter_launcher_icons: "^0.9.2"
+  flutter_launcher_icons: ^0.9.2
   build_runner: ^2.1.11
   flutter_test:
     sdk: flutter
@@ -121,3 +121,8 @@ flutter_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/icon/icon.png"
+  
+awesome_notifications: #^0.6.21 
+  git:
+    ref: "0f93123"
+    url: https://github.com/rafaelsetragni/awesome_notifications

@@ -12,6 +12,7 @@ Timer? workoutTimer;
 Duration workoutDuration = const Duration();
 bool showTimer = false;
 bool lastSet = false;
+bool pushInProgress = false;
 int workoutIndex = 0;
 int exerciseIndex = 0;
 int setIndex = 0;

@@ -74,8 +74,10 @@ class HomePageState extends State<HomePage> {
     );
     globals.timer = Timer.periodic(
         const Duration(seconds: 1), (_) => {addTime(globals.timer)});
-    globals.workoutTimer = Timer.periodic(const Duration(seconds: 1),
-        (_) => {addWorkoutTime(globals.workoutTimer)});
+    if (!globals.pushInProgress) {
+      globals.workoutTimer = Timer.periodic(const Duration(seconds: 1),
+          (_) => {addWorkoutTime(globals.workoutTimer)});
+    }
   }
 
   void addTime(Timer? timer) {

@@ -39,7 +39,7 @@ void initializeNotifications() {
     // Channel groups are only visual and are not required
     channelGroups: [
       NotificationChannelGroup(
-          channelGroupkey: 'workout_channel_group', channelGroupName: 'Workout')
+          channelGroupKey: 'workout_channel_group', channelGroupName: 'Workout')
     ],
   );
 }

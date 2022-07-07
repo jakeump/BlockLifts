@@ -55,13 +55,13 @@ void createNotification(int exIdx, int setIdx) {
           key: "done",
           label: "Done",
           autoDismissible: false,
-          buttonType: ActionButtonType.KeepOnTop,
+          actionType: ActionType.KeepOnTop,
         ),
         NotificationActionButton(
           key: "failed",
           label: "Failed",
           autoDismissible: false,
-          buttonType: ActionButtonType.KeepOnTop,
+          actionType: ActionType.KeepOnTop,
         )
       ]);
 }

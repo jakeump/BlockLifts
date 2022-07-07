@@ -4,11 +4,10 @@ import 'package:blocklifts/providers/settingsprovider.dart';
 import 'package:blocklifts/providers/workouttimerprovider.dart';
 import 'package:flutter/material.dart';
 import 'package:blocklifts/appscreens/workoutpage.dart';
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:blocklifts/functions/increment_circles.dart';
 import 'package:blocklifts/classes/customscrollbehavior.dart';
 import 'package:blocklifts/appscreens/homepage.dart';
+import 'package:blocklifts/appscreens/home.dart';
 import 'package:blocklifts/providers/themeprovider.dart';
 import 'package:blocklifts/providers/homeprovider.dart';
 import 'package:blocklifts/providers/notesprovider.dart';
@@ -17,6 +16,8 @@ import 'package:blocklifts/providers/timerprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/functions/set_colors.dart';
 import 'package:flutter/services.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:blocklifts/classes/notificationcontroller.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class MyApp extends StatelessWidget {
@@ -25,22 +26,13 @@ class MyApp extends StatelessWidget {
   final int androidSdkVersion;
   final Box<bool> boolBox = Hive.box<bool>('boolBox');
   final Box<int> counterBox = Hive.box<int>('counterBox');
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
-    AwesomeNotifications().actionStream.listen((action) {
-      if (action.buttonKeyPressed == "done") {
-        incrementCircles(globals.workoutIndex, globals.exerciseIndex,
-            globals.setIndex + 1, false);
-      } else if (action.buttonKeyPressed == "failed") {
-        incrementCircles(globals.workoutIndex, globals.exerciseIndex,
-            globals.setIndex + 1, true);
-      }
-      else {
-        Navigator.of(context)
-            .pushNamed('/WorkoutPage');
-      }
-    });
+    AwesomeNotifications().setListeners(
+        onActionReceivedMethod: NotificationController.onActionReceivedMethod,
+    );
     return MultiProvider(
         providers: [
           ChangeNotifierProvider<ThemeProvider>(
@@ -77,8 +69,22 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
               debugShowCheckedModeBanner: false,
               title: 'BlockLifts',
-              routes: {
-                'WorkoutPage': (context) => WorkoutPage(counterBox.getAt(0)!),
+              navigatorKey: navigatorKey,
+              initialRoute: '/',
+              onGenerateRoute: (settings) {
+                switch (settings.name) {
+                  case '/':
+                    return MaterialPageRoute(builder: (context) =>
+                        const Home(),
+                    );
+                  case '/WorkoutPage':
+                    return MaterialPageRoute(builder: (context) {
+                      return WorkoutPage(counterBox.getAt(0)!);
+                    });
+                  default:
+                    assert(false, 'Page ${settings.name} not found');
+                    return null;
+                }
               },
               theme: ThemeData(
                 // light theme
@@ -135,4 +141,6 @@ class MyApp extends StatelessWidget {
                   )));
         }));
   }
+
+  static of(BuildContext? currentContext) {}
 }
