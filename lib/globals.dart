@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:blocklifts/classes/exercise.dart';
 
-Exercise customxyz = Exercise("Custom Exercise", 0, 0, 0);
+Exercise customxyz =
+    Exercise("Custom Exercise", 0, 0, 0, true, 1, 5, true, 10, 3);
 
 String postWorkoutTempNote = "";
 
@@ -43,5 +44,4 @@ ValueNotifier<int> circleCounter = ValueNotifier<int>(0); // to update circles
 ValueNotifier<int> plateCounter =
     ValueNotifier<int>(0); // refreshes plates list
 ValueNotifier<int> incrementsCounter = ValueNotifier<int>(0); // for increments
-ValueNotifier<int> graphCounter =
-    ValueNotifier<int>(0); // to update graph text
+ValueNotifier<int> graphCounter = ValueNotifier<int>(0); // to update graph text

@@ -1,3 +1,4 @@
+import 'package:blocklifts/classes/incrementssettings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -12,23 +13,73 @@ void defaultState() async {
   AwesomeNotifications().cancelAll();
 
   Box<double> defaultsBox = Hive.box<double>('defaultsBox');
+  Box<IncrementsSettings> incrementsSettingsBox =
+      Hive.box<IncrementsSettings>('incrementsSettingsBox');
   defaultsBox.deleteAll(defaultsBox.keys);
   defaultsBox.add(45);
   defaultsBox.add(5);
   defaultsBox.add(5);
 
+  incrementsSettingsBox.deleteAll(incrementsSettingsBox.keys);
+  incrementsSettingsBox.add(IncrementsSettings(true, 1, 5, true, 10, 3));
+
   Workout defaultA = Workout("BlockLifts A");
   Workout defaultB = Workout("BlockLifts B");
-  Exercise squat = Exercise("Squat", defaultsBox.getAt(0)!,
-      defaultsBox.getAt(1)!.toInt(), defaultsBox.getAt(2)!.toInt());
-  Exercise benchPress = Exercise("Bench Press", defaultsBox.getAt(0)!,
-      defaultsBox.getAt(1)!.toInt(), defaultsBox.getAt(2)!.toInt());
-  Exercise barbellRow = Exercise("Barbell Row", defaultsBox.getAt(0)!,
-      defaultsBox.getAt(1)!.toInt(), defaultsBox.getAt(2)!.toInt());
-  Exercise overheadPress = Exercise("Overhead Press", defaultsBox.getAt(0)!,
-      defaultsBox.getAt(1)!.toInt(), defaultsBox.getAt(2)!.toInt());
-  Exercise deadlift = Exercise("Deadlift", defaultsBox.getAt(0)!,
-      defaultsBox.getAt(1)!.toInt(), defaultsBox.getAt(2)!.toInt());
+  Exercise squat = Exercise(
+      "Squat",
+      defaultsBox.getAt(0)!,
+      defaultsBox.getAt(1)!.toInt(),
+      defaultsBox.getAt(2)!.toInt(),
+      true,
+      1,
+      5,
+      true,
+      10,
+      3);
+  Exercise benchPress = Exercise(
+      "Bench Press",
+      defaultsBox.getAt(0)!,
+      defaultsBox.getAt(1)!.toInt(),
+      defaultsBox.getAt(2)!.toInt(),
+      true,
+      1,
+      5,
+      true,
+      10,
+      3);
+  Exercise barbellRow = Exercise(
+      "Barbell Row",
+      defaultsBox.getAt(0)!,
+      defaultsBox.getAt(1)!.toInt(),
+      defaultsBox.getAt(2)!.toInt(),
+      true,
+      1,
+      5,
+      true,
+      10,
+      3);
+  Exercise overheadPress = Exercise(
+      "Overhead Press",
+      defaultsBox.getAt(0)!,
+      defaultsBox.getAt(1)!.toInt(),
+      defaultsBox.getAt(2)!.toInt(),
+      true,
+      1,
+      5,
+      true,
+      10,
+      3);
+  Exercise deadlift = Exercise(
+      "Deadlift",
+      defaultsBox.getAt(0)!,
+      defaultsBox.getAt(1)!.toInt(),
+      defaultsBox.getAt(2)!.toInt(),
+      true,
+      1,
+      5,
+      true,
+      10,
+      3);
   squat.bookmarked = true;
   benchPress.bookmarked = true;
   deadlift.bookmarked = true;

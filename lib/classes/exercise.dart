@@ -11,7 +11,7 @@ class Exercise extends HiveObject {
   @HiveField(2)
   double barWeight;
   @HiveField(3)
-  double increment = 5;
+  double increment;
   @HiveField(4)
   int sets;
   @HiveField(5)
@@ -21,22 +21,33 @@ class Exercise extends HiveObject {
   @HiveField(7)
   int failed = 0;
   @HiveField(8)
-  bool overload = true;
+  bool overload;
   @HiveField(9)
-  bool deload = true;
+  bool deload;
   @HiveField(10)
-  int incrementFrequency = 1;
+  int incrementFrequency;
   @HiveField(11)
   int success = 0;
   @HiveField(12)
-  int deloadFrequency = 3;
+  int deloadFrequency;
   @HiveField(13)
-  int deloadPercent = 10;
+  int deloadPercent;
   @HiveField(14)
   String note = "";
   @HiveField(15)
   bool bookmarked = false;
 
   // sets, reps, barWeight are optional parameters
-  Exercise(this.name, this.barWeight, this.sets, this.reps);
+  Exercise(
+      this.name,
+      this.barWeight,
+      this.sets,
+      this.reps,
+      this.overload,
+      this.incrementFrequency,
+      this.increment,
+      this.deload,
+      this.deloadPercent,
+      this.deloadFrequency
+  );
 }

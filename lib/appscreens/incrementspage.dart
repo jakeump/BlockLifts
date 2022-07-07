@@ -1,10 +1,9 @@
+import 'package:blocklifts/classes/incrementssettings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
 import 'package:blocklifts/classes/exercise.dart';
-
 import 'package:blocklifts/globals.dart' as globals;
 
 class IncrementsPage extends StatefulWidget {
@@ -363,10 +362,12 @@ class IncrementsPageState extends State<IncrementsPage> {
                 },
               )
             : const SizedBox(),
-        const SizedBox(height: 10),
+        exercisesBox.getAt(widget.index)!.deload
+            ? const SizedBox(height: 10)
+            : const SizedBox(),
         exercisesBox.getAt(widget.index)!.deload
             ? Container(
-                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
                 width: double.infinity,
                 child: ValueListenableBuilder(
                     valueListenable: globals.incrementsCounter,
@@ -393,6 +394,57 @@ class IncrementsPageState extends State<IncrementsPage> {
                     }),
               )
             : const SizedBox(),
+        const SizedBox(height: 10),
+        Divider(
+            height: 10,
+            thickness: 1,
+            color: globals.dividerColor,
+            indent: 10,
+            endIndent: 10),
+        TextButton(
+            style: TextButton.styleFrom(
+                primary: globals.redColor,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text("Apply to all exercises",
+                      style: TextStyle(color: globals.redColor))),
+            ),
+            onPressed: () {
+              final tempIncrements =
+                  Hive.box<IncrementsSettings>('incrementsSettingsBox')
+                      .getAt(0);
+              tempIncrements!.overload =
+                  exercisesBox.getAt(widget.index)!.overload;
+              tempIncrements.incrementFrequency =
+                  exercisesBox.getAt(widget.index)!.incrementFrequency;
+              tempIncrements.increment =
+                  exercisesBox.getAt(widget.index)!.increment;
+              tempIncrements.deload = exercisesBox.getAt(widget.index)!.deload;
+              tempIncrements.deloadPercent =
+                  exercisesBox.getAt(widget.index)!.deloadPercent;
+              tempIncrements.deloadFrequency =
+                  exercisesBox.getAt(widget.index)!.deloadFrequency;
+              tempIncrements.save();
+              for (int i = 0; i < exercisesBox.length; i++) {
+                exercisesBox.getAt(i)!.overload = tempIncrements.overload;
+                exercisesBox.getAt(i)!.incrementFrequency =
+                    tempIncrements.incrementFrequency;
+                exercisesBox.getAt(i)!.increment = tempIncrements.increment;
+                exercisesBox.getAt(i)!.deload = tempIncrements.deload;
+                exercisesBox.getAt(i)!.deloadPercent =
+                    tempIncrements.deloadPercent;
+                exercisesBox.getAt(i)!.deloadFrequency =
+                    tempIncrements.deloadFrequency;
+                exercisesBox.getAt(i)!.save();
+              }
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text("Applied to all exercises"),
+                duration: Duration(seconds: 2),
+              ));
+            }),
       ]),
     );
   }

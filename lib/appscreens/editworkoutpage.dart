@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/workout.dart';
 import 'package:blocklifts/classes/exercise.dart';
+import 'package:blocklifts/classes/incrementssettings.dart';
 import 'package:blocklifts/appscreens/editexercisepage.dart';
 import 'package:blocklifts/providers/progressprovider.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +22,7 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
   late List<Exercise> copyExercisesList;
   late final Box<Workout> workoutsBox;
   late final Box<double> defaultsBox;
+  late final Box<IncrementsSettings> incrementsSettingsBox;
 
   @override
   void initState() {
@@ -28,6 +30,7 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
     exercisesBox = Hive.box<Exercise>('exercisesBox');
     workoutsBox = Hive.box<Workout>('workoutsBox');
     defaultsBox = Hive.box<double>('defaultsBox');
+    incrementsSettingsBox = Hive.box<IncrementsSettings>('incrementsSettingsBox');
   }
 
   @override
@@ -72,8 +75,8 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                                 child: Center(
                                     child: ReorderableDragStartListener(
                                   index: i,
-                                  child:
-                                      const Icon(Icons.drag_indicator_outlined),
+                                  child: Icon(Icons.drag_indicator_outlined,
+                                      color: globals.greyColor),
                                 ))),
                             title: GestureDetector(
                               child: Column(
@@ -101,9 +104,9 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                                         alignment: Alignment.centerLeft,
                                         child: Text(
                                           "${workoutsBox.getAt(widget.index)!.exercises[i].sets.toString()} sets of ${workoutsBox.getAt(widget.index)!.exercises[i].reps.toString()} reps",
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                          ),
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              color: globals.greyColor),
                                           softWrap: false,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -247,7 +250,10 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                                                   .removeAt(i);
                                               tempWorkout?.save();
                                             });
-                                            var progressProvider = Provider.of<ProgressProvider>(context, listen: false);
+                                            var progressProvider =
+                                                Provider.of<ProgressProvider>(
+                                                    context,
+                                                    listen: false);
                                             progressProvider.updateProgress();
                                             Navigator.of(context).pop();
                                           },
@@ -725,7 +731,13 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                               .toInt(),
                                                                           defaultsBox
                                                                               .getAt(2)!
-                                                                              .toInt());
+                                                                              .toInt(),
+                                                                          incrementsSettingsBox.getAt(0)!.overload,
+                                                                          incrementsSettingsBox.getAt(0)!.incrementFrequency,
+                                                                          incrementsSettingsBox.getAt(0)!.increment,
+                                                                          incrementsSettingsBox.getAt(0)!.deload,
+                                                                          incrementsSettingsBox.getAt(0)!.deloadPercent,
+                                                                          incrementsSettingsBox.getAt(0)!.deloadFrequency);
                                                                       newEx.weight =
                                                                           defaultsBox
                                                                               .getAt(0)!;
@@ -744,8 +756,13 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                                                                               newEx);
                                                                       tempWorkout
                                                                           ?.save();
-                                                                      var progressProvider = Provider.of<ProgressProvider>(context, listen: false);
-                                                                      progressProvider.updateProgress();
+                                                                      var progressProvider = Provider.of<
+                                                                              ProgressProvider>(
+                                                                          context,
+                                                                          listen:
+                                                                              false);
+                                                                      progressProvider
+                                                                          .updateProgress();
 
                                                                       if (workoutsBox
                                                                               .getAt(widget.index)!

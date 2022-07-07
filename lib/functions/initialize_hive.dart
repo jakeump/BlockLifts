@@ -6,6 +6,7 @@ import 'package:blocklifts/classes/workout.dart';
 import 'package:blocklifts/classes/indivworkout.dart';
 import 'package:blocklifts/classes/timermap.dart';
 import 'package:blocklifts/classes/plate.dart';
+import 'package:blocklifts/classes/incrementssettings.dart';
 
 Future<void> initializeHive() async {
   final directory = await pathprovider.getApplicationDocumentsDirectory();
@@ -17,7 +18,8 @@ Future<void> initializeHive() async {
     ..registerAdapter(WorkoutAdapter())
     ..registerAdapter(IndivWorkoutAdapter())
     ..registerAdapter(TimerMapAdapter())
-    ..registerAdapter(PlateAdapter());
+    ..registerAdapter(PlateAdapter())
+    ..registerAdapter(IncrementsSettingsAdapter());
 
   await Hive.openBox<Exercise>('exercisesBox');
   await Hive.openBox<Workout>('workoutsBox');
@@ -33,4 +35,5 @@ Future<void> initializeHive() async {
   await Hive.openBox<String>('tempNoteBox');
   await Hive.openBox<double>('tempBodyWeightBox');
   await Hive.openBox<double>('defaultsBox'); // bar weight, sets, reps
+  await Hive.openBox<IncrementsSettings>('incrementsSettingsBox');
 }

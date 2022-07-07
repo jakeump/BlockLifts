@@ -21,17 +21,17 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
       fields[2] as double,
       fields[4] as int,
       fields[5] as int,
+      fields[8] as bool,
+      fields[10] as int,
+      fields[3] as double,
+      fields[9] as bool,
+      fields[13] as int,
+      fields[12] as int,
     )
       ..weight = fields[1] as double
-      ..increment = fields[3] as double
       ..repsCompleted = (fields[6] as List).cast<int>()
       ..failed = fields[7] as int
-      ..overload = fields[8] as bool
-      ..deload = fields[9] as bool
-      ..incrementFrequency = fields[10] as int
       ..success = fields[11] as int
-      ..deloadFrequency = fields[12] as int
-      ..deloadPercent = fields[13] as int
       ..note = fields[14] as String
       ..bookmarked = fields[15] as bool;
   }

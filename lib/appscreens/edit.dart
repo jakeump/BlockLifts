@@ -64,8 +64,8 @@ class EditState extends State<Edit> {
                               child: Center(
                                   child: ReorderableDragStartListener(
                                 index: index,
-                                child:
-                                    const Icon(Icons.drag_indicator_outlined),
+                                child: Icon(Icons.drag_indicator_outlined,
+                                    color: globals.greyColor),
                               ))),
                           title: Column(
                             children: [
@@ -101,9 +101,9 @@ class EditState extends State<Edit> {
                                               1)
                                         Text(
                                           "${workoutsBox.getAt(index)!.exercises[i].name}, ",
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                          ),
+                                          style: TextStyle(
+                                              fontSize: 15,
+                                              color: globals.greyColor),
                                         )
                                       else
                                         Text(
@@ -111,9 +111,9 @@ class EditState extends State<Edit> {
                                               .getAt(index)!
                                               .exercises[i]
                                               .name,
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                          ),
+                                          style: TextStyle(
+                                              fontSize: 15,
+                                              color: globals.greyColor),
                                         ),
                                   ])),
                             ],
@@ -205,10 +205,12 @@ class EditState extends State<Edit> {
                     builder: (context) => AlertDialog(
                       backgroundColor: globals.tileColor,
                       title: Text('Delete All Workouts',
-                          style: TextStyle(fontSize: 20, color: globals.textColor)),
+                          style: TextStyle(
+                              fontSize: 20, color: globals.textColor)),
                       content: Text(
                           'Are you sure you want to delete all workouts?',
-                          style: TextStyle(fontSize: 15, color: globals.textColor)),
+                          style: TextStyle(
+                              fontSize: 15, color: globals.textColor)),
                       actions: [
                         TextButton(
                           onPressed: () {
@@ -216,7 +218,8 @@ class EditState extends State<Edit> {
                           },
                           child: const Text(
                             'Cancel',
-                            style: TextStyle(fontSize: 16, color: globals.redColor),
+                            style: TextStyle(
+                                fontSize: 16, color: globals.redColor),
                           ),
                         ),
                         TextButton(
