@@ -23,11 +23,17 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   late final Box<bool> boolBox;
+  late final Box<DateTime> workoutStartTimeBox;
+  late final Box<DateTime> breakStartTimeBox;
+  late final Box<int> indexBox;
 
   @override
   void initState() {
     super.initState();
     boolBox = Hive.box<bool>('boolBox');
+    workoutStartTimeBox = Hive.box<DateTime>('workoutStartTimeBox');
+    breakStartTimeBox = Hive.box<DateTime>('breakStartTimeBox');
+    indexBox = Hive.box<int>('indexBox');
     AwesomeNotifications().isNotificationAllowed().then(
       (isAllowed) {
         if (!isAllowed && boolBox.getAt(4)! == false) {
@@ -88,13 +94,12 @@ class HomePageState extends State<HomePage> {
     if (seconds < 0) {
       timer?.cancel();
     } else {
-      globals.duration = Duration(seconds: seconds);
-      // create notif every second, display time
-      if (globals.showTimer) {
-        createNotification(globals.exerciseIndex, globals.setIndex);
-      }
+      Duration diff = DateTime.now().difference(breakStartTimeBox.getAt(0)!);
+      globals.duration = Duration(seconds: diff.inSeconds);
+      // create notif every second, displays time
       // checks every second if sound should be played
-      if (globals.showTimer) {
+      if (boolBox.getAt(8)!) {
+        createNotification();
         checkTime(globals.duration.inSeconds);
       }
     }
@@ -106,14 +111,12 @@ class HomePageState extends State<HomePage> {
     if (seconds < 0) {
       workoutTimer?.cancel();
     } else {
-      globals.workoutDuration = Duration(seconds: seconds);
+      Duration diff = DateTime.now().difference(workoutStartTimeBox.getAt(0)!);
+      globals.workoutDuration = Duration(seconds: diff.inSeconds);
     }
-    if (globals.workoutDuration.inSeconds % 60 == 0) {
-      // updates homepage every minute
-      var workoutTimerProvider =
-          Provider.of<WorkoutTimerProvider>(context, listen: false);
-      workoutTimerProvider.updateWorkoutTimer();
-    }
+    var workoutTimerProvider =
+        Provider.of<WorkoutTimerProvider>(context, listen: false);
+    workoutTimerProvider.updateWorkoutTimer();
   }
 
   @override

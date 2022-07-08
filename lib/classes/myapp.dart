@@ -18,6 +18,7 @@ import 'package:blocklifts/functions/set_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:blocklifts/classes/notificationcontroller.dart';
+import 'package:blocklifts/classes/timermap.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class MyApp extends StatelessWidget {
@@ -26,13 +27,26 @@ class MyApp extends StatelessWidget {
   final int androidSdkVersion;
   final Box<bool> boolBox = Hive.box<bool>('boolBox');
   final Box<int> counterBox = Hive.box<int>('counterBox');
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  final Box<TimerMap> successTimerBox = Hive.box<TimerMap>('successTimerBox');
+  final Box<TimerMap> failTimerBox = Hive.box<TimerMap>('failTimerBox');
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
     AwesomeNotifications().setListeners(
-        onActionReceivedMethod: NotificationController.onActionReceivedMethod,
+      onActionReceivedMethod: NotificationController.onActionReceivedMethod,
     );
+    globals.successTimes.clear();
+    globals.failureTimes.clear();
+    for (int i = 0; i < successTimerBox.length; i++) {
+      globals.successTimes.add(successTimerBox.getAt(i)!.time);
+    }
+    for (int i = 0; i < failTimerBox.length; i++) {
+      globals.failureTimes.add(failTimerBox.getAt(i)!.time);
+    }
+    globals.successTimes.sort();
+    globals.failureTimes.sort();
     return MultiProvider(
         providers: [
           ChangeNotifierProvider<ThemeProvider>(
@@ -74,8 +88,8 @@ class MyApp extends StatelessWidget {
               onGenerateRoute: (settings) {
                 switch (settings.name) {
                   case '/':
-                    return MaterialPageRoute(builder: (context) =>
-                        const Home(),
+                    return MaterialPageRoute(
+                      builder: (context) => const Home(),
                     );
                   case '/WorkoutPage':
                     return MaterialPageRoute(builder: (context) {

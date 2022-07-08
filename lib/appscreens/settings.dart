@@ -51,7 +51,7 @@ class SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     return Consumer<SettingsProvider>(
         builder: (context, settingsProvider, child) {
-    platesString = platesToString();
+      platesString = platesToString();
       return Scaffold(
         backgroundColor: globals.backColor,
         appBar: AppBar(
@@ -309,9 +309,10 @@ class SettingsState extends State<Settings> {
                                           setState(() {
                                             defaultsBox.putAt(
                                                 0,
-                                              double.parse(_myController.text.isEmpty
-                                                ? "0"
-                                                : _myController.text));
+                                                double.parse(
+                                                    _myController.text.isEmpty
+                                                        ? "0"
+                                                        : _myController.text));
                                           });
                                           Navigator.of(context).pop();
                                         },
@@ -339,8 +340,7 @@ class SettingsState extends State<Settings> {
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                          "${defaultsBox.getAt(1)!.toInt()} sets",
+                      child: Text("${defaultsBox.getAt(1)!.toInt()} sets",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(color: globals.greyColor)),
@@ -421,9 +421,10 @@ class SettingsState extends State<Settings> {
                                           setState(() {
                                             defaultsBox.putAt(
                                                 1,
-                                              double.parse(_myController.text.isEmpty
-                                                ? "0"
-                                                : _myController.text));
+                                                double.parse(
+                                                    _myController.text.isEmpty
+                                                        ? "0"
+                                                        : _myController.text));
                                           });
                                           Navigator.of(context).pop();
                                         },
@@ -451,8 +452,7 @@ class SettingsState extends State<Settings> {
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                          "${defaultsBox.getAt(2)!.toInt()} reps",
+                      child: Text("${defaultsBox.getAt(2)!.toInt()} reps",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(color: globals.greyColor)),
@@ -530,10 +530,12 @@ class SettingsState extends State<Settings> {
                                     child: const Text("OK"),
                                     onPressed: () {
                                       setState(() {
-                                        defaultsBox.putAt(2,
-                                              double.parse(_myController.text.isEmpty
-                                                ? "0"
-                                                : _myController.text));
+                                        defaultsBox.putAt(
+                                            2,
+                                            double.parse(
+                                                _myController.text.isEmpty
+                                                    ? "0"
+                                                    : _myController.text));
                                       });
                                       Navigator.of(context).pop();
                                     },
@@ -675,43 +677,48 @@ class SettingsState extends State<Settings> {
                           tempUnit = value!;
                         });
                       }),
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                        TextButton(
-                            style: TextButton.styleFrom(
-                              primary: globals.redColor,
-                              textStyle: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
-                              alignment: Alignment.center,
-                            ),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text("Cancel")),
-                        const SizedBox(width: 20),
-                        TextButton(
-                            style: TextButton.styleFrom(
-                              primary: globals.redColor,
-                              textStyle: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
-                              alignment: Alignment.center,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                boolBox.putAt(7, tempUnit == 0 ? true : false);
-                                globals.lbKg = tempUnit == 0 ? "lb" : "kg";
-                              });
-                            var progressProvider = Provider.of<ProgressProvider>(context, listen: false);
-                            progressProvider.updateProgress();
-                            var homeProvider = Provider.of<HomeProvider>(context, listen: false);
-                            homeProvider.updateHome();
-                            var listProvider = Provider.of<ListProvider>(context, listen: false);
-                            listProvider.updateList();
-                            Navigator.of(context).pop();
-                            },
-                            child: const Text("OK")),
-                      ]),
+                  Row(mainAxisAlignment: MainAxisAlignment.end, children: <
+                      Widget>[
+                    TextButton(
+                        style: TextButton.styleFrom(
+                          primary: globals.redColor,
+                          textStyle: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                          alignment: Alignment.center,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text("Cancel")),
+                    const SizedBox(width: 20),
+                    TextButton(
+                        style: TextButton.styleFrom(
+                          primary: globals.redColor,
+                          textStyle: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                          alignment: Alignment.center,
+                        ),
+                        onPressed: () {
+                          boolBox.putAt(7, tempUnit == 0 ? true : false);
+                          globals.lbKg = tempUnit == 0 ? "lb" : "kg";
+                          var settingsProvider = Provider.of<SettingsProvider>(
+                              context,
+                              listen: false);
+                          settingsProvider.updatePage();
+                          var progressProvider = Provider.of<ProgressProvider>(
+                              context,
+                              listen: false);
+                          progressProvider.updateProgress();
+                          var homeProvider =
+                              Provider.of<HomeProvider>(context, listen: false);
+                          homeProvider.updateHome();
+                          var listProvider =
+                              Provider.of<ListProvider>(context, listen: false);
+                          listProvider.updateList();
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text("OK")),
+                  ]),
                 ]),
           ));
     });

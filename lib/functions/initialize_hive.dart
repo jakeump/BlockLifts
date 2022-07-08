@@ -27,7 +27,8 @@ Future<void> initializeHive() async {
   // idx 0 is actual counter, 1 is temp counter
   await Hive.openBox<int>('counterBox');
   // boolBox contains: theme, timer, ring, vibration,
-  // notifications, workout in progres, keep awake, lb/kg
+  // notifications, workout in progres, keep awake, lb/kg,
+  // show break timer, workout timer in progress, failed set
   await Hive.openBox<bool>('boolBox');
   await Hive.openBox<TimerMap>('successTimerBox');
   await Hive.openBox<TimerMap>('failTimerBox');
@@ -36,4 +37,7 @@ Future<void> initializeHive() async {
   await Hive.openBox<double>('tempBodyWeightBox');
   await Hive.openBox<double>('defaultsBox'); // bar weight, sets, reps
   await Hive.openBox<IncrementsSettings>('incrementsSettingsBox');
+  await Hive.openBox<DateTime>('workoutStartTimeBox');
+  await Hive.openBox<DateTime>('breakStartTimeBox');
+  await Hive.openBox<int>('indexBox'); // workout index, exercise index, set index
 }

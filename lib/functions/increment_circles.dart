@@ -4,11 +4,20 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:blocklifts/classes/workout.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
-void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
+void incrementCircles(bool fail, bool fromNotification) {
+  final indexBox = Hive.box<int>('indexBox');
   final workoutsBox = Hive.box<Workout>('workoutsBox');
-  final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(workoutIndex);
+  final tempWorkout =
+      Hive.box<Workout>('workoutsBox').getAt(indexBox.getAt(0)!);
   final boolBox = Hive.box<bool>('boolBox');
+  final workoutStartTimeBox = Hive.box<DateTime>('workoutStartTimeBox');
+  final breakStartTimeBox = Hive.box<DateTime>('breakStartTimeBox');
   globals.lastSet = false;
+
+  int setIdx = indexBox.getAt(2)!;
+  if (fromNotification) {
+    ++setIdx;
+  }
 
   void addTime(Timer? timer) {
     const addSeconds = 0;
@@ -26,74 +35,87 @@ void incrementCircles(int workoutIndex, int exIdx, int setIdx, bool fail) {
     timer = Timer.periodic(const Duration(seconds: 1), (_) => {addTime(timer)});
   }
 
-  if (setIdx == tempWorkout!.exercises[exIdx].sets - 1) {
+  if (setIdx == tempWorkout!.exercises[indexBox.getAt(1)!].sets - 1) {
     globals.lastSet = true;
   }
-  if (!globals.workoutTimerInProgress) {
+  if (!boolBox.getAt(9)!) {
+    workoutStartTimeBox.add(DateTime.now().subtract(const Duration(seconds: 1)));
     globals.workoutDuration = const Duration(seconds: 0);
     startTimer(globals.workoutTimer);
-    globals.workoutTimerInProgress = true;
+    boolBox.putAt(9, true);
   }
   // failed button clicked from notification
   if (fail) {
-    if (exIdx == tempWorkout.exercises.length - 1 &&
-        setIdx == tempWorkout.exercises[exIdx].sets - 1) {
+    if (indexBox.getAt(1)! == tempWorkout.exercises.length - 1 &&
+        setIdx == tempWorkout.exercises[indexBox.getAt(1)!].sets - 1) {
       AwesomeNotifications().cancelAll();
-      globals.showTimer = false;
-      tempWorkout.exercises[exIdx].repsCompleted[setIdx] -= 2;
+      boolBox.putAt(8, false);
+      tempWorkout.exercises[indexBox.getAt(1)!].repsCompleted[setIdx] -= 2;
       tempWorkout.save();
     } else {
       // starts timer
       if (boolBox.getAt(1)!) {
-        globals.showTimer = true;
+        boolBox.putAt(8, true);
       }
-      startTimer(globals.timer);
-      tempWorkout.exercises[exIdx].repsCompleted[setIdx] -= 2;
+      breakStartTimeBox.putAt(0, DateTime.now().subtract(const Duration(seconds: 1)));
+      if (!fromNotification) {
+        startTimer(globals.timer);
+      }
+      tempWorkout.exercises[indexBox.getAt(1)!].repsCompleted[setIdx] -= 2;
       tempWorkout.save();
-      globals.failed = true;
+      boolBox.putAt(10, true);
     }
   } else {
     // loops around
-    if (tempWorkout.exercises[exIdx].repsCompleted[setIdx] == 0) {
+    if (tempWorkout.exercises[indexBox.getAt(1)!].repsCompleted[setIdx] == 0) {
       AwesomeNotifications().cancelAll();
-      globals.showTimer = false;
+      boolBox.putAt(8, false);
 
-      tempWorkout.exercises[exIdx].repsCompleted[setIdx] =
-          tempWorkout.exercises[exIdx].reps + 1;
+      tempWorkout.exercises[indexBox.getAt(1)!].repsCompleted[setIdx] =
+          tempWorkout.exercises[indexBox.getAt(1)!].reps + 1;
       tempWorkout.save();
       // last exercise, last rep, don't show timer
-    } else if (exIdx == tempWorkout.exercises.length - 1 &&
-        setIdx == tempWorkout.exercises[exIdx].sets - 1) {
+    } else if (indexBox.getAt(1)! == tempWorkout.exercises.length - 1 &&
+        setIdx == tempWorkout.exercises[indexBox.getAt(1)!].sets - 1) {
       AwesomeNotifications().cancelAll();
-      globals.showTimer = false;
-      tempWorkout.exercises[exIdx].repsCompleted[setIdx] -= 1;
+      boolBox.putAt(8, false);
+      tempWorkout.exercises[indexBox.getAt(1)!].repsCompleted[setIdx] -= 1;
       tempWorkout.save();
     } else {
       // starts timer
       if (boolBox.getAt(1)!) {
-        globals.showTimer = true;
+        boolBox.putAt(8, true);
       }
-      startTimer(globals.timer);
-      tempWorkout.exercises[exIdx].repsCompleted[setIdx] -= 1;
+      breakStartTimeBox.putAt(0, DateTime.now().subtract(const Duration(seconds: 1)));
+      if (!fromNotification) {
+        startTimer(globals.timer);
+      }
+      tempWorkout.exercises[indexBox.getAt(1)!].repsCompleted[setIdx] -= 1;
       tempWorkout.save();
-      if (tempWorkout.exercises[exIdx].repsCompleted[setIdx] ==
-          tempWorkout.exercises[exIdx].reps) {
-        globals.failed = false;
+      if (tempWorkout.exercises[indexBox.getAt(1)!].repsCompleted[setIdx] ==
+          tempWorkout.exercises[indexBox.getAt(1)!].reps) {
+        boolBox.putAt(10, false);
       } else {
-        globals.failed = true;
+        boolBox.putAt(10, true);
       }
     }
   }
 
   // if last set, set to 0
-  if (setIdx == workoutsBox.getAt(workoutIndex)!.exercises[exIdx].sets - 1) {
-    globals.setIndex = -1;
+  if (setIdx ==
+      workoutsBox
+              .getAt(indexBox.getAt(0)!)!
+              .exercises[indexBox.getAt(1)!]
+              .sets -
+          1) {
+    indexBox.putAt(2, -1);
     // if not last exercise
-    if (exIdx != workoutsBox.getAt(workoutIndex)!.exercises.length - 1) {
-      ++globals.exerciseIndex;
+    if (indexBox.getAt(1)! !=
+        workoutsBox.getAt(indexBox.getAt(0)!)!.exercises.length - 1) {
+      indexBox.putAt(1, indexBox.getAt(1)! + 1);
     }
   } else {
-    ++globals.setIndex;
+    indexBox.putAt(2, setIdx);
   }
   globals.circleCounter.value++;
 }

@@ -131,14 +131,17 @@ void defaultState() async {
 
   Box<bool> boolBox = Hive.box<bool>('boolBox');
   boolBox.deleteAll(boolBox.keys);
-  boolBox.add(true);
-  boolBox.add(true);
-  boolBox.add(true);
-  boolBox.add(true);
-  boolBox.add(false);
-  boolBox.add(false);
-  boolBox.add(true);
-  boolBox.add(true);
+  boolBox.add(true); // theme
+  boolBox.add(true); // timer
+  boolBox.add(true); // ring
+  boolBox.add(true); // vibration
+  boolBox.add(false); // notifications
+  boolBox.add(false); // workout in progress
+  boolBox.add(true); // keep awake
+  boolBox.add(true); // lb/kg
+  boolBox.add(false); // show break timer
+  boolBox.add(false); // workout timer in progress
+  boolBox.add(false); // failed set
   globals.lbKg = "lb";
 
   Box<TimerMap> successTimerBox = Hive.box<TimerMap>('successTimerBox');
@@ -154,9 +157,19 @@ void defaultState() async {
   tempNoteBox.deleteAll(tempNoteBox.keys);
   tempNoteBox.add("");
 
+  Box<int> indexBox = Hive.box<int>('indexBox');
+  indexBox.deleteAll(indexBox.keys);
+  indexBox.add(0);
+  indexBox.add(0);
+  indexBox.add(0);
+
+  Box<DateTime> workoutStartTimeBox = Hive.box<DateTime>('workoutStartTimeBox');
+  workoutStartTimeBox.deleteAll(workoutStartTimeBox.keys);
+
+  Box<DateTime> breakStartTimeBox = Hive.box<DateTime>('breakStartTimeBox');
+  breakStartTimeBox.deleteAll(breakStartTimeBox.keys);
+  breakStartTimeBox.add(DateTime.now());
+
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('resetToDefault', false);
-
-  globals.showTimer = false;
-  globals.workoutTimerInProgress = false;
 }

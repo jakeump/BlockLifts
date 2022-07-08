@@ -7,11 +7,9 @@ class NotificationController {
   // Use this method to detect when the user taps on a notification or action button
   static Future<void> onActionReceivedMethod(ReceivedAction action) async {
     if (action.buttonKeyPressed == "done") {
-      incrementCircles(globals.workoutIndex, globals.exerciseIndex,
-          globals.setIndex + 1, false);
+      incrementCircles(false, true);
     } else if (action.buttonKeyPressed == "failed") {
-      incrementCircles(globals.workoutIndex, globals.exerciseIndex,
-          globals.setIndex + 1, true);
+      incrementCircles(true, true);
     } else {
       // clears routes, pushes home then workout so pop goes back home
       // await so workout timer doesn't double speed

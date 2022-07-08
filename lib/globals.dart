@@ -11,16 +11,10 @@ Timer? timer;
 Duration duration = const Duration();
 Timer? workoutTimer;
 Duration workoutDuration = const Duration();
-bool showTimer = false;
 bool lastSet = false;
 bool pushInProgress = false;
-int workoutIndex = 0;
-int exerciseIndex = 0;
-int setIndex = 0;
-late bool failed;
 bool changesMade = false;
 late String lbKg;
-bool workoutTimerInProgress = false;
 
 List<int> successTimes = [];
 List<int> failureTimes = [];

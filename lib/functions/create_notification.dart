@@ -3,8 +3,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/workout.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
-void createNotification(int exIdx, int setIdx) {
+void createNotification() {
   final workoutsBox = Hive.box<Workout>('workoutsBox');
+  final boolBox = Hive.box<bool>('boolBox');
+  final indexBox = Hive.box<int>('indexBox');
   String twoDigits(int n) => n.toString().padLeft(2, '0');
   final minutes = twoDigits(globals.duration.inMinutes.remainder(60));
   final seconds = twoDigits(globals.duration.inSeconds.remainder(60));
@@ -16,7 +18,7 @@ void createNotification(int exIdx, int setIdx) {
         channelKey: 'workout_channel',
         title: globals.lastSet
             ? "$minutes:$seconds - Set equipment, then lift"
-            : globals.failed
+            : boolBox.getAt(10)!
                 ? globals.failureTimes.isEmpty
                     ? "$minutes:$seconds - Rest"
                     : globals.failureTimes.last % 60 == 0
@@ -27,22 +29,22 @@ void createNotification(int exIdx, int setIdx) {
                     : globals.successTimes.last % 60 == 0
                         ? "$minutes:$seconds - Rest ${(globals.successTimes.last ~/ 60).toString()}min"
                         : "$minutes:$seconds - Rest ${(globals.successTimes.last ~/ 60).toString()}min ${(globals.successTimes.last % 60).toString()}s",
-        body: setIdx ==
-                workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx].sets -
+        body: indexBox.getAt(2)! ==
+                workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].sets -
                     1
             ? workoutsBox
-                            .getAt(globals.workoutIndex)!
-                            .exercises[exIdx + 1]
+                            .getAt(indexBox.getAt(0)!)!
+                            .exercises[indexBox.getAt(1)!]
                             .weight %
                         1 ==
                     0
-                ? "${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx + 1].reps}×${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx + 1].weight.toInt()}${globals.lbKg} - Set 1/${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx + 1].sets}"
-                : "${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx + 1].name} ${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx + 1].reps}×${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx + 1].weight}${globals.lbKg} - Set 1/${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx + 1].sets}"
-            : workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx].weight %
+                ? "${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].name} ${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].reps}×${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].weight.toInt()}${globals.lbKg} - Set 1/${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].sets}"
+                : "${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].name} ${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].reps}×${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].weight}${globals.lbKg} - Set 1/${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].sets}"
+            : workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].weight %
                         1 ==
                     0
-                ? "${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx].reps}×${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx].weight.toInt()}${globals.lbKg} - Set ${setIdx + 2}/${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx].sets}"
-                : "${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx].name} ${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx].reps}×${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx].weight}${globals.lbKg} - Set ${setIdx + 2}/${workoutsBox.getAt(globals.workoutIndex)!.exercises[exIdx].sets}",
+                ? "${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].name} ${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].reps}×${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].weight.toInt()}${globals.lbKg} - Set ${indexBox.getAt(2)! + 2}/${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].sets}"
+                : "${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].name} ${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].reps}×${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].weight}${globals.lbKg} - Set ${indexBox.getAt(2)! + 2}/${workoutsBox.getAt(indexBox.getAt(0)!)!.exercises[indexBox.getAt(1)!].sets}",
         payload: {"name": "BlockLifts"},
         autoDismissible: false,
         locked: true,

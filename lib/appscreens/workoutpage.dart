@@ -49,6 +49,9 @@ class WorkoutPageState extends State<WorkoutPage> {
   late final Box<Plate> platesBox;
   late final Box<String> tempNoteBox;
   late final Box<double> tempBodyWeightBox;
+  late final Box<DateTime> workoutStartTimeBox;
+  late final Box<DateTime> breakStartTimeBox;
+  late final Box<int> indexBox;
 
   @override
   void initState() {
@@ -64,6 +67,9 @@ class WorkoutPageState extends State<WorkoutPage> {
     platesBox = Hive.box<Plate>('platesBox');
     tempNoteBox = Hive.box<String>('tempNoteBox');
     tempBodyWeightBox = Hive.box<double>('tempBodyWeightBox');
+    workoutStartTimeBox = Hive.box<DateTime>('workoutStartTimeBox');
+    breakStartTimeBox = Hive.box<DateTime>('breakStartTimeBox');
+    indexBox = Hive.box<int>('indexBox');
     getTimes();
     globals.timer = Timer.periodic(
         const Duration(seconds: 1), (_) => {addTime(globals.timer)});
@@ -158,8 +164,10 @@ class WorkoutPageState extends State<WorkoutPage> {
     } else if (!boolBox.getAt(5)!) {
       Wakelock.disable();
       counterBox.putAt(0, counterBox.getAt(1)!);
-      globals.workoutTimerInProgress = false;
+      boolBox.putAt(9, false);
       globals.workoutDuration = const Duration(seconds: 0);
+      workoutStartTimeBox.deleteAll(workoutStartTimeBox.keys);
+      breakStartTimeBox.deleteAll(breakStartTimeBox.keys);
     }
     var homeProvider = Provider.of<HomeProvider>(context, listen: false);
     homeProvider.updateHome();
@@ -167,7 +175,7 @@ class WorkoutPageState extends State<WorkoutPage> {
 
   void switchWorkout(int idx) {
     setState(() {
-      globals.showTimer = false;
+      boolBox.putAt(8, false);
       tempNoteBox.putAt(0, "");
       for (int j = 0; j < workoutsBox.getAt(idx)!.exercises.length; ++j) {
         final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(idx);
@@ -577,12 +585,11 @@ class WorkoutPageState extends State<WorkoutPage> {
                                                         .emptyCircleTextColor
                                                     : Colors.white,
                                                 onPressed: () {
-                                                  globals.workoutIndex =
-                                                      widget.index;
-                                                  globals.exerciseIndex = i;
-                                                  globals.setIndex = j - 1;
-                                                  incrementCircles(widget.index,
-                                                      i, j, false);
+                                                  indexBox.putAt(
+                                                      0, widget.index);
+                                                  indexBox.putAt(1, i);
+                                                  indexBox.putAt(2, j);
+                                                  incrementCircles(false, false);
                                                   var timerProvider = Provider
                                                       .of<TimerProvider>(
                                                           context,
@@ -906,7 +913,7 @@ class WorkoutPageState extends State<WorkoutPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                    globals.showTimer
+                    boolBox.getAt(8)!
                         ? Container(
                             padding: const EdgeInsets.only(left: 15, right: 15),
                             child: Align(
@@ -926,7 +933,7 @@ class WorkoutPageState extends State<WorkoutPage> {
                                             ? const Text(
                                                 "Set equipment, then lift",
                                                 overflow: TextOverflow.fade)
-                                            : globals.failed
+                                            : boolBox.getAt(10)!
                                                 ? globals.failureTimes.isEmpty
                                                     ? const Text(
                                                         "No failure timer")
@@ -959,7 +966,7 @@ class WorkoutPageState extends State<WorkoutPage> {
                                       IconButton(
                                           icon: const Icon(Icons.close),
                                           onPressed: () => setState(() {
-                                                globals.showTimer = false;
+                                                boolBox.putAt(8, false);
                                                 AwesomeNotifications()
                                                     .cancelAll();
                                               })),
@@ -1029,8 +1036,8 @@ class WorkoutPageState extends State<WorkoutPage> {
             counterBox.putAt(1, widget.index + 1)
           };
 
-    globals.showTimer = false;
-    globals.workoutTimerInProgress = false;
+    boolBox.putAt(8, false);
+    boolBox.putAt(9, false);
     globals.timer?.cancel();
     globals.workoutTimer?.cancel();
     boolBox.putAt(5, false);
@@ -1183,6 +1190,9 @@ class WorkoutPageState extends State<WorkoutPage> {
     var notesProvider = Provider.of<NotesProvider>(context, listen: false);
     notesProvider.updateNotes();
 
+    var homeProvider = Provider.of<HomeProvider>(context, listen: false);
+    homeProvider.updateHome();
+
     for (int i = 0; i < workoutsBox.length; i++) {
       final tempWorkout = Hive.box<Workout>('workoutsBox').getAt(i);
       tempWorkout!.isInitialized = false;
@@ -1192,6 +1202,8 @@ class WorkoutPageState extends State<WorkoutPage> {
         tempWorkout.save();
       }
     }
+    workoutStartTimeBox.deleteAll(workoutStartTimeBox.keys);
+    breakStartTimeBox.putAt(0, DateTime.now());
 
     Navigator.of(context).pop();
   }

@@ -34,7 +34,7 @@ class HomeState extends State<Home> {
 
   void pushWorkout(int idx) {
     AwesomeNotifications().cancelAll();
-    globals.showTimer = false;
+    boolBox.putAt(8, false);
     tempNoteBox.putAt(0, "");
     workoutsBox.getAt(idx)!.isInitialized = true;
     for (int j = 0; j < workoutsBox.getAt(idx)!.exercises.length; ++j) {
