@@ -191,16 +191,7 @@ class ProgressState extends State<Progress> {
                                   const SizedBox(height: 8),
                                   Align(
                                     alignment: Alignment.centerLeft,
-                                    child: exercisesBox.getAt(i)!.weight % 1 ==
-                                            0
-                                        ? Text(
-                                            "${exercisesBox.getAt(i)!.weight.toInt().toString()}${globals.lbKg}",
-                                            style: TextStyle(
-                                                color: globals.greyColor))
-                                        : Text(
-                                            "${exercisesBox.getAt(i)!.weight.toString()}${globals.lbKg}",
-                                            style: TextStyle(
-                                                color: globals.greyColor)),
+                                    child: _lastCompletedWeight(i),
                                   ),
                                 ]),
                           ]),

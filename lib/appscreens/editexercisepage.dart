@@ -998,6 +998,7 @@ class EditExercisePageState extends State<EditExercisePage> {
                                 controller: _myController,
                                 autofocus: true,
                                 keyboardType: TextInputType.text,
+                                textCapitalization: TextCapitalization.words,
                                 textAlignVertical: TextAlignVertical.bottom,
                                 decoration: const InputDecoration(
                                   contentPadding: EdgeInsets.only(bottom: 10),

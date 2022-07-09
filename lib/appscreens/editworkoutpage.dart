@@ -104,12 +104,7 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                                       Align(
                                         alignment: Alignment.centerLeft,
                                         child: Text(
-                                          "${workoutsBox.getAt(widget.index)!.exercises[i].
-                                            sets.toString()} ${workoutsBox.getAt(widget.index)!.
-                                            exercises[i].sets == 1 ? "set" : "sets"} of ${workoutsBox.
-                                            getAt(widget.index)!.exercises[i].reps.
-                                            toString()} ${workoutsBox.getAt(widget.index)!.
-                                            exercises[i].reps == 1 ? "rep" : "reps"}",
+                                          "${workoutsBox.getAt(widget.index)!.exercises[i].sets.toString()} ${workoutsBox.getAt(widget.index)!.exercises[i].sets == 1 ? "set" : "sets"} of ${workoutsBox.getAt(widget.index)!.exercises[i].reps.toString()} ${workoutsBox.getAt(widget.index)!.exercises[i].reps == 1 ? "rep" : "reps"}",
                                           style: TextStyle(
                                               fontSize: 14,
                                               color: globals.greyColor),
@@ -363,6 +358,8 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                                       keyboardType: TextInputType.text,
                                       textAlignVertical:
                                           TextAlignVertical.bottom,
+                                      textCapitalization:
+                                          TextCapitalization.words,
                                       decoration: const InputDecoration(
                                         contentPadding:
                                             EdgeInsets.only(bottom: 10),
