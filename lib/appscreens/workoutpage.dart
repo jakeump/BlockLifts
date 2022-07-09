@@ -167,7 +167,6 @@ class WorkoutPageState extends State<WorkoutPage> {
       boolBox.putAt(9, false);
       globals.workoutDuration = const Duration(seconds: 0);
       workoutStartTimeBox.deleteAll(workoutStartTimeBox.keys);
-      breakStartTimeBox.deleteAll(breakStartTimeBox.keys);
     }
     var homeProvider = Provider.of<HomeProvider>(context, listen: false);
     homeProvider.updateHome();

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:blocklifts/classes/exercise.dart';
 
 Exercise customxyz =
-    Exercise("Custom Exercise", 0, 0, 0, true, 1, 5, true, 10, 3);
+    Exercise("Custom Exercise", 0, 0, 0, false, 0, 0, false, 0, 0);
 
 String postWorkoutTempNote = "";
 
