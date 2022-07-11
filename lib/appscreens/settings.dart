@@ -1,3 +1,4 @@
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -11,6 +12,7 @@ import 'package:blocklifts/providers/progressprovider.dart';
 import 'package:blocklifts/providers/homeprovider.dart';
 import 'package:blocklifts/providers/listprovider.dart';
 import 'package:provider/provider.dart';
+import 'package:application_icon/application_icon.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class Settings extends StatefulWidget {
@@ -580,6 +582,61 @@ class SettingsState extends State<Settings> {
               ]),
             ),
           ),
+          Divider(
+              height: 10,
+              thickness: 1,
+              color: globals.dividerColor,
+              indent: 10,
+              endIndent: 10),
+          Theme(
+            data: ThemeData(
+              brightness:
+                  boolBox.getAt(0)! ? Brightness.dark : Brightness.light,
+            ),
+            child: AboutListTile(
+              applicationIcon:
+                  const SizedBox(width: 50, height: 50, child: AppIconImage()),
+              applicationVersion: "Version 1.0.0",
+              aboutBoxChildren: [
+                GestureDetector(
+                    child: const Text("GitHub",
+                        style: TextStyle(
+                            decoration: TextDecoration.underline,
+                            color: Colors.blue)),
+                    onTap: () => launchUrl(
+                          Uri.parse('https://github.com/jakeump/BlockLifts'),
+                          mode: LaunchMode.externalApplication,
+                        )),
+                const SizedBox(height: 10),
+                GestureDetector(
+                    child: const Text("Submit Issue on GitHub",
+                        style: TextStyle(
+                            decoration: TextDecoration.underline,
+                            color: Colors.blue)),
+                    onTap: () => launchUrl(
+                        Uri.parse(
+                            'https://github.com/jakeump/BlockLifts/issues/new'),
+                        mode: LaunchMode.externalApplication)),
+                const SizedBox(height: 10),
+                GestureDetector(
+                    child: const Text("Issue/Suggestion Google Form",
+                        style: TextStyle(
+                            decoration: TextDecoration.underline,
+                            color: Colors.blue)),
+                    onTap: () => launchUrl(
+                        Uri.parse('https://forms.gle/x3BoENMd7Ejbqiu1A'),
+                        mode: LaunchMode.externalApplication)),
+              ],
+              child: Text("About BlockLifts",
+                  style: TextStyle(color: globals.textColor)),
+            ),
+          ),
+          Divider(
+              height: 10,
+              thickness: 1,
+              color: globals.dividerColor,
+              indent: 10,
+              endIndent: 10),
           TextButton(
               style: TextButton.styleFrom(
                   primary: globals.redColor,
@@ -636,6 +693,7 @@ class SettingsState extends State<Settings> {
                   ),
                 );
               }),
+              const SizedBox(height: 10),
         ]),
       );
     });
@@ -653,30 +711,45 @@ class SettingsState extends State<Settings> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  const Text("Weight Unit", style: TextStyle(fontSize: 18)),
+                  Text("Weight Unit",
+                      style: TextStyle(fontSize: 18, color: globals.textColor)),
                   const SizedBox(height: 20),
-                  RadioListTile<int>(
-                      title: const Text("lb", style: TextStyle(fontSize: 15)),
-                      activeColor: globals.redColor,
-                      dense: true,
-                      value: 0,
-                      groupValue: tempUnit,
-                      onChanged: (value) {
-                        setState(() {
-                          tempUnit = value!;
-                        });
-                      }),
-                  RadioListTile<int>(
-                      title: const Text("kg", style: TextStyle(fontSize: 15)),
-                      activeColor: globals.redColor,
-                      dense: true,
-                      value: 1,
-                      groupValue: tempUnit,
-                      onChanged: (value) {
-                        setState(() {
-                          tempUnit = value!;
-                        });
-                      }),
+                  Theme(
+                    data: Theme.of(context).copyWith(
+                      unselectedWidgetColor: globals.textColor,
+                    ),
+                    child: RadioListTile<int>(
+                        title: Text("lb",
+                            style: TextStyle(
+                                fontSize: 15, color: globals.textColor)),
+                        activeColor: globals.redColor,
+                        dense: true,
+                        value: 0,
+                        groupValue: tempUnit,
+                        onChanged: (value) {
+                          setState(() {
+                            tempUnit = value!;
+                          });
+                        }),
+                  ),
+                  Theme(
+                    data: Theme.of(context).copyWith(
+                      unselectedWidgetColor: globals.textColor,
+                    ),
+                    child: RadioListTile<int>(
+                        title: Text("kg",
+                            style: TextStyle(
+                                fontSize: 15, color: globals.textColor)),
+                        activeColor: globals.redColor,
+                        dense: true,
+                        value: 1,
+                        groupValue: tempUnit,
+                        onChanged: (value) {
+                          setState(() {
+                            tempUnit = value!;
+                          });
+                        }),
+                  ),
                   Row(mainAxisAlignment: MainAxisAlignment.end, children: <
                       Widget>[
                     TextButton(
