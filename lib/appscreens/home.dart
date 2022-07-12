@@ -71,12 +71,20 @@ class HomeState extends State<Home> {
     );
   }
 
-  void buildWorkoutDays(int counter) {
-    // edge case of no schedule
-    // also have text for no schedule in edit page ("no schedule")
+  void buildWorkoutDays() {
     List<String> days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     List<String> activeWorkoutDays = [];
     workoutDays.clear();
+
+    if (scheduleBox.isEmpty) {
+      scheduleBox.add(false);
+      scheduleBox.add(true);
+      scheduleBox.add(false);
+      scheduleBox.add(true);
+      scheduleBox.add(false);
+      scheduleBox.add(true);
+      scheduleBox.add(false);
+    }
 
     for (int i = 0; i < scheduleBox.length; i++) {
       if (scheduleBox.getAt(i)!) {
@@ -94,10 +102,14 @@ class HomeState extends State<Home> {
       if (indivWorkoutsBox.isNotEmpty) {
         if (indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.date ==
             DateFormat('E, d MMM yyyy').format(cur)) {
-          cur = cur.add(const Duration(days: 1));
+          cur = DateTime.now().add(const Duration(days: 1));
         }
       }
       int idx = 0;
+      if (boolBox.getAt(9)!) {
+        workoutDays.add("Today");
+        cur = DateTime.now().add(const Duration(days: 1));
+      }
       for (int i = counter; i < workoutsBox.length; i++) {
         while (workoutDays.length != workoutsBox.length - counter) {
           if (DateFormat('E').format(cur) == activeWorkoutDays[idx]) {
@@ -108,7 +120,7 @@ class HomeState extends State<Home> {
               workoutDays.add(DateFormat('E, d MMM').format(cur));
             }
             idx == activeWorkoutDays.length - 1 ? idx = 0 : idx++;
-            break;
+            cur = cur.add(const Duration(days: 1));
           } else {
             if (idx == activeWorkoutDays.length - 1) {
               idx = 0;
@@ -122,11 +134,21 @@ class HomeState extends State<Home> {
       for (int i = 0; i < counter; i++) {
         while (workoutDays.length != workoutsBox.length) {
           if (DateFormat('E').format(cur) == activeWorkoutDays[idx]) {
-            workoutDays.add(DateFormat('E, d MMM').format(cur));
+            if (DateFormat('E, d MMM yyyy').format(cur) ==
+                DateFormat('E, d MMM yyyy').format(DateTime.now())) {
+              workoutDays.add("Today");
+            } else {
+              workoutDays.add(DateFormat('E, d MMM').format(cur));
+            }
             idx == activeWorkoutDays.length - 1 ? idx = 0 : idx++;
-            break;
-          } else {
             cur = cur.add(const Duration(days: 1));
+          } else {
+            if (idx == activeWorkoutDays.length - 1) {
+              idx = 0;
+              cur = cur.add(const Duration(days: 1));
+            } else {
+              idx++;
+            }
           }
         }
       }
@@ -166,7 +188,7 @@ class HomeState extends State<Home> {
         body: Consumer<HomeProvider>(builder: (context, homeProvider, child) {
           workoutDaysIdx = -1;
           counter = counterBox.getAt(0);
-          buildWorkoutDays(counter);
+          buildWorkoutDays();
           return Container(
             padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
             child: ListView(scrollDirection: Axis.vertical, children: <Widget>[

@@ -190,6 +190,9 @@ class PostWorkoutEditState extends State<PostWorkoutEditPage> {
                     Provider.of<ProgressProvider>(context, listen: false);
                 progressProvider.updateProgress();
                 Navigator.of(context).pop();
+                var homeProvider =
+                    Provider.of<HomeProvider>(context, listen: false);
+                homeProvider.updateHome();
               },
             ),
           ],

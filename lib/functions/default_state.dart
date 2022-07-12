@@ -13,13 +13,13 @@ void defaultState() async {
   AwesomeNotifications().cancelAll();
 
   Box<double> defaultsBox = Hive.box<double>('defaultsBox');
-  Box<IncrementsSettings> incrementsSettingsBox =
-      Hive.box<IncrementsSettings>('incrementsSettingsBox');
   defaultsBox.deleteAll(defaultsBox.keys);
   defaultsBox.add(45);
   defaultsBox.add(5);
   defaultsBox.add(5);
 
+  Box<IncrementsSettings> incrementsSettingsBox =
+      Hive.box<IncrementsSettings>('incrementsSettingsBox');
   incrementsSettingsBox.deleteAll(incrementsSettingsBox.keys);
   incrementsSettingsBox.add(IncrementsSettings(true, 1, 5, true, 10, 3));
 
