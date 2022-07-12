@@ -1,3 +1,4 @@
+import 'package:blocklifts/classes/indivworkout.dart';
 import 'package:flutter/material.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -8,6 +9,7 @@ import 'package:blocklifts/providers/homeprovider.dart';
 import 'package:blocklifts/providers/themeprovider.dart';
 import 'package:blocklifts/providers/workouttimerprovider.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class Home extends StatefulWidget {
@@ -21,7 +23,11 @@ class HomeState extends State<Home> {
   late final Box<int> counterBox;
   late final Box<bool> boolBox;
   late final Box<String> tempNoteBox;
+  late final Box<bool> scheduleBox;
+  late final Box<IndivWorkout> indivWorkoutsBox;
   late dynamic counter;
+  List<String> workoutDays = [];
+  int workoutDaysIdx = -1;
 
   @override
   void initState() {
@@ -30,6 +36,8 @@ class HomeState extends State<Home> {
     counterBox = Hive.box<int>('counterBox');
     boolBox = Hive.box<bool>('boolBox');
     tempNoteBox = Hive.box<String>('tempNoteBox');
+    scheduleBox = Hive.box<bool>('scheduleBox');
+    indivWorkoutsBox = Hive.box<IndivWorkout>('indivWorkoutsBox');
   }
 
   void pushWorkout(int idx) {
@@ -63,6 +71,68 @@ class HomeState extends State<Home> {
     );
   }
 
+  void buildWorkoutDays(int counter) {
+    // edge case of no schedule
+    // also have text for no schedule in edit page ("no schedule")
+    List<String> days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    List<String> activeWorkoutDays = [];
+    workoutDays.clear();
+
+    for (int i = 0; i < scheduleBox.length; i++) {
+      if (scheduleBox.getAt(i)!) {
+        activeWorkoutDays.add(days[i]);
+      }
+    }
+
+    if (activeWorkoutDays.isEmpty) {
+      for (int i = 0; i < workoutsBox.length; i++) {
+        workoutDays.add("");
+      }
+    } else {
+      DateTime cur = DateTime.now();
+      // if most recent workout is today, move to next day
+      if (indivWorkoutsBox.isNotEmpty) {
+        if (indivWorkoutsBox.getAt(indivWorkoutsBox.length - 1)!.date ==
+            DateFormat('E, d MMM yyyy').format(cur)) {
+          cur = cur.add(const Duration(days: 1));
+        }
+      }
+      int idx = 0;
+      for (int i = counter; i < workoutsBox.length; i++) {
+        while (workoutDays.length != workoutsBox.length - counter) {
+          if (DateFormat('E').format(cur) == activeWorkoutDays[idx]) {
+            if (DateFormat('E, d MMM yyyy').format(cur) ==
+                DateFormat('E, d MMM yyyy').format(DateTime.now())) {
+              workoutDays.add("Today");
+            } else {
+              workoutDays.add(DateFormat('E, d MMM').format(cur));
+            }
+            idx == activeWorkoutDays.length - 1 ? idx = 0 : idx++;
+            break;
+          } else {
+            if (idx == activeWorkoutDays.length - 1) {
+              idx = 0;
+              cur = cur.add(const Duration(days: 1));
+            } else {
+              idx++;
+            }
+          }
+        }
+      }
+      for (int i = 0; i < counter; i++) {
+        while (workoutDays.length != workoutsBox.length) {
+          if (DateFormat('E').format(cur) == activeWorkoutDays[idx]) {
+            workoutDays.add(DateFormat('E, d MMM').format(cur));
+            idx == activeWorkoutDays.length - 1 ? idx = 0 : idx++;
+            break;
+          } else {
+            cur = cur.add(const Duration(days: 1));
+          }
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(builder: (context, themeProvider, child) {
@@ -94,7 +164,9 @@ class HomeState extends State<Home> {
           ],
         ),
         body: Consumer<HomeProvider>(builder: (context, homeProvider, child) {
+          workoutDaysIdx = -1;
           counter = counterBox.getAt(0);
+          buildWorkoutDays(counter);
           return Container(
             padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
             child: ListView(scrollDirection: Axis.vertical, children: <Widget>[
@@ -155,6 +227,7 @@ class HomeState extends State<Home> {
   }
 
   Widget buildTile(int i) {
+    workoutDaysIdx++;
     return Column(children: <Widget>[
       GestureDetector(
           onTap: () {
@@ -267,16 +340,29 @@ class HomeState extends State<Home> {
               alignment: Alignment.topLeft,
               child: Column(
                 children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(workoutsBox.getAt(i)!.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 17,
-                          color: globals.greyColor,
-                        )),
-                  ),
+                  Row(children: [
+                    Expanded(
+                        child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(workoutsBox.getAt(i)!.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  color: globals.greyColor,
+                                )))),
+                    Expanded(
+                        child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(workoutDays[workoutDaysIdx],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 17,
+                            color: globals.greyColor,
+                          )),
+                    )),
+                  ]),
                   const Divider(height: 15, color: Colors.transparent),
                   Column(children: [
                     for (int j = 0;

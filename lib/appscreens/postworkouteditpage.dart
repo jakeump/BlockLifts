@@ -7,6 +7,7 @@ import 'package:blocklifts/classes/indivworkout.dart';
 import 'package:blocklifts/appscreens/postworkoutnotespage.dart';
 import 'package:blocklifts/providers/calendarprovider.dart';
 import 'package:blocklifts/providers/progressprovider.dart';
+import 'package:blocklifts/providers/homeprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
@@ -711,6 +712,11 @@ class PostWorkoutEditState extends State<PostWorkoutEditPage> {
                                                     context,
                                                     listen: false);
                                             calendarProvider.updateCalendar();
+                                            var homeProvider =
+                                                Provider.of<HomeProvider>(
+                                                    context,
+                                                    listen: false);
+                                            homeProvider.updateHome();
                                             Navigator.of(context).pop();
                                             Navigator.of(context).pop();
                                           },

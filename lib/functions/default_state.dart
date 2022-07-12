@@ -170,6 +170,16 @@ void defaultState() async {
   breakStartTimeBox.deleteAll(breakStartTimeBox.keys);
   breakStartTimeBox.add(DateTime.now());
 
+  Box<bool> scheduleBox = Hive.box<bool>('scheduleBox');
+  scheduleBox.deleteAll(scheduleBox.keys);
+  scheduleBox.add(false);
+  scheduleBox.add(true);
+  scheduleBox.add(false);
+  scheduleBox.add(true);
+  scheduleBox.add(false);
+  scheduleBox.add(true);
+  scheduleBox.add(false);
+
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('resetToDefault', false);
 }

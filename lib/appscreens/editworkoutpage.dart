@@ -322,6 +322,12 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                 },
               ),
             ),
+                      Divider(
+              height: 10,
+              thickness: 1,
+              color: globals.dividerColor,
+              indent: 10,
+              endIndent: 10),
             SizedBox(
               width: double.infinity,
               child: TextButton(

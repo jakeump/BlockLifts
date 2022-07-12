@@ -77,6 +77,9 @@ class TimerState extends State<TimerPage> {
         output += '${times[times.length - 1] ~/ 60}min ${times[times.length - 1] % 60}s';
       }
     }
+    if (output.isEmpty) {
+      output = "No timers";
+    }
     return output;
   }
 

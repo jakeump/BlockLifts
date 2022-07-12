@@ -40,4 +40,5 @@ Future<void> initializeHive() async {
   await Hive.openBox<DateTime>('workoutStartTimeBox');
   await Hive.openBox<DateTime>('breakStartTimeBox');
   await Hive.openBox<int>('indexBox'); // workout index, exercise index, set index
+  await Hive.openBox<bool>('scheduleBox'); // days of week, starting at sunday
 }

@@ -964,7 +964,12 @@ class EditExercisePageState extends State<EditExercisePage> {
                 ),
               ]),
             )),
-        const SizedBox(height: 5),
+          Divider(
+              height: 10,
+              thickness: 1,
+              color: globals.dividerColor,
+              indent: 10,
+              endIndent: 10),
         TextButton(
           style: TextButton.styleFrom(
               primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),

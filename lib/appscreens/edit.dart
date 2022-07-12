@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blocklifts/classes/workout.dart';
 import 'package:blocklifts/appscreens/editworkoutpage.dart';
+import 'package:blocklifts/appscreens/schedulepage.dart';
 import 'package:blocklifts/globals.dart' as globals;
 
 class Edit extends StatefulWidget {
@@ -14,12 +15,30 @@ class EditState extends State<Edit> {
   final _myController = TextEditingController();
   late final Box<Workout> workoutsBox;
   late final Box<int> counterBox;
+  late final Box<bool> scheduleBox;
 
   @override
   void initState() {
     super.initState();
     counterBox = Hive.box<int>('counterBox');
     workoutsBox = Hive.box<Workout>('workoutsBox');
+    scheduleBox = Hive.box<bool>('scheduleBox');
+  }
+
+  String scheduleString() {
+    List<String> days = ['Sun, ', 'Mon, ', 'Tue, ', 'Wed, ', 'Thu, ', 'Fri, ', 'Sat, '];
+    String scheduleString = "";
+    for (int i = 0; i < 7; i++) {
+      if (scheduleBox.getAt(i)!) {
+        scheduleString += days[i];
+      }
+    }
+    if (scheduleString.isEmpty) {
+      scheduleString = "No schedule";
+    } else {
+      scheduleString = scheduleString.substring(0, scheduleString.length - 2);
+    }
+    return scheduleString;
   }
 
   @override
@@ -185,7 +204,51 @@ class EditState extends State<Edit> {
               },
             ),
           ),
-          const Divider(height: 20, color: Colors.transparent),
+          Divider(
+              height: 10,
+              thickness: 1,
+              color: globals.dividerColor,
+              indent: 10,
+              endIndent: 10),
+          TextButton(
+            style: TextButton.styleFrom(
+                primary: Colors.white,
+                textStyle: const TextStyle(fontSize: 16)),
+            child: Container(
+              padding: const EdgeInsets.only(left: 20),
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Column(children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text("Schedule",
+                          style: TextStyle(color: globals.textColor)),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(scheduleString(),
+                              style: TextStyle(color: globals.greyColor))
+                    ),
+                  ]),
+                ),
+              ]),
+            ),
+            onPressed: () {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(
+                      builder: (context) => const SchedulePage()))
+                  .then((value) {
+                setState(() {});
+              });
+            },
+          ),
+          Divider(
+              height: 10,
+              thickness: 1,
+              color: globals.dividerColor,
+              indent: 10,
+              endIndent: 10),
           if (workoutsBox.isNotEmpty)
             SizedBox(
               width: double.infinity,
