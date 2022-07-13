@@ -105,17 +105,22 @@ class HomeState extends State<Home> {
           cur = DateTime.now().add(const Duration(days: 1));
         }
       }
-      int idx = 0;
+      // workout in progress
       if (boolBox.getAt(9)!) {
         workoutDays.add("Today");
         cur = DateTime.now().add(const Duration(days: 1));
       }
+      int idx = 0;
       for (int i = counter; i < workoutsBox.length; i++) {
         while (workoutDays.length != workoutsBox.length - counter) {
           if (DateFormat('E').format(cur) == activeWorkoutDays[idx]) {
             if (DateFormat('E, d MMM yyyy').format(cur) ==
                 DateFormat('E, d MMM yyyy').format(DateTime.now())) {
               workoutDays.add("Today");
+            } else if (DateFormat('E, d MMM yyyy').format(cur) ==
+                DateFormat('E, d MMM yyyy')
+                    .format(DateTime.now().add(const Duration(days: 1)))) {
+              workoutDays.add("Tomorrow");
             } else {
               workoutDays.add(DateFormat('E, d MMM').format(cur));
             }
@@ -137,6 +142,10 @@ class HomeState extends State<Home> {
             if (DateFormat('E, d MMM yyyy').format(cur) ==
                 DateFormat('E, d MMM yyyy').format(DateTime.now())) {
               workoutDays.add("Today");
+            } else if (DateFormat('E, d MMM yyyy').format(cur) ==
+                DateFormat('E, d MMM yyyy')
+                    .format(DateTime.now().add(const Duration(days: 1)))) {
+              workoutDays.add("Tomorrow");
             } else {
               workoutDays.add(DateFormat('E, d MMM').format(cur));
             }
