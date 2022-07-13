@@ -758,7 +758,7 @@ class IncrementsPageState extends State<IncrementsPage> {
                           children: <Widget>[
                         SizedBox(
                             height: 120,
-                            width: 60,
+                            width: 70,
                             child: CupertinoPicker(
                               scrollController: controller,
                               looping: true,
@@ -879,7 +879,7 @@ class IncrementsPageState extends State<IncrementsPage> {
                         const SizedBox(width: 5),
                         SizedBox(
                             height: 120,
-                            width: 60,
+                            width: 80,
                             child: CupertinoPicker(
                               scrollController: controller,
                               looping: true,

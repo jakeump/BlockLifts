@@ -722,7 +722,7 @@ class WorkoutPageState extends State<WorkoutPage> {
                                                                           height:
                                                                               120,
                                                                           width:
-                                                                              80,
+                                                                              85,
                                                                           child:
                                                                               CupertinoPicker(
                                                                             scrollController:

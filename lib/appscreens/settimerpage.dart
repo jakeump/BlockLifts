@@ -207,11 +207,10 @@ class SetTimerState extends State<SetTimerPage> {
                                         children: mins,
                                       )),
                                   const SizedBox(
-                                    width: 40,
                                     height: 40,
                                     child: Align(
                                       alignment: Alignment.topCenter,
-                                      child: Text("min",
+                                      child: Text("min ",
                                           style: TextStyle(
                                             fontSize: 14,
                                           )),
@@ -249,7 +248,6 @@ class SetTimerState extends State<SetTimerPage> {
                                         children: secs,
                                       )),
                                   const SizedBox(
-                                    width: 40,
                                     height: 40,
                                     child: Align(
                                       alignment: Alignment.topCenter,

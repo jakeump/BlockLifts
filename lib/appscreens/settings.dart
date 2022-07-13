@@ -557,6 +557,7 @@ class SettingsState extends State<Settings> {
               padding: const EdgeInsets.all(10),
               child: Row(children: <Widget>[
                 Expanded(
+                  flex: 2,
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text("Keep Screen Awake",
