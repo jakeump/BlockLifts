@@ -373,6 +373,7 @@ class HomeState extends State<Home> {
                 children: [
                   Row(children: [
                     Expanded(
+                        flex: 2,
                         child: Align(
                             alignment: Alignment.centerLeft,
                             child: Text(workoutsBox.getAt(i)!.name,
@@ -402,6 +403,7 @@ class HomeState extends State<Home> {
                       Column(children: <Widget>[
                         Row(children: <Widget>[
                           Expanded(
+                            flex: 2,
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child:

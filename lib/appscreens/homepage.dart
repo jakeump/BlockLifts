@@ -130,7 +130,7 @@ class HomePageState extends State<HomePage> {
           ),
           child: Scaffold(
               body: BottomNavLayout(
-            savePageState: true,
+            //savePageState: true,
             pages: [
               (_) => const Home(),
               (_) => const History(),
