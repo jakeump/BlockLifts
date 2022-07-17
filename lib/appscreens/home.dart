@@ -203,6 +203,7 @@ class HomeState extends State<Home> {
             child: ListView(scrollDirection: Axis.vertical, children: <Widget>[
               for (int i = counter; i < workoutsBox.length; i++) buildTile(i),
               for (int i = 0; i < counter; i++) buildTile(i),
+              const SizedBox(height: 100),
             ]),
           );
         }),

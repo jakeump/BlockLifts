@@ -26,7 +26,15 @@ class EditState extends State<Edit> {
   }
 
   String scheduleString() {
-    List<String> days = ['Sun, ', 'Mon, ', 'Tue, ', 'Wed, ', 'Thu, ', 'Fri, ', 'Sat, '];
+    List<String> days = [
+      'Sun, ',
+      'Mon, ',
+      'Tue, ',
+      'Wed, ',
+      'Thu, ',
+      'Fri, ',
+      'Sat, '
+    ];
     String scheduleString = "";
     for (int i = 0; i < 7; i++) {
       if (scheduleBox.getAt(i)!) {
@@ -154,6 +162,14 @@ class EditState extends State<Edit> {
                               else if (value == 'delete') {
                                 setState(() {
                                   workoutsBox.deleteAt(index);
+                                  if (counterBox.getAt(0) != 0) {
+                                    counterBox.putAt(
+                                        0, counterBox.getAt(0)! - 1);
+                                  }
+                                  if (counterBox.getAt(1) != 0) {
+                                    counterBox.putAt(
+                                        1, counterBox.getAt(1)! - 1);
+                                  }
                                 });
                               }
                             },
@@ -226,10 +242,9 @@ class EditState extends State<Edit> {
                     ),
                     const SizedBox(height: 8),
                     Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(scheduleString(),
-                              style: TextStyle(color: globals.greyColor))
-                    ),
+                        alignment: Alignment.centerLeft,
+                        child: Text(scheduleString(),
+                            style: TextStyle(color: globals.greyColor))),
                   ]),
                 ),
               ]),
