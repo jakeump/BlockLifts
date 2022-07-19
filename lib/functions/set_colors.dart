@@ -35,7 +35,7 @@ void setColors() {
     globals.navIconColor = const Color.fromARGB(255, 87, 87, 87);
     globals.activeSwitchColor = const Color.fromARGB(255, 49, 48, 48);
   }
-  // try integrating this lower in widget hierarchy. under materialapp
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
   ));
