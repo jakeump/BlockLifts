@@ -111,6 +111,9 @@ class MyApp extends StatelessWidget {
                 dialogTheme: DialogTheme(
                   backgroundColor: globals.tileColor,
                 ),
+                appBarTheme: AppBarTheme(
+                  surfaceTintColor: globals.backColor,
+                ),
                 outlinedButtonTheme: OutlinedButtonThemeData(
                   style: OutlinedButton.styleFrom(
                       side: const BorderSide(
@@ -130,6 +133,9 @@ class MyApp extends StatelessWidget {
                 brightness: Brightness.dark,
                 dialogTheme: DialogTheme(
                   backgroundColor: globals.tileColor,
+                ),
+                appBarTheme: AppBarTheme(
+                  surfaceTintColor: globals.backColor,
                 ),
                 outlinedButtonTheme: OutlinedButtonThemeData(
                   style: OutlinedButton.styleFrom(
