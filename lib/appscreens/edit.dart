@@ -337,6 +337,7 @@ class EditState extends State<Edit> {
                 borderRadius: BorderRadius.all(Radius.circular(50))),
           ),
           onPressed: () {
+            _myController.text = "";
             showDialog(
                 context: context,
                 builder: (context) => Dialog(
@@ -418,14 +419,12 @@ class EditState extends State<Edit> {
                                               setState(() {});
                                             });
                                           } else {
-                                            _myController.text = "";
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(const SnackBar(
                                               content: Text(
                                                   "Workout already exists"),
                                               duration: Duration(seconds: 2),
                                             ));
-                                            Navigator.of(context).pop();
                                           }
                                         }),
                                   ]),

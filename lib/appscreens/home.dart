@@ -64,7 +64,7 @@ class HomeState extends State<Home> {
 
   Widget buildWorkoutTime() {
     String twoDigits(int n) => n.toString();
-    final minutes = twoDigits(globals.workoutDuration.inMinutes.remainder(60));
+    final minutes = twoDigits(globals.workoutDuration.inMinutes);
     return Text(
       "${minutes}min",
       style: const TextStyle(fontSize: 12),

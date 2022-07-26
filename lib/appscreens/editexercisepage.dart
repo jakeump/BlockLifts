@@ -964,12 +964,12 @@ class EditExercisePageState extends State<EditExercisePage> {
                 ),
               ]),
             )),
-          Divider(
-              height: 10,
-              thickness: 1,
-              color: globals.dividerColor,
-              indent: 10,
-              endIndent: 10),
+        Divider(
+            height: 10,
+            thickness: 1,
+            color: globals.dividerColor,
+            indent: 10,
+            endIndent: 10),
         TextButton(
           style: TextButton.styleFrom(
               primary: Colors.white, textStyle: const TextStyle(fontSize: 16)),
@@ -984,6 +984,7 @@ class EditExercisePageState extends State<EditExercisePage> {
           onPressed: () {
             setState(() =>
                 _myController.text = exercisesBox.getAt(widget.index)!.name);
+            String old = _myController.text;
             showDialog(
                 context: context,
                 builder: (context) => Dialog(
@@ -1044,48 +1045,73 @@ class EditExercisePageState extends State<EditExercisePage> {
                                       ),
                                       child: const Text("OK"),
                                       onPressed: () {
-                                        setState(() {
-                                          String oldName = exercisesBox
-                                              .getAt(widget.index)!
-                                              .name;
-
-                                          final tempEx =
-                                              Hive.box<Exercise>('exercisesBox')
-                                                  .getAt(widget.index);
-                                          tempEx!.name = _myController.text;
-                                          tempEx.save();
-
-                                          // despite Workout class containing list of Exercises,
-                                          // updating Exercise in exercisesBox does not update
-                                          // the list of exercises in each workout, so we must
-                                          // loop through all workouts and update accordingly
+                                        bool duplicate = false;
+                                        if (_myController.text != old) {
                                           for (int i = 0;
-                                              i < workoutsBox.length;
+                                              i < exercisesBox.length;
                                               i++) {
-                                            final tempWorkout =
-                                                Hive.box<Workout>('workoutsBox')
-                                                    .getAt(i);
-                                            for (int j = 0;
-                                                j <
-                                                    tempWorkout!
-                                                        .exercises.length;
-                                                j++) {
-                                              if (tempWorkout
-                                                      .exercises[j].name ==
-                                                  oldName) {
-                                                tempWorkout.exercises[j].name =
-                                                    _myController.text;
-                                              }
-                                              tempWorkout.save();
+                                            if (_myController.text ==
+                                                exercisesBox.getAt(i)!.name) {
+                                              duplicate = true;
                                             }
                                           }
-                                        });
-                                        var progressProvider =
-                                            Provider.of<ProgressProvider>(
-                                                context,
-                                                listen: false);
-                                        progressProvider.updateProgress();
-                                        Navigator.of(context).pop();
+                                          if (duplicate) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                  content: Text(
+                                                      "Exercise already exists"),
+                                                  duration:
+                                                      Duration(seconds: 2)),
+                                            );
+                                          }
+                                        }
+                                        if (!duplicate) {
+                                          setState(() {
+                                            String oldName = exercisesBox
+                                                .getAt(widget.index)!
+                                                .name;
+
+                                            final tempEx = Hive.box<Exercise>(
+                                                    'exercisesBox')
+                                                .getAt(widget.index);
+                                            tempEx!.name = _myController.text;
+                                            tempEx.save();
+
+                                            // despite Workout class containing list of Exercises,
+                                            // updating Exercise in exercisesBox does not update
+                                            // the list of exercises in each workout, so we must
+                                            // loop through all workouts and update accordingly
+                                            for (int i = 0;
+                                                i < workoutsBox.length;
+                                                i++) {
+                                              final tempWorkout =
+                                                  Hive.box<Workout>(
+                                                          'workoutsBox')
+                                                      .getAt(i);
+                                              for (int j = 0;
+                                                  j <
+                                                      tempWorkout!
+                                                          .exercises.length;
+                                                  j++) {
+                                                if (tempWorkout
+                                                        .exercises[j].name ==
+                                                    oldName) {
+                                                  tempWorkout
+                                                          .exercises[j].name =
+                                                      _myController.text;
+                                                }
+                                                tempWorkout.save();
+                                              }
+                                            }
+                                          });
+                                          var progressProvider =
+                                              Provider.of<ProgressProvider>(
+                                                  context,
+                                                  listen: false);
+                                          progressProvider.updateProgress();
+                                          Navigator.of(context).pop();
+                                        }
                                       },
                                     ),
                                   ]),

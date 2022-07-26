@@ -322,12 +322,12 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                 },
               ),
             ),
-                      Divider(
-              height: 10,
-              thickness: 1,
-              color: globals.dividerColor,
-              indent: 10,
-              endIndent: 10),
+            Divider(
+                height: 10,
+                thickness: 1,
+                color: globals.dividerColor,
+                indent: 10,
+                endIndent: 10),
             SizedBox(
               width: double.infinity,
               child: TextButton(
@@ -343,6 +343,7 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                 onPressed: () {
                   setState(() => _myController.text =
                       workoutsBox.getAt(widget.index)!.name);
+                  String old = _myController.text;
                   showDialog(
                       context: context,
                       builder: (context) => Dialog(
@@ -407,16 +408,41 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                                             ),
                                             child: const Text("OK"),
                                             onPressed: () {
-                                              setState(() {
-                                                final tempWorkout =
-                                                    Hive.box<Workout>(
-                                                            'workoutsBox')
-                                                        .getAt(widget.index);
-                                                tempWorkout?.name =
-                                                    _myController.text;
-                                                tempWorkout?.save();
-                                              });
-                                              Navigator.of(context).pop();
+                                              bool duplicate = false;
+                                              if (_myController.text != old) {
+                                                for (int i = 0;
+                                                    i < workoutsBox.length;
+                                                    i++) {
+                                                  if (_myController.text ==
+                                                      workoutsBox
+                                                          .getAt(i)!
+                                                          .name) {
+                                                    duplicate = true;
+                                                  }
+                                                }
+                                                if (duplicate) {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                        content: Text(
+                                                            "Workout already exists"),
+                                                        duration: Duration(
+                                                            seconds: 2)),
+                                                  );
+                                                }
+                                              }
+                                              if (!duplicate) {
+                                                setState(() {
+                                                  final tempWorkout =
+                                                      Hive.box<Workout>(
+                                                              'workoutsBox')
+                                                          .getAt(widget.index);
+                                                  tempWorkout?.name =
+                                                      _myController.text;
+                                                  tempWorkout?.save();
+                                                });
+                                                Navigator.of(context).pop();
+                                              }
                                             },
                                           ),
                                         ]),
