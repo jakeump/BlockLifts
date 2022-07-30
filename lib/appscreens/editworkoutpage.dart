@@ -420,18 +420,17 @@ class EditWorkoutPageState extends State<EditWorkoutPage> {
                                                     duplicate = true;
                                                   }
                                                 }
-                                                if (duplicate) {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    const SnackBar(
-                                                        content: Text(
-                                                            "Workout already exists"),
-                                                        duration: Duration(
-                                                            seconds: 2)),
-                                                  );
-                                                }
                                               }
-                                              if (!duplicate) {
+                                              if (duplicate) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                      content: Text(
+                                                          "Workout already exists"),
+                                                      duration:
+                                                          Duration(seconds: 2)),
+                                                );
+                                              } else if (!duplicate) {
                                                 setState(() {
                                                   final tempWorkout =
                                                       Hive.box<Workout>(

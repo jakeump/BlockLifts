@@ -1055,18 +1055,18 @@ class EditExercisePageState extends State<EditExercisePage> {
                                               duplicate = true;
                                             }
                                           }
-                                          if (duplicate) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                  content: Text(
-                                                      "Exercise already exists"),
-                                                  duration:
-                                                      Duration(seconds: 2)),
-                                            );
-                                          }
                                         }
-                                        if (!duplicate) {
+                                        if (duplicate) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content: Text(
+                                                    "Exercise already exists"),
+                                                duration:
+                                                    Duration(seconds: 2)),
+                                          );
+                                        }
+                                        else if (!duplicate) {
                                           setState(() {
                                             String oldName = exercisesBox
                                                 .getAt(widget.index)!
