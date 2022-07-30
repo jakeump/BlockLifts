@@ -31,10 +31,11 @@ Data is stored locally using Hive NoSQL.
 
 ## Preview
 
-![SmartSelect_20220712-192718](https://user-images.githubusercontent.com/87464153/178638300-3596b24d-a429-4e9f-974f-2ba290a25531.jpg)
-![SmartSelect_20220712-192707](https://user-images.githubusercontent.com/87464153/178638515-57cc0879-30cc-4fdc-b7e0-e0db10c1ad3f.jpg)
-![SmartSelect_20220712-192544](https://user-images.githubusercontent.com/87464153/178638391-ed94cdf5-25d8-4ab9-9294-9015ed121429.jpg)
-![SmartSelect_20220712-192533](https://user-images.githubusercontent.com/87464153/178638353-617a7eff-b84f-42b4-b39f-c6ede9aaec56.jpg)
-![SmartSelect_20220712-192123](https://user-images.githubusercontent.com/87464153/178638414-cfd861b3-c94d-4bc6-a524-7ca8c2e543d4.jpg)
-![SmartSelect_20220712-193003](https://user-images.githubusercontent.com/87464153/178638426-544c61bc-08bb-4638-a0d8-d8f2d6c60197.jpg)
-![SmartSelect_20220712-193023](https://user-images.githubusercontent.com/87464153/178638432-49b43f77-699f-4b7f-8fea-b685487d4629.jpg)
+![1](https://user-images.githubusercontent.com/87464153/181899022-82877c65-e52c-43eb-8ae9-d9be07994faf.jpg)
+![2](https://user-images.githubusercontent.com/87464153/181899042-3708e5c1-73e8-4c18-8b11-d18dc6d88b60.png)
+![3](https://user-images.githubusercontent.com/87464153/181899050-746ff94b-89eb-45f5-8a2d-ed4e4ad6f061.png)
+![4](https://user-images.githubusercontent.com/87464153/181899060-86038af7-67c5-438b-b5fd-c6fec2515157.png)
+![5](https://user-images.githubusercontent.com/87464153/181899068-c8399cd0-cccb-4f1c-a8e3-687939e621ca.png)
+![6](https://user-images.githubusercontent.com/87464153/181899076-cd265729-f2ad-40b7-a653-192de0f2ab45.png)
+![7](https://user-images.githubusercontent.com/87464153/181899082-02ccccac-8a4f-4c6a-a623-2839e46490c0.png)
+![8](https://user-images.githubusercontent.com/87464153/181899087-8860c15b-f6f7-443c-a286-6687aae6bd44.png)
