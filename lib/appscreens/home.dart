@@ -374,27 +374,24 @@ class HomeState extends State<Home> {
                 children: [
                   Row(children: [
                     Expanded(
-                        flex: 2,
+                        flex: 3,
                         child: Align(
                             alignment: Alignment.centerLeft,
                             child: Text(workoutsBox.getAt(i)!.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 17,
                                   color: globals.greyColor,
                                 )))),
                     Expanded(
+                        flex: 2,
                         child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(workoutDays[workoutDaysIdx],
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 17,
-                            color: globals.greyColor,
-                          )),
-                    )),
+                          alignment: Alignment.centerRight,
+                          child: Text(workoutDays[workoutDaysIdx],
+                              style: TextStyle(
+                                fontSize: 17,
+                                color: globals.greyColor,
+                              )),
+                        )),
                   ]),
                   const Divider(height: 15, color: Colors.transparent),
                   Column(children: [

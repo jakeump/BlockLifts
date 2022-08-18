@@ -597,7 +597,7 @@ class SettingsState extends State<Settings> {
             child: AboutListTile(
               applicationIcon:
                   const SizedBox(width: 50, height: 50, child: AppIconImage()),
-              applicationVersion: "Version 1.0.0",
+              applicationVersion: "Version 1.0.1",
               aboutBoxChildren: [
                 GestureDetector(
                     child: const Text("GitHub",
