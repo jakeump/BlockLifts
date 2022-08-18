@@ -1,6 +1,8 @@
 # BlockLifts Weightlifting App
 
-A fully-customizable weightlifting tracking app
+A fully-customizable weightlifting tracking app. Now published on the Play Store!
+
+[<img alt="alt_text" width="15%" src="https://github.com/jakeump/BlockLifts/blob/gh-pages/src/img/play_logo_lg.png" />](https://play.google.com/store/apps/details?id=com.blocklifts.app)
 
 ## Features
 
